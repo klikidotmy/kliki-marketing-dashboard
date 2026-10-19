@@ -43,6 +43,14 @@ Semua nilai ini dalam `scripts/config.mjs`.
 2. **Hidupkan GitHub Pages:** Settings → Pages → Source: *Deploy from a branch* → `main` / `/ (root)`.
 3. **Hidupkan Action:** tab Actions → *Kemas kini data* → *Run workflow* sekali untuk tarik data live pertama.
 
+## Pasang sebagai app dalam phone
+
+Dashboard ni ialah PWA (web app yang boleh dipasang):
+- **iPhone (Safari):** buka link GitHub Pages → butang Share → *Add to Home Screen*.
+- **Android (Chrome):** buka link → menu ⋮ → *Install app* / *Add to Home screen*.
+
+App akan buka skrin penuh dengan ikon KLIKI, boleh dibuka offline (tunjuk data terakhir), dan ambil data terbaru setiap kali dibuka bila ada internet.
+
 ## Bila buka tab bulan baru (contoh NOV'26)
 
 Buka `scripts/config.mjs`, tambah satu baris dalam `contentMonths`:
