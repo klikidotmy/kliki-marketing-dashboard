@@ -1,7 +1,7 @@
 // Service worker: app boleh dibuka laju & offline. Data sentiasa cuba ambil yang terbaru dulu.
-const VERSION = 'kliki-v1';
+const VERSION = 'kliki-v2';
 const SHELL = ['./', 'index.html', 'assets/style.css', 'assets/app.js', 'manifest.webmanifest',
-  'assets/icons/icon-192.png', 'assets/icons/icon-512.png', 'assets/icons/apple-touch-icon.png'];
+  'assets/icons/icon-192.png', 'assets/icons/icon-512.png', 'assets/icons/apple-touch-icon.png', 'assets/kliki-logo-white.png'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));

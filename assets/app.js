@@ -76,7 +76,7 @@
   const ico = (name, cls = 'ico') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name] || ''}</svg>`;
   const SECTIONS = ['overview', 'category', 'trend', 'platform', 'content', 'funnel', 'summary', 'outlet'];
   const CATS = ['phone', 'repair', 'cc'];
-  const CAT_COLOR = { phone: '#1565ff', repair: '#0a2e8a', cc: '#16a34a', lain: '#6b7690' };
+  const CAT_COLOR = { phone: '#046ad8', repair: '#0a2e8a', cc: '#16a34a', lain: '#6b7690' };
   const PLAT = [['tiktok', 'TikTok', 'var(--c-tt)', 'TT'], ['instagram', 'Instagram', 'var(--c-ig)', 'IG'], ['facebook', 'Facebook', 'var(--c-fb)', 'FB']];
 
   // ---------- helpers ----------
