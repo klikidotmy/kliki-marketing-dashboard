@@ -80,3 +80,19 @@ export const SUBJECT_TO_CATEGORY = { 'phone': 'phone', 'repair': 'repair', 'trad
 
 // Status pace
 export const STATUS = { green: 1.0, yellow: 0.85 };
+
+// Jenis content -> peringkat funnel (KLIKI Content System)
+export const TYPE_TO_FUNNEL = {
+  'educational': 'TOFU', 'trend': 'TOFU',
+  'review': 'MOFU', 'pov customer': 'MOFU',
+  'promo': 'BOFU', 'announcement': 'NA',
+};
+
+// Pelan tindakan bulan depan. Kunci = bulan pelan itu untuk ('YYYY-MM').
+// Dashboard bulan X memaparkan pelan untuk bulan X+1. Tulis satu ayat setiap item.
+export const ACTION_PLAN = {
+  // '2026-11': [
+  //   'Naikkan content Trade-in & Buyback kepada 10 post untuk tolak lead CC',
+  //   'Outlet isi data lead/walk-in setiap hari sebelum 10 pagi',
+  // ],
+};

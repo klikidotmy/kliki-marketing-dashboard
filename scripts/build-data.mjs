@@ -7,7 +7,7 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  SHEETS, OUTLETS, HQ_LINKTREE, LINKTREE_YEAR, START_MONTH, LABEL_DAYS, SUBJECT_TO_CATEGORY, STATUS,
+  SHEETS, OUTLETS, HQ_LINKTREE, LINKTREE_YEAR, START_MONTH, LABEL_DAYS, SUBJECT_TO_CATEGORY, STATUS, TYPE_TO_FUNNEL, ACTION_PLAN,
 } from './config.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -199,6 +199,7 @@ function parseContent(rows, ym) {
     posts.push({
       date: date(rawDate), outlet, subject: cat, category: SUBJECT_TO_CATEGORY[norm(cat)] ?? 'lain',
       type: c.type >= 0 ? String(r[c.type] ?? '').trim() || null : null,
+      stage: c.type >= 0 ? (TYPE_TO_FUNNEL[norm(r[c.type])] ?? null) : null,
       sub: c.sub >= 0 ? String(r[c.sub] ?? '').trim() : '',
       views: num(r[c.view]), tier: String(r[c.tier] ?? '').trim(),
     });
@@ -317,14 +318,16 @@ function monthPlatforms(ins, ym) {
 function monthContent(posts) {
   if (!posts) return null;
   const byCat = { phone: { posts: 0, views: 0 }, repair: { posts: 0, views: 0 }, cc: { posts: 0, views: 0 }, lain: { posts: 0, views: 0 } };
-  const bySubject = {}, byType = {}, byOutlet = {};
+  const bySubject = {}, byType = {}, byOutlet = {}, byStage = {};
   for (const p of posts) {
     const add = (obj, k) => { obj[k] ??= { posts: 0, views: 0 }; obj[k].posts++; obj[k].views += p.views ?? 0; };
     add(byCat, p.category); add(bySubject, p.subject); add(byOutlet, p.outlet || '—');
     if (p.type) add(byType, p.type);
+    if (p.stage) add(byStage, p.stage);
   }
-  const top = [...posts].sort((a, b) => (b.views ?? 0) - (a.views ?? 0)).slice(0, 5);
-  return { posts: posts.length, views: sum(posts.map((p) => p.views)), byCat, bySubject, byType: Object.keys(byType).length ? byType : null, byOutlet, top };
+  const top = [...posts].sort((a, b) => (b.views ?? 0) - (a.views ?? 0)).slice(0, 10);
+  return { posts: posts.length, views: sum(posts.map((p) => p.views)), byCat, bySubject, byType: Object.keys(byType).length ? byType : null,
+    byStage: Object.keys(byStage).length ? byStage : null, byOutlet, top };
 }
 
 // ---------- main ----------
@@ -372,6 +375,52 @@ for (const ym of monthsBetween(START_MONTH, nowMonth)) {
   };
   if (!lt && ym >= '2026-03') warn('linktree', `${ym}: data Linktree belum diisi.`);
   months[ym] = { ...leads, platforms, linktree: lt, content: cont, funnel };
+}
+
+// ---------- rumusan automatik (berstruktur; UI terjemah ikut bahasa) ----------
+const prevYm = (ym) => { let [y, m] = ym.split('-').map(Number); m--; if (!m) { m = 12; y--; } return `${y}-${String(m).padStart(2, '0')}`; };
+const nextYm = (ym) => { let [y, m] = ym.split('-').map(Number); m++; if (m > 12) { m = 1; y++; } return `${y}-${String(m).padStart(2, '0')}`; };
+for (const [ym, M] of Object.entries(months)) {
+  const P = months[prevYm(ym)];
+  const hi = [], lo = [];
+  const catRank = CATS.map((k) => ({ cat: k, r: M.company.lead[k].paceRatio ?? 0, pct: M.company.lead[k].pct, gap: M.company.lead[k].gap }))
+    .sort((a, b) => b.r - a.r);
+  const best = catRank[0], worst = catRank[catRank.length - 1];
+  if (best.r > 0) hi.push({ k: 'bestCat', cat: best.cat, pace: best.r, pct: best.pct });
+  if (worst.r < 1) lo.push({ k: 'worstCat', cat: worst.cat, pace: worst.r, gap: worst.gap });
+  if (M.isCurrent) {
+    for (const t of ['lead', 'walkin']) {
+      const m = M.company[t].total;
+      if (m.paceRatio !== null && m.paceRatio < STATUS.yellow) lo.push({ k: 'behindPace', type: t, pace: m.paceRatio, need: m.needPerDay });
+      else if (m.paceRatio !== null && m.paceRatio >= 1) hi.push({ k: 'onPace', type: t, pace: m.paceRatio });
+    }
+  } else if (P && !P.isCurrent) {
+    const mom = [
+      ['lead', M.funnel.leads, P.funnel.leads], ['walkin', M.funnel.walkins, P.funnel.walkins],
+      ['views', M.funnel.views, P.funnel.views], ['profile', M.funnel.profileVisits, P.funnel.profileVisits],
+      ['wa', M.funnel.waOutlet, P.funnel.waOutlet],
+    ];
+    for (const [metric, a, b] of mom) {
+      if (a === null || b === null || !b) continue;
+      const ch = (a - b) / b;
+      if (ch >= 0.05) hi.push({ k: 'momUp', metric, ch, from: b, to: a });
+      else if (ch <= -0.05) lo.push({ k: 'momDown', metric, ch, from: b, to: a });
+    }
+    const c1 = M.funnel.ctrProfileToLinktree, c0 = P.funnel.ctrProfileToLinktree;
+    if (c1 && c0 && c1 - c0 >= 0.01) hi.push({ k: 'ctrUp', from: c0, to: c1 });
+  }
+  if (M.content?.top?.[0]) { const t = M.content.top[0]; hi.push({ k: 'topVideo', views: t.views, subject: t.subject, outlet: t.outlet }); }
+  if (M.content && M.content.posts) {
+    const share = M.content.byCat[worst.cat].posts / M.content.posts;
+    if (share < 0.25) lo.push({ k: 'lowPosts', cat: worst.cat, posts: M.content.byCat[worst.cat].posts, share });
+  }
+  if (M.isCurrent) for (const o of OUTLETS) {
+    const r = M.outlets[o.key];
+    const gap = r.lastDate ? Math.round((new Date(today) - new Date(r.lastDate)) / 864e5) : null;
+    if (!r.lastDate || gap >= 2) lo.push({ k: 'staleOutlet', outlet: o.name, date: r.lastDate, days: gap });
+  }
+  M.insights = { highlights: hi, improve: lo };
+  M.actionPlan = { forMonth: nextYm(ym), items: ACTION_PLAN[nextYm(ym)] ?? [] };
 }
 
 const out = {

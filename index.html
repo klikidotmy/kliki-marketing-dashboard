@@ -10,102 +10,99 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<header class="top">
-  <div class="wrap top-in">
-    <div class="brand">
-      <span class="logo" aria-hidden="true">K</span>
-      <div>
-        <h1>KLIKI Marketing Dashboard</h1>
-        <p class="sub">Content → Lead → Walk-in · level company</p>
+<div class="shell">
+  <aside class="side" aria-label="Navigasi">
+    <div class="side-brand">
+      <span class="mark" aria-hidden="true">K</span>
+      <div class="side-name"><strong>KLIKI</strong><span data-i18n="brandSub"></span></div>
+    </div>
+    <nav class="nav" id="nav"></nav>
+    <div class="side-foot" id="side-foot"></div>
+  </aside>
+
+  <div class="main">
+    <header class="head">
+      <div class="head-title">
+        <h1 data-i18n="pageTitle"></h1>
+        <p id="meta" class="meta">…</p>
       </div>
-    </div>
-    <div class="controls">
-      <label for="month" class="sr">Bulan</label>
-      <select id="month"></select>
-    </div>
+      <div class="head-actions">
+        <div class="select">
+          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+          <label for="month" class="sr" data-i18n="month"></label>
+          <select id="month"></select>
+        </div>
+        <div class="seg" role="group" aria-label="Bahasa / Language">
+          <button type="button" id="lang-ms" data-lang="ms">BM</button>
+          <button type="button" id="lang-en" data-lang="en">EN</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="content">
+      <div class="alert" id="alert" hidden>
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17h.01"/></svg>
+        <div><strong id="alert-title"></strong><ul id="alert-list"></ul></div>
+      </div>
+
+      <section id="sec-overview" class="sec">
+        <div class="kpi-grid">
+          <article class="card kpi" id="kpi-lead"></article>
+          <article class="card kpi" id="kpi-walkin"></article>
+        </div>
+      </section>
+
+      <section id="sec-category" class="sec">
+        <div class="sec-head"><h2 data-i18n="secCategory"></h2><p data-i18n="secCategoryHint"></p></div>
+        <div class="cat-grid" id="cat-grid"></div>
+      </section>
+
+      <section id="sec-trend" class="sec">
+        <div class="sec-head"><h2 data-i18n="secTrend"></h2><p data-i18n="secTrendHint"></p></div>
+        <div class="trend-grid">
+          <article class="card chart-card"><div class="card-head"><h3 data-i18n="trendLeadWalk"></h3><div class="legend" id="lg-lw"></div></div><div class="chart" id="ch-lw"></div></article>
+          <article class="card chart-card"><div class="card-head"><h3 data-i18n="trendReach"></h3><div class="legend" id="lg-rc"></div></div><div class="chart" id="ch-rc"></div></article>
+        </div>
+      </section>
+
+      <section id="sec-platform" class="sec">
+        <div class="sec-head"><h2 data-i18n="secPlatform"></h2><p data-i18n="secPlatformHint"></p></div>
+        <div class="plat-grid" id="plat-grid"></div>
+      </section>
+
+      <section id="sec-content" class="sec">
+        <div class="sec-head"><h2 data-i18n="secContent"></h2><p data-i18n="secContentHint"></p></div>
+        <article class="card table-card">
+          <div class="table-scroll"><table class="tbl" id="content-table"></table></div>
+        </article>
+      </section>
+
+      <section id="sec-funnel" class="sec">
+        <div class="sec-head"><h2 data-i18n="secFunnel"></h2><p data-i18n="secFunnelHint"></p></div>
+        <div class="funnel-grid">
+          <article class="card"><div class="card-head"><h3 data-i18n="stageTitle"></h3></div><div id="stages"></div></article>
+          <article class="card"><div class="card-head"><h3 data-i18n="convTitle"></h3></div><div id="conv"></div><div class="hq" id="hq"></div></article>
+        </div>
+      </section>
+
+      <section id="sec-summary" class="sec">
+        <div class="sec-head"><h2 data-i18n="secSummary"></h2><p data-i18n="secSummaryHint"></p></div>
+        <div class="sum-grid">
+          <article class="card sum good"><div class="sum-head"><span class="badge-ico"><svg class="ico" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span><h3 data-i18n="highlights"></h3></div><ul id="sum-hi"></ul></article>
+          <article class="card sum bad"><div class="sum-head"><span class="badge-ico"><svg class="ico" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg></span><h3 data-i18n="improve"></h3></div><ul id="sum-lo"></ul></article>
+          <article class="card sum plan"><div class="sum-head"><span class="badge-ico"><svg class="ico" viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg></span><h3 id="plan-title"></h3></div><ol id="sum-plan"></ol></article>
+        </div>
+      </section>
+
+      <section id="sec-outlet" class="sec">
+        <div class="sec-head"><h2 data-i18n="secOutlet"></h2><p data-i18n="secOutletHint"></p></div>
+        <article class="card table-card"><div class="table-scroll"><table class="tbl num" id="outlet-table"></table></div></article>
+      </section>
+
+      <footer class="foot" data-i18n="footer"></footer>
+    </main>
   </div>
-</header>
-
-<main class="wrap" id="app">
-  <p class="meta" id="meta">Memuatkan data…</p>
-  <details class="warn" id="warnings" hidden>
-    <summary><span id="warn-count"></span></summary>
-    <ul id="warn-list"></ul>
-  </details>
-
-  <section id="score" aria-labelledby="h-score">
-    <div class="sec-head">
-      <h2 id="h-score">Pencapaian target company</h2>
-      <p class="hint" id="score-hint"></p>
-    </div>
-    <div class="score-grid">
-      <article class="score-card" id="card-lead"></article>
-      <article class="score-card" id="card-walkin"></article>
-    </div>
-  </section>
-
-  <section id="cats" aria-labelledby="h-cats">
-    <div class="sec-head">
-      <h2 id="h-cats">Phone · Repair · CC</h2>
-      <p class="hint">Kategori paling jauh dari target ialah fokus content bulan ini.</p>
-    </div>
-    <div class="table-wrap"><table class="cat-table" id="cat-table"></table></div>
-    <p class="note" id="cat-note"></p>
-  </section>
-
-  <section id="funnel" aria-labelledby="h-funnel">
-    <div class="sec-head">
-      <h2 id="h-funnel">Funnel: dari content ke kedai</h2>
-      <p class="hint">TikTok + Facebook + Instagram digabung. Klik WhatsApp & Lokasi dari Linktree.</p>
-    </div>
-    <div class="funnel" id="funnel-flow"></div>
-    <div class="hq" id="hq-row"></div>
-    <p class="note">Klik WhatsApp tidak sama dengan mesej dihantar, dan lead outlet juga datang dari sumber lain. Nisbah klik ke lead ialah petunjuk arah, bukan conversion sebenar.</p>
-    <h3 class="sub-h">Trend bulanan</h3>
-    <div class="trend-grid" id="trend"></div>
-  </section>
-
-  <section id="content" aria-labelledby="h-content">
-    <div class="sec-head">
-      <h2 id="h-content">Content berbanding kategori</h2>
-      <p class="hint">Log post TikTok (REPORT CONTENT DATA). Trade-in + Buyback dikira sebagai CC.</p>
-    </div>
-    <div class="content-grid" id="content-cats"></div>
-    <div class="two-col">
-      <div>
-        <h3 class="sub-h">Ikut jenis content</h3>
-        <div class="table-wrap"><table class="plain" id="type-table"></table></div>
-      </div>
-      <div>
-        <h3 class="sub-h">5 video teratas</h3>
-        <ol class="top-list" id="top-list"></ol>
-      </div>
-    </div>
-  </section>
-
-  <section id="platforms" aria-labelledby="h-plat">
-    <div class="sec-head">
-      <h2 id="h-plat">Semua platform</h2>
-      <p class="hint">Reach tidak dijumlahkan: reach harian bertindih dan akan melambung jika dicampur.</p>
-    </div>
-    <div class="table-wrap"><table class="plain num" id="plat-table"></table></div>
-    <h3 class="sub-h">View bulanan ikut platform</h3>
-    <div id="plat-chart" class="chart"></div>
-  </section>
-
-  <section id="outlets" aria-labelledby="h-out">
-    <details class="drill">
-      <summary><h2 id="h-out">Pecahan outlet</h2><span class="hint">Buka bila perlu cari outlet yang lemah</span></summary>
-      <div class="table-wrap"><table class="plain num" id="outlet-table"></table></div>
-      <p class="note">Kulim dan Kelang Lama dikira sebagai satu kedai (Kulim tutup sementara, staf pindah ke Kelang Lama dari 20/08/2026). Pendang tiada servis repair.</p>
-    </details>
-  </section>
-
-  <footer class="foot">
-    <p>Sumber: MASTER SHEET SALES OUTLET (masterFRONT), CONTENT SUBMIT (insight platform), REPORT CONTENT DATA (Linktree & log post). Target harian = target bulanan ÷ 26, untuk rujukan sahaja.</p>
-  </footer>
-</main>
-
+</div>
 <div class="tip" id="tip" role="tooltip" hidden></div>
 <script src="assets/app.js"></script>
 </body>
