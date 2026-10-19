@@ -1,77 +1,57 @@
 # KLIKI Marketing Dashboard
 
-Dashboard level company untuk pantau sama ada content marketing menolak **Lead** dan **Walk-in** ke arah target.
+Web app (PWA) untuk pantau prestasi marketing media sosial KLIKI. Data dibaca **terus dari Google Sheet** setiap kali app dibuka, jadi tiada data disimpan dalam repo ini.
 
-`Content (TikTok + FB + IG) → Profile visit → Linktree → Klik WhatsApp / Lokasi → Lead → Walk-in`
+## Sumber data
 
-## Cara ia berfungsi
+| Sheet | Tab | Digunakan untuk |
+|---|---|---|
+| CONTENT SUBMIT | Tiktok Insight, Facebook Insight, Instagram Insight | Views, engagement, followers harian |
+| CONTENT SUBMIT | Supply Video V2, Customer, Before/After, Leads, Walk-in | KPI outlet |
+| REPORT CONTENT DATA | Tab bulanan (JAN'26 … OKT'26) | Data per-post: content, bucket, outlet, tier |
+| REPORT CONTENT DATA | LINKTREE | Klik WhatsApp, lokasi, Telegram, CTR (tahun 2026) |
+| Mirror MASTER SHEET SALES OUTLET | masterFRONT (tarikh + blok lead/walk-in sahaja) | Lead & Walk-in company ikut Phone / Repair / Cash Converter |
+
+### Lead & Walk-in company (Overview, paling atas)
+- Target outlet: Lead 780 (Phone 480 / Repair 210 / CC 90), Walk-in 360 (150 / 180 / 30). Pendang tiada repair: Lead 570, Walk-in 180.
+- Target company = jumlah 4 outlet: **Lead 2,910, Walk-in 1,260**. Target harian = bulanan ÷ 26.
+- Kulim & Kelang Lama dikira satu kedai: kolum `kul` sehingga 19/08/2026, `kll` mulai 20/08/2026.
+- Jumlah dikira dari Phone + Repair + CC. Blok OVERALL dalam masterFRONT tidak dibaca (formula Lead Repair tertinggal AOR).
+- MASTER SHEET asal tidak dikongsi umum (ada angka jualan RM), jadi app baca sheet mirror yang hanya ada lead/walk-in. Tetapkan ID mirror dalam `sheets.leadDetail` di `js/config.js`. Selagi kosong, jumlah lead/walk-in diambil dari tab Leads / Walk-in CONTENT SUBMIT (tiada pecahan kategori).
+
+Kedua-dua sheet mesti dikongsi **"Anyone with the link → Viewer"** supaya app boleh baca.
+
+## Tukar target / tambah tab bulan baru
+
+Semua dalam `js/config.js`:
+- `targets` — target rasmi bulanan
+- `monthTabs` — `gid` tab per-post ikut bulan. Bulan yang tiada dalam senarai akan dicari ikut nama tab (contoh `NOV'26`, `DIS'26`) dan disahkan ikut tarikh dalam tab.
+
+Semua formula KPI ada dalam `js/data.js`. `js/app.js` hanya paparan.
+
+## Struktur tab (mesyuarat bulanan)
+
+- **Overview: Company Marketing** (halaman utama): content output (Total / POV Customer / Strategic), Total Views, Total Engagement, Follower Growth merentas TikTok, Facebook, Instagram, WhatsApp Clicks & Leads, status KPI dan highlights. Tiada jadual outlet.
+- **Content Performance**: output vs target, prestasi platform, trend views bulanan, top content, prestasi ikut TYPE / kategori / bucket, funnel TOFU-MOFU-BOFU (muncul automatik bila tab per-post ada lajur bernilai TOFU/MOFU/BOFU).
+- **Marketing Analysis**: KPI capai / gagal / tiada data, perubahan vs bulan lepas, insights.
+- **Funnel, Outlet, Trend**: drill-down.
+
+Peraturan data: sel kosong = tiada data (bukan 0). Views per-post (tab bulanan) tidak dicampur dengan views Insight akaun. Engagement FB/IG = lajur Interactions (tiada pecahan like/comment/share). Net follower hanya untuk TikTok (FB/IG tiada data unfollow).
+
+## Pasang di phone
+
+Buka URL GitHub Pages di phone:
+- **iPhone (Safari):** Share → *Add to Home Screen*
+- **Android (Chrome):** menu ⋮ → *Install app* / *Add to Home screen*
+
+## Struktur
 
 ```
-Google Sheets (sumber kebenaran)
-  ├─ MASTER SHEET SALES OUTLET / masterFRONT   lead & walk-in harian (staf outlet)
-  ├─ CONTENT SUBMIT / Tiktok, Facebook, Instagram Insight   insight harian
-  └─ REPORT CONTENT DATA / LINKTREE + tab bulanan (SEPT'26, OKT'26 …)
-        │
-        ▼  GitHub Action setiap jam  →  scripts/build-data.mjs
-data/dashboard.json   (semua KPI dah dikira di sini)
-        │
-        ▼
-index.html + assets/app.js   (paparan sahaja, tiada formula KPI)
+index.html            shell app
+styles.css            gaya (Inter, biru KLIKI #1565FF / #0A2E8A, light/dark, sidebar navy)
+js/config.js          ID sheet, gid tab, target
+js/data.js            fetch CSV + parse + kira KPI
+js/app.js             paparan 6 tab: Overview, Content, Analisis (mesyuarat bulanan) + Funnel, Outlet, Trend (drill-down)
+sw.js                 service worker (buka laju, offline guna data terakhir)
+manifest.webmanifest  maklumat app untuk "Add to Home Screen"
 ```
-
-## Peraturan kiraan
-
-| Perkara | Peraturan |
-|---|---|
-| Target outlet | Lead 780 (Phone 480 / Repair 210 / CC 90), Walk-in 360 (150 / 180 / 30) |
-| Pendang | Tiada repair: Lead 570, Walk-in 180 |
-| Target company | Jumlah 4 outlet: Lead **2,910**, Walk-in **1,260** |
-| Kulim / Kelang Lama | Satu kedai. Kolum `kul` sehingga 19/08/2026, `kll` mulai 20/08/2026. Linktree baris "Kulim". |
-| Jumlah | Dikira dari Phone + Repair + CC. Blok OVERALL dalam masterFRONT **tidak** dibaca (formula Lead Repair tertinggal AOR). Kolum HQ CC **tidak** dibaca (cuma jumlah CC outlet). |
-| Pace | Target × (hari data terakhir company ÷ hari dalam bulan). Outlet yang lewat isi data akan nampak ketinggalan. |
-| Status | ≥100% pace hijau, 85–99% kuning, <85% merah |
-| Target harian | Target bulanan ÷ 26, bundar biasa (label sahaja) |
-| Content → kategori | Phone → Phone, Repair → Repair, Trade-in + Buyback → CC |
-| Saluran HQ | Klik WA Online Postage + Buyback. Dipapar berasingan sebab HQ tiada rekod lead. |
-| Reach | Tidak dijumlahkan (reach harian bertindih) |
-
-Semua nilai ini dalam `scripts/config.mjs`.
-
-## Setup sekali sahaja
-
-1. **Kongsi sheet.** Ketiga-tiga Google Sheet mesti "Anyone with the link: Viewer". GitHub Action tak boleh login Google.
-2. **Hidupkan GitHub Pages:** Settings → Pages → Source: *Deploy from a branch* → `main` / `/ (root)`.
-3. **Hidupkan Action:** tab Actions → *Kemas kini data* → *Run workflow* sekali untuk tarik data live pertama.
-
-## Pasang sebagai app dalam phone
-
-Dashboard ni ialah PWA (web app yang boleh dipasang):
-- **iPhone (Safari):** buka link GitHub Pages → butang Share → *Add to Home Screen*.
-- **Android (Chrome):** buka link → menu ⋮ → *Install app* / *Add to Home screen*.
-
-App akan buka skrin penuh dengan ikon KLIKI, boleh dibuka offline (tunjuk data terakhir), dan ambil data terbaru setiap kali dibuka bila ada internet.
-
-## Bila buka tab bulan baru (contoh NOV'26)
-
-Buka `scripts/config.mjs`, tambah satu baris dalam `contentMonths`:
-
-```js
-'2026-11': 123456789, // NOV'26  ← nombor selepas #gid= dalam URL tab
-```
-
-Jika nama header dalam masterFRONT berubah, Action akan gagal dengan mesej yang sebut kolum mana. Betulkan nama dalam `OUTLETS` di `config.mjs`.
-
-## Jalankan sendiri
-
-```bash
-node scripts/build-data.mjs        # tarik data live (perlu internet)
-python3 -m http.server 8000        # buka http://localhost:8000
-```
-
-`index.html` juga boleh dibuka terus dari fail (guna `data/dashboard.js`).
-
-## Had yang perlu tahu
-
-- Klik WhatsApp ≠ mesej dihantar, dan lead outlet datang dari semua sumber. Nisbah klik → lead ialah petunjuk, bukan conversion sebenar. Untuk buktikan impak marketing, outlet perlu rekod **sumber lead**.
-- Linktree diisi bulanan, jadi bahagian funnel Linktree tiada data harian.
-- Repo awam = dashboard awam. Data yang keluar cuma lead, walk-in dan content (tiada angka jualan RM).
