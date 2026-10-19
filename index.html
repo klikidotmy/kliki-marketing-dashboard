@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>KLIKI Marketing Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap top-in">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">K</span>
+      <div>
+        <h1>KLIKI Marketing Dashboard</h1>
+        <p class="sub">Content → Lead → Walk-in · level company</p>
+      </div>
+    </div>
+    <div class="controls">
+      <label for="month" class="sr">Bulan</label>
+      <select id="month"></select>
+    </div>
+  </div>
+</header>
+
+<main class="wrap" id="app">
+  <p class="meta" id="meta">Memuatkan data…</p>
+  <details class="warn" id="warnings" hidden>
+    <summary><span id="warn-count"></span></summary>
+    <ul id="warn-list"></ul>
+  </details>
+
+  <section id="score" aria-labelledby="h-score">
+    <div class="sec-head">
+      <h2 id="h-score">Pencapaian target company</h2>
+      <p class="hint" id="score-hint"></p>
+    </div>
+    <div class="score-grid">
+      <article class="score-card" id="card-lead"></article>
+      <article class="score-card" id="card-walkin"></article>
+    </div>
+  </section>
+
+  <section id="cats" aria-labelledby="h-cats">
+    <div class="sec-head">
+      <h2 id="h-cats">Phone · Repair · CC</h2>
+      <p class="hint">Kategori paling jauh dari target ialah fokus content bulan ini.</p>
+    </div>
+    <div class="table-wrap"><table class="cat-table" id="cat-table"></table></div>
+    <p class="note" id="cat-note"></p>
+  </section>
+
+  <section id="funnel" aria-labelledby="h-funnel">
+    <div class="sec-head">
+      <h2 id="h-funnel">Funnel: dari content ke kedai</h2>
+      <p class="hint">TikTok + Facebook + Instagram digabung. Klik WhatsApp & Lokasi dari Linktree.</p>
+    </div>
+    <div class="funnel" id="funnel-flow"></div>
+    <div class="hq" id="hq-row"></div>
+    <p class="note">Klik WhatsApp tidak sama dengan mesej dihantar, dan lead outlet juga datang dari sumber lain. Nisbah klik ke lead ialah petunjuk arah, bukan conversion sebenar.</p>
+    <h3 class="sub-h">Trend bulanan</h3>
+    <div class="trend-grid" id="trend"></div>
+  </section>
+
+  <section id="content" aria-labelledby="h-content">
+    <div class="sec-head">
+      <h2 id="h-content">Content berbanding kategori</h2>
+      <p class="hint">Log post TikTok (REPORT CONTENT DATA). Trade-in + Buyback dikira sebagai CC.</p>
+    </div>
+    <div class="content-grid" id="content-cats"></div>
+    <div class="two-col">
+      <div>
+        <h3 class="sub-h">Ikut jenis content</h3>
+        <div class="table-wrap"><table class="plain" id="type-table"></table></div>
+      </div>
+      <div>
+        <h3 class="sub-h">5 video teratas</h3>
+        <ol class="top-list" id="top-list"></ol>
+      </div>
+    </div>
+  </section>
+
+  <section id="platforms" aria-labelledby="h-plat">
+    <div class="sec-head">
+      <h2 id="h-plat">Semua platform</h2>
+      <p class="hint">Reach tidak dijumlahkan: reach harian bertindih dan akan melambung jika dicampur.</p>
+    </div>
+    <div class="table-wrap"><table class="plain num" id="plat-table"></table></div>
+    <h3 class="sub-h">View bulanan ikut platform</h3>
+    <div id="plat-chart" class="chart"></div>
+  </section>
+
+  <section id="outlets" aria-labelledby="h-out">
+    <details class="drill">
+      <summary><h2 id="h-out">Pecahan outlet</h2><span class="hint">Buka bila perlu cari outlet yang lemah</span></summary>
+      <div class="table-wrap"><table class="plain num" id="outlet-table"></table></div>
+      <p class="note">Kulim dan Kelang Lama dikira sebagai satu kedai (Kulim tutup sementara, staf pindah ke Kelang Lama dari 20/08/2026). Pendang tiada servis repair.</p>
+    </details>
+  </section>
+
+  <footer class="foot">
+    <p>Sumber: MASTER SHEET SALES OUTLET (masterFRONT), CONTENT SUBMIT (insight platform), REPORT CONTENT DATA (Linktree & log post). Target harian = target bulanan ÷ 26, untuk rujukan sahaja.</p>
+  </footer>
+</main>
+
+<div class="tip" id="tip" role="tooltip" hidden></div>
+<script src="assets/app.js"></script>
+</body>
+</html>
