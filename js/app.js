@@ -392,30 +392,38 @@
     let h = `<h2 class="sec">Lead & Walk-in company <span class="note">· 4 outlet digabung, target = jumlah target outlet</span></h2>`;
     // Kad jumlah: guna pecahan mirror jika ada, jika tidak jumlah dari tab Leads / Walk-in
     const tot = kind => LC.available ? LC[kind].total : { ...K[kind === 'lead' ? 'leads' : 'walkin'], daily: Math.round(K[kind === 'lead' ? 'leads' : 'walkin'].target / T.labelDays), need: null };
-    const note = k => `Target harian ${fmt(k.daily)}${k.need != null ? ` · perlu ${fmt(Math.ceil(k.need))} sehari untuk capai` : ''}`;
     const L = tot('lead'), W = tot('walkin');
-    h += `<div class="kc-grid g2">
-      ${ovCard(L, { icon: 'lead', hero: true, label: 'Total Leads', sub: 'Semua kategori, 4 outlet', d: momD(L.mom), note: note(L) })}
-      ${ovCard(W, { icon: 'walk', label: 'Total Walk-in', sub: 'Pelanggan datang ke kedai', d: momD(W.mom), note: note(W) })}
-    </div>`;
+    const pctOf2 = k => k.target && k.actual != null ? Math.round(100 * k.actual / k.target) : null;
+    const lvl = k => k.status.level;
+    // Kad jumlah (compact): nilai / target + % sebaris, bar, satu baris status
+    const totCard = (k, label, ic, hero) => {
+      const p = pctOf2(k);
+      return `<div class="kc tot-kc${hero ? ' hero-kc' : ''}">
+        <div class="tk-top">${icon(ic)}<span class="kc-l">${label}</span><span class="chip ${lvl(k)}">${iconOf(k.status)} ${statusWord(k.status, k.partial)}</span></div>
+        <div class="tk-mid"><span class="tk-v">${fmt(k.actual)}</span><span class="tk-t">/ ${fmt(k.target)}</span><span class="tk-p">${p == null ? '—' : p + '%'}</span></div>
+        ${k.actual == null ? '<div class="prog"><i style="width:0"></i></div>' : bar(k.actual, k.target, k.status, k.pace)}
+        <div class="tk-f">${momD(k.mom) || '<span></span>'}<span>Harian ${fmt(k.daily)}${k.need != null ? ` · perlu <b>${fmt(Math.ceil(k.need))}</b>/hari` : ''}</span></div>
+      </div>`;
+    };
+    h += `<div class="kc-grid g2">${totCard(L, 'Total Leads', 'lead', true)}${totCard(W, 'Total Walk-in', 'walk', false)}</div>`;
     if (!LC.available) {
       return h + `<div class="card empty">Pecahan Phone / Repair / Cash Converter belum disambung. Perlu sheet mirror lead/walk-in dari MASTER SHEET SALES OUTLET (tetapkan <b>sheets.leadDetail</b> dalam js/config.js).</div>`;
     }
+    // Baris kategori (compact): label, nilai / target, %, bar nipis, delta
     const row = (label, k) => {
-      const pct = k.target && k.actual != null ? Math.round(100 * k.actual / k.target) : null;
-      return `<div class="cat-row">
-        <div class="kc-ach"><span>${label}</span><b>${pct == null ? '—' : pct + '%'}</b></div>
-        <div class="cat-v"><b>${fmt(k.actual)}</b> / ${fmt(k.target)}</div>
+      const p = pctOf2(k);
+      return `<div class="cr">
+        <div class="cr-top"><span class="cr-l">${label}</span><span class="cr-v"><b>${fmt(k.actual)}</b> / ${fmt(k.target)}</span><span class="cr-p ${lvl(k)}">${p == null ? '—' : p + '%'}</span></div>
         ${k.actual == null ? '<div class="prog"><i style="width:0"></i></div>' : bar(k.actual, k.target, k.status, k.pace)}
-        <div class="kc-f"><span class="chip ${k.status.level}">${iconOf(k.status)} ${statusWord(k.status, k.partial)}</span>${momD(k.mom)}</div>
+        <div class="cr-d"><span class="cr-s ${lvl(k)}">${iconOf(k.status)} ${statusWord(k.status, k.partial)}</span>${momD(k.mom)}</div>
       </div>`;
     };
     const pdgRep = LC.outlets.PDG && LC.outlets.PDG.lead.repair;
     h += `<div class="kc-grid g3 cat-grid">${['phone', 'repair', 'cc'].map(c => `<div class="kc cat-kc">
-      <div class="kc-h">${icon(c)}<span class="kc-l">${CAT_NAME[c]}<small>Target harian: lead ${fmt(LC.lead[c].daily)} · walk-in ${fmt(LC.walkin[c].daily)}</small></span></div>
+      <div class="kc-h">${icon(c)}<span class="kc-l">${CAT_NAME[c]}<small>Harian: lead ${fmt(LC.lead[c].daily)} · walk-in ${fmt(LC.walkin[c].daily)}</small></span></div>
       ${row('Lead', LC.lead[c])}${row('Walk-in', LC.walkin[c])}
-      ${c === 'repair' && pdgRep ? `<div class="kc-note">Termasuk ${fmt(pdgRep)} lead repair Pendang (tiada servis repair, target 0).</div>` : ''}
-      ${c === 'cc' ? '<div class="kc-note">Cash Converter = Trade-in + Buyback.</div>' : ''}
+      ${c === 'repair' && pdgRep ? `<div class="kc-note">Termasuk ${fmt(pdgRep)} lead repair Pendang (tiada servis).</div>` : ''}
+      ${c === 'cc' ? '<div class="kc-note">CC = Trade-in + Buyback.</div>' : ''}
     </div>`).join('')}</div>`;
     h += `<div class="chart-cap">Sumber: MASTER SHEET SALES OUTLET (diisi staf outlet), ${LC.days} hari data. Kulim & Kelang Lama dikira satu kedai. Jumlah dikira dari Phone + Repair + CC, bukan blok OVERALL dalam sheet.</div>`;
     return h;
