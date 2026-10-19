@@ -5,107 +5,55 @@
   // ---------- i18n ----------
   const T = {
     ms: {
-      brandSub: 'Marketing Dashboard', pageTitle: 'Prestasi Marketing Company', month: 'Bulan',
-      nav: { overview: 'Ringkasan', category: 'Kategori', trend: 'Trend', platform: 'Platform', content: 'Content', funnel: 'Funnel', summary: 'Rumusan', outlet: 'Outlet' },
-      secCategory: 'Prestasi ikut kategori', secCategoryHint: 'Lead dan walk-in berbanding target company',
-      secTrend: 'Trend bulanan', secTrendHint: 'Titik kosong = bulan semasa (data separa)',
-      trendLeadWalk: 'Lead & walk-in berbanding target', trendReach: 'View ikut platform',
-      secPlatform: 'Prestasi platform', secPlatformHint: 'Reach tidak dijumlahkan kerana reach harian bertindih',
-      secContent: 'Prestasi content', secContentHint: '10 video TikTok teratas bulan ini. Thumbnail ikut kategori (sheet tiada pautan video).',
-      secFunnel: 'Funnel marketing', secFunnelHint: 'Peringkat content dan perjalanan pelanggan dari view ke kedai',
+      brandSub: 'Marketing Dashboard', pageTitle: 'Marketing Performance Company', month: 'Bulan',
+      nav: { overview: 'Overview', category: 'Kategori', trend: 'Trend', platform: 'Platform', content: 'Content', funnel: 'Funnel', summary: 'Summary', outlet: 'Outlet' },
+      secCategory: 'Performance ikut kategori', secCategoryHint: 'Lead & walk-in vs target company',
+      secTrend: 'Trend bulanan', secTrendHint: 'Titik kosong = bulan semasa (data belum penuh)',
+      trendLeadWalk: 'Lead & walk-in vs target', trendReach: 'View ikut platform',
+      secPlatform: 'Performance platform', secPlatformHint: 'Reach tak dicampur sebab reach harian bertindih',
+      secContent: 'Top content', secContentHint: 'Top 10 video TikTok bulan ni. Thumbnail ikut kategori (sheet takde link video).',
+      secFunnel: 'Marketing funnel', secFunnelHint: 'Stage content dan journey customer dari view sampai ke kedai',
       stageTitle: 'TOFU · MOFU · BOFU', convTitle: 'Dari content ke kedai',
-      secSummary: 'Rumusan bulan', secSummaryHint: 'Pencapaian dan kelemahan dijana daripada data. Pelan ditulis oleh Marketing.',
-      highlights: 'Pencapaian utama', improve: 'Perlu diperbaiki', planTitle: (m) => `Pelan tindakan ${m}`,
-      secOutlet: 'Pecahan outlet', secOutletHint: 'Kulim dan Kelang Lama dikira satu kedai. Pendang tiada repair.',
-      footer: 'Sumber: MASTER SHEET SALES OUTLET (masterFRONT), CONTENT SUBMIT (insight platform), REPORT CONTENT DATA (Linktree & log post). Target company = jumlah target outlet. Target harian = target bulanan ÷ 26.',
-      sideFoot: 'Data dari Google Sheets, dikemas kini setiap jam.',
-      totalLead: 'Jumlah Lead', totalWalkin: 'Jumlah Walk-in', achieved: 'tercapai',
-      pace: 'Pace setakat ini', needDay: 'Perlu sehari', vsPrev: 'vs bulan lepas', gap: 'Baki ke target', avgDay: 'Purata sehari', dailyTarget: 'Target harian',
-      paceMark: 'Penanda = pace',
-      status: { green: 'Atas landasan', amber: 'Hampir', red: 'Bawah target', none: 'Tiada data' },
+      secSummary: 'Summary bulan ni', secSummaryHint: 'Highlight & improvement auto dari data. Action plan ditulis oleh Marketing.',
+      highlights: 'Key highlights', improve: 'Kena improve', planTitle: (m) => `Action plan ${m}`,
+      secOutlet: 'Breakdown outlet', secOutletHint: 'Kulim & Kelang Lama dikira satu kedai. Pendang takde repair.',
+      footer: 'Source: MASTER SHEET SALES OUTLET (masterFRONT), CONTENT SUBMIT (insight platform), REPORT CONTENT DATA (Linktree & log post). Target company = total target semua outlet. Daily target = target bulanan ÷ 26.',
+      sideFoot: 'Data dari Google Sheets, auto update setiap jam.',
+      totalLead: 'Total Lead', totalWalkin: 'Total Walk-in', achieved: 'achieved',
+      pace: 'Pace setakat ni', needDay: 'Perlu sehari', vsPrev: 'vs bulan lepas', gap: 'Baki ke target', avgDay: 'Average sehari', dailyTarget: 'Daily target',
+      paceMark: 'Garis hitam = pace',
+      status: { green: 'On track', amber: 'Hampir', red: 'Below target', none: 'Takde data' },
       cat: { phone: 'Phone', repair: 'Repair', cc: 'Cash Converter' },
-      lead: 'Lead', walkin: 'Walk-in', posts: 'Post', views: 'View', avgView: 'Purata view',
-      plat: { view: 'View', profile: 'Profile visit', engagement: 'Engagement', followers: 'Follower baru' },
-      shareOf: (p) => `${p} daripada jumlah view`, days: (x) => `${x} hari data`,
+      lead: 'Lead', walkin: 'Walk-in', posts: 'Post', views: 'View', avgView: 'Avg view',
+      plat: { view: 'View', profile: 'Profile visit', engagement: 'Engagement', followers: 'New follower' },
+      shareOf: (p) => `${p} dari total view`, days: (x) => `${x} hari data`,
       th: { rank: '#', content: 'Content', outlet: 'Outlet', date: 'Tarikh', funnel: 'Funnel', tier: 'Tier', views: 'View' },
-      stages: { TOFU: 'Educational, Trend · capai orang baru', MOFU: 'Review, POV Customer · bina keyakinan', BOFU: 'Promo · tolak tindakan' },
-      noType: 'Kolum TYPE dalam log post bermula September 2026.',
+      stages: { TOFU: 'Educational, Trend · reach orang baru', MOFU: 'Review, POV Customer · bina trust', BOFU: 'Promo · push action' },
+      noType: 'Kolum TYPE dalam log post start September 2026.',
       conv: { views: 'View content', profile: 'Profile visit', linktree: 'Buka Linktree', wa: 'Klik WhatsApp', lead: 'Lead direkod', walkin: 'Walk-in direkod' },
-      convSrc: { views: 'TikTok + IG + FB', profile: 'TikTok + IG + FB', linktree: 'Unique view', wa: '4 outlet', lead: 'Staf outlet', walkin: 'Staf outlet' },
-      notFilled: 'Belum diisi', perLead: 'lead / klik', ofLead: 'daripada lead',
-      hq: 'Saluran HQ (tiada rekod lead)', postage: 'WA Online Postage', buyback: 'WA Buyback', total: 'Jumlah', locClicks: 'Klik lokasi',
-      convNote: 'Klik WhatsApp bukan mesej dihantar dan lead outlet datang dari semua sumber. Nisbah ini petunjuk arah, bukan conversion sebenar.',
-      outletTh: ['Outlet', 'Lead', 'Target', 'Capai', 'Walk-in', 'Target', 'Capai', 'Klik WA', 'Data terakhir'],
-      metaLine: (m, d, g) => `${m} · data outlet sehingga ${d} · dikemas kini ${g}`,
-      alertTitle: (x) => `${x} perkara data perlu disemak`,
-      planEmpty: 'Belum ada pelan. Tambah item dalam ACTION_PLAN di scripts/config.mjs.',
-      partial: 'separa', target: 'Target', leadTarget: 'Target lead', walkinTarget: 'Target walk-in',
+      convSrc: { views: 'TikTok + IG + FB', profile: 'TikTok + IG + FB', linktree: 'Unique view', wa: '4 outlet', lead: 'Staff outlet', walkin: 'Staff outlet' },
+      notFilled: 'Belum isi', perLead: 'lead / klik', ofLead: 'dari lead',
+      hq: 'Channel HQ (takde rekod lead)', postage: 'WA Online Postage', buyback: 'WA Buyback', total: 'Total', locClicks: 'Klik lokasi',
+      convNote: 'Klik WhatsApp tak sama dengan mesej dihantar, dan lead outlet datang dari semua source. Ratio ni sebagai petunjuk je, bukan conversion sebenar.',
+      outletTh: ['Outlet', 'Lead', 'Target', 'Achieved', 'Walk-in', 'Target', 'Achieved', 'Klik WA', 'Last update'],
+      metaLine: (m, d, g) => `${m} · data outlet sampai ${d} · last update ${g}`,
+      alertTitle: (x) => `${x} isu data kena check`,
+      planEmpty: 'Belum ada action plan. Tambah dalam ACTION_PLAN di scripts/config.mjs.',
+      partial: 'belum penuh', target: 'Target', leadTarget: 'Target lead', walkinTarget: 'Target walk-in',
       months: ['Januari', 'Februari', 'Mac', 'April', 'Mei', 'Jun', 'Julai', 'Ogos', 'September', 'Oktober', 'November', 'Disember'],
       mshort: ['Jan', 'Feb', 'Mac', 'Apr', 'Mei', 'Jun', 'Jul', 'Ogo', 'Sep', 'Okt', 'Nov', 'Dis'],
       current: 'semasa', metric: { lead: 'Lead', walkin: 'Walk-in', views: 'View semua platform', profile: 'Profile visit', wa: 'Klik WhatsApp outlet' },
       ins: {
-        bestCat: (x, f) => `<strong>${x.cat}</strong> kategori terkuat, ${f.pct(x.pace)} daripada pace target lead.`,
-        onPace: (x, f) => `${x.type} atas landasan: <strong>${f.pct(x.pace)}</strong> daripada pace.`,
+        bestCat: (x, f) => `<strong>${x.cat}</strong> kategori paling kuat, ${f.pct(x.pace)} dari pace target lead.`,
+        onPace: (x, f) => `${x.type} on track: <strong>${f.pct(x.pace)}</strong> dari pace.`,
         momUp: (x, f) => `${x.metric} naik <strong>${f.pct(x.ch)}</strong> (${f.n(x.from)} → ${f.n(x.to)}).`,
         ctrUp: (x, f) => `CTR profile ke Linktree naik ke <strong>${f.pct(x.to, 1)}</strong> (dari ${f.pct(x.from, 1)}).`,
-        topVideo: (x, f) => `Video terbaik: ${x.subject} di ${x.outlet || '—'}, <strong>${f.n(x.views)}</strong> view.`,
-        worstCat: (x, f) => `Lead <strong>${x.cat}</strong> paling ketinggalan: ${f.pct(x.pace)} daripada pace, kurang <strong>${f.n(x.gap)}</strong> ke target.`,
-        behindPace: (x, f) => `${x.type} cuma ${f.pct(x.pace)} daripada pace. Perlu <strong>${f.n1(x.need)}</strong> sehari untuk capai target.`,
+        topVideo: (x, f) => `Top video: ${x.subject} di ${x.outlet || '—'}, <strong>${f.n(x.views)}</strong> view.`,
+        worstCat: (x, f) => `Lead <strong>${x.cat}</strong> paling jauh ketinggalan: ${f.pct(x.pace)} dari pace, kurang <strong>${f.n(x.gap)}</strong> ke target.`,
+        behindPace: (x, f) => `${x.type} baru ${f.pct(x.pace)} dari pace. Perlu <strong>${f.n1(x.need)}</strong> sehari untuk capai target.`,
         momDown: (x, f) => `${x.metric} turun <strong>${f.pct(Math.abs(x.ch))}</strong> (${f.n(x.from)} → ${f.n(x.to)}).`,
-        lowPosts: (x, f) => `Cuma <strong>${x.posts}</strong> post untuk ${x.cat} (${f.pct(x.share)} daripada semua post), walaupun kategori ini paling jauh dari target.`,
-        staleOutlet: (x, f) => (x.date ? `${x.outlet}: data lead/walk-in terakhir ${f.d(x.date)} (${x.days} hari lepas).` : `${x.outlet}: belum isi data lead/walk-in bulan ini.`),
-      },
-    },
-    en: {
-      brandSub: 'Marketing Dashboard', pageTitle: 'Company Marketing Performance', month: 'Month',
-      nav: { overview: 'Overview', category: 'Categories', trend: 'Trends', platform: 'Platforms', content: 'Content', funnel: 'Funnel', summary: 'Summary', outlet: 'Outlets' },
-      secCategory: 'Performance by category', secCategoryHint: 'Leads and walk-ins against company target',
-      secTrend: 'Monthly trends', secTrendHint: 'Hollow point = current month (partial data)',
-      trendLeadWalk: 'Leads & walk-ins vs target', trendReach: 'Views by platform',
-      secPlatform: 'Platform performance', secPlatformHint: 'Reach is not summed because daily reach overlaps',
-      secContent: 'Content performance', secContentHint: 'Top 10 TikTok videos this month. Thumbnails by category (no video links in sheet).',
-      secFunnel: 'Marketing funnel', secFunnelHint: 'Content stages and the customer path from view to store',
-      stageTitle: 'TOFU · MOFU · BOFU', convTitle: 'From content to store',
-      secSummary: 'Monthly summary', secSummaryHint: 'Highlights and gaps are generated from data. The plan is written by Marketing.',
-      highlights: 'Key highlights', improve: 'Areas to improve', planTitle: (m) => `Action plan for ${m}`,
-      secOutlet: 'Outlet breakdown', secOutletHint: 'Kulim and Kelang Lama counted as one store. Pendang has no repair.',
-      footer: 'Sources: MASTER SHEET SALES OUTLET (masterFRONT), CONTENT SUBMIT (platform insights), REPORT CONTENT DATA (Linktree & post log). Company target = sum of outlet targets. Daily target = monthly target ÷ 26.',
-      sideFoot: 'Data from Google Sheets, refreshed hourly.',
-      totalLead: 'Total Leads', totalWalkin: 'Total Walk-in', achieved: 'achieved',
-      pace: 'Pace to date', needDay: 'Needed / day', vsPrev: 'vs last month', gap: 'Remaining', avgDay: 'Daily average', dailyTarget: 'Daily target',
-      paceMark: 'Marker = pace',
-      status: { green: 'On track', amber: 'Close', red: 'Below target', none: 'No data' },
-      cat: { phone: 'Phone', repair: 'Repair', cc: 'Cash Converter' },
-      lead: 'Leads', walkin: 'Walk-in', posts: 'Posts', views: 'Views', avgView: 'Avg views',
-      plat: { view: 'Views', profile: 'Profile visits', engagement: 'Engagement', followers: 'New followers' },
-      shareOf: (p) => `${p} of total views`, days: (x) => `${x} days of data`,
-      th: { rank: '#', content: 'Content', outlet: 'Outlet', date: 'Date', funnel: 'Funnel', tier: 'Tier', views: 'Views' },
-      stages: { TOFU: 'Educational, Trend · reach new people', MOFU: 'Review, POV Customer · build trust', BOFU: 'Promo · drive action' },
-      noType: 'The TYPE column in the post log starts in September 2026.',
-      conv: { views: 'Content views', profile: 'Profile visits', linktree: 'Linktree opens', wa: 'WhatsApp clicks', lead: 'Recorded leads', walkin: 'Recorded walk-ins' },
-      convSrc: { views: 'TikTok + IG + FB', profile: 'TikTok + IG + FB', linktree: 'Unique views', wa: '4 outlets', lead: 'Outlet staff', walkin: 'Outlet staff' },
-      notFilled: 'Not filled', perLead: 'leads / click', ofLead: 'of leads',
-      hq: 'HQ channels (no lead record)', postage: 'WA Online Postage', buyback: 'WA Buyback', total: 'Total', locClicks: 'Location clicks',
-      convNote: 'A WhatsApp click is not a sent message, and outlet leads come from every source. Treat these ratios as direction, not true conversion.',
-      outletTh: ['Outlet', 'Leads', 'Target', 'Achieved', 'Walk-in', 'Target', 'Achieved', 'WA clicks', 'Last data'],
-      metaLine: (m, d, g) => `${m} · outlet data to ${d} · updated ${g}`,
-      alertTitle: (x) => `${x} data issues to check`,
-      planEmpty: 'No plan yet. Add items to ACTION_PLAN in scripts/config.mjs.',
-      partial: 'partial', target: 'Target', leadTarget: 'Lead target', walkinTarget: 'Walk-in target',
-      months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-      mshort: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-      current: 'current', metric: { lead: 'Leads', walkin: 'Walk-ins', views: 'Views (all platforms)', profile: 'Profile visits', wa: 'Outlet WhatsApp clicks' },
-      ins: {
-        bestCat: (x, f) => `<strong>${x.cat}</strong> is the strongest category at ${f.pct(x.pace)} of lead pace.`,
-        onPace: (x, f) => `${x.type} on track: <strong>${f.pct(x.pace)}</strong> of pace.`,
-        momUp: (x, f) => `${x.metric} up <strong>${f.pct(x.ch)}</strong> (${f.n(x.from)} → ${f.n(x.to)}).`,
-        ctrUp: (x, f) => `Profile-to-Linktree CTR rose to <strong>${f.pct(x.to, 1)}</strong> (from ${f.pct(x.from, 1)}).`,
-        topVideo: (x, f) => `Best video: ${x.subject} at ${x.outlet || '—'}, <strong>${f.n(x.views)}</strong> views.`,
-        worstCat: (x, f) => `<strong>${x.cat}</strong> leads furthest behind: ${f.pct(x.pace)} of pace, <strong>${f.n(x.gap)}</strong> short of target.`,
-        behindPace: (x, f) => `${x.type} at only ${f.pct(x.pace)} of pace. Needs <strong>${f.n1(x.need)}</strong> a day to hit target.`,
-        momDown: (x, f) => `${x.metric} down <strong>${f.pct(Math.abs(x.ch))}</strong> (${f.n(x.from)} → ${f.n(x.to)}).`,
-        lowPosts: (x, f) => `Only <strong>${x.posts}</strong> posts for ${x.cat} (${f.pct(x.share)} of all posts), though it is furthest from target.`,
-        staleOutlet: (x, f) => (x.date ? `${x.outlet}: last lead/walk-in data ${f.d(x.date)} (${x.days} days ago).` : `${x.outlet}: no lead/walk-in data this month yet.`),
+        lowPosts: (x, f) => `Content ${x.cat} cuma <strong>${x.posts}</strong> post (${f.pct(x.share)} dari semua post), padahal kategori ni paling jauh dari target.`,
+        staleOutlet: (x, f) => (x.date ? `${x.outlet}: last update lead/walk-in ${f.d(x.date)} (${x.days} hari lepas).` : `${x.outlet}: belum isi data lead/walk-in bulan ni.`),
       },
     },
   };
@@ -139,8 +87,7 @@
   const pct = (x, d = 0) => (x === null || x === undefined || !Number.isFinite(x) ? '—' : (x * 100).toFixed(d) + '%');
   const compact = (x) => (x >= 1e6 ? (x / 1e6).toFixed(x >= 1e7 ? 0 : 1) + 'M' : x >= 1e3 ? Math.round(x / 1e3) + 'k' : String(Math.round(x)));
   const statusOf = (s) => (s === 'yellow' ? 'amber' : s || 'none');
-  let lang = 'ms';
-  try { lang = localStorage.getItem('kliki-lang') || 'ms'; } catch (e) { /* storan disekat */ }
+  const lang = 'ms';
   const L = () => T[lang];
   const ymLabel = (ym) => `${L().months[+ym.slice(5, 7) - 1]} ${ym.slice(0, 4)}`;
   const ymShort = (ym) => L().mshort[+ym.slice(5, 7) - 1];
@@ -181,10 +128,6 @@
     const h = location.hash.slice(1);
     if (/^\d{4}-\d{2}$/.test(h) && D.months[h]) cur = h;
     $('month').addEventListener('change', (e) => { cur = e.target.value; history.replaceState(null, '', '#' + cur); render(); });
-    for (const b of document.querySelectorAll('.seg button')) b.addEventListener('click', () => {
-      lang = b.dataset.lang; try { localStorage.setItem('kliki-lang', lang); } catch (e) { /* abaikan */ }
-      render();
-    });
     let t; let lastW = innerWidth;
     addEventListener('resize', () => { if (innerWidth === lastW) return; lastW = innerWidth; clearTimeout(t); t = setTimeout(render, 160); });
     render();
@@ -193,8 +136,6 @@
 
   function render() {
     const M = D.months[cur]; const l = L();
-    document.documentElement.lang = lang;
-    for (const b of document.querySelectorAll('.seg button')) { b.classList.toggle('on', b.dataset.lang === lang); b.setAttribute('aria-pressed', String(b.dataset.lang === lang)); }
     for (const e of document.querySelectorAll('[data-i18n]')) { const v = l[e.dataset.i18n]; if (typeof v === 'string') e.textContent = v; }
     const sel = $('month'); sel.replaceChildren();
     for (const k of Object.keys(D.months).sort().reverse()) {
@@ -202,7 +143,7 @@
     }
     sel.value = cur;
     renderNav();
-    const g = new Date(D.generatedAt).toLocaleString(lang === 'ms' ? 'ms-MY' : 'en-GB', { timeZone: 'Asia/Kuala_Lumpur', dateStyle: 'medium', timeStyle: 'short' });
+    const g = new Date(D.generatedAt).toLocaleString('en-GB', { timeZone: 'Asia/Kuala_Lumpur', dateStyle: 'medium', timeStyle: 'short' });
     $('meta').textContent = l.metaLine(ymLabel(cur), dLabel(M.asOf), g);
     $('side-foot').textContent = l.sideFoot;
     renderAlert(M);
@@ -476,5 +417,5 @@
     $('outlet-table').innerHTML = head + `<tbody>${rows}${tot}</tbody>`;
   }
 
-  load().then(init).catch((e) => { $('meta').textContent = 'Gagal muat data / Failed to load data: ' + e.message; });
+  load().then(init).catch((e) => { $('meta').textContent = 'Gagal load data: ' + e.message; });
 })();
