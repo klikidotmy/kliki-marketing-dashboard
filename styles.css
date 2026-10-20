@@ -1122,3 +1122,4 @@ a.ct-item:hover, a.ct-first:hover { transform: translateY(-2px); }
 .ov-af { padding-top: 10px; }
 @media (max-width: 900px) { .co-items { grid-template-columns: minmax(0, 1fr); } .co-i + .co-i { border-left: 0; border-top: 1px solid var(--line); } }
 @media (max-width: 560px) { .co-i { padding: 16px; } .co-ring { width: 76px; height: 76px; } .co-ring svg { width: 76px; height: 76px; } .co-v { font-size: 28px; } .co-best em { margin-left: 0; } }
+@media (max-width: 1300px) and (min-width: 901px) { .co-i { padding: 18px 14px; gap: 12px; } .co-ring, .co-ring svg { width: 72px; height: 72px; } .co-ring .ct-pc { font-size: 14px; } .co-v { font-size: 28px; } }
