@@ -330,8 +330,8 @@
       const v = lc.available && lc.outlets[x] ? lc.outlets[x][kind] : null;
       if (!v || ['phone', 'repair', 'cc'].every(k => v[k] == null)) return '';
       const tg = T.leadCat[x][kind];
-      return `<div class="op-cats">${[['phone', 'Phone'], ['repair', 'Repair'], ['cc', 'CC']].filter(([k]) => tg[k]).map(([k, n]) =>
-        `<span><em>${n}</em><b>${fullN(v[k])}</b><small>/${fmt(tg[k])}</small></span>`).join('')}</div>`;
+      return `<div class="op-cats">${[['phone', 'Phone'], ['repair', 'Repair'], ['cc', 'CC']].filter(([k]) => tg[k] || v[k]).map(([k, n]) =>
+        `<span><em>${n}</em><b>${fullN(v[k])}</b>${tg[k] ? `<small>/${fmt(tg[k])}</small>` : '<small>tiada target</small>'}</span>`).join('')}</div>`;
     };
     const kRow = (x, k, vals) => {
       const v = vals[k]; if (!v) return '';
