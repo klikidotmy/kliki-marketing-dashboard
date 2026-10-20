@@ -651,8 +651,8 @@
       const CI = { phone: '<rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/>', repair: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>', cc: '<path d="M4 8h13l-3-3M20 16H7l3 3"/>' };
       const row = (lab, k) => {
         const p = pctN(k.actual, k.target), lv = k.status.level;
-        return `<li class="op-k"><div class="op-kt"><span class="op-dot ${lv}">${lv === 'na' ? '–' : iconOf(k.status)}</span><span class="op-kl">${lab}</span>${momPill(k.mom)}<span class="op-kv"><b>${fullN(k.actual)}</b><small>/ ${fullN(k.target)}</small></span></div>
-          <div class="op-bar"><i class="${lv}" style="width:${Math.min(100, p || 0)}%"></i></div><div class="ov-cd">${p == null ? '' : p + '% · '}harian ${fmt(k.daily)}${k.need != null ? ` · perlu <b>${fmt(Math.ceil(k.need))}</b>/hari` : ''}</div></li>`;
+        return `<li class="op-k"><div class="op-kt"><span class="op-dot ${lv}">${lv === 'na' ? '–' : iconOf(k.status)}</span><span class="op-kl">${lab}</span><span class="op-kv"><b>${fullN(k.actual)}</b><small>/ ${fullN(k.target)}</small></span></div>
+          <div class="op-bar"><i class="${lv}" style="width:${Math.min(100, p || 0)}%"></i></div><div class="ov-cd"><span>${p == null ? '' : p + '% · '}harian ${fmt(k.daily)}${k.need != null ? ` · perlu <b>${fmt(Math.ceil(k.need))}</b>/hari` : ''}</span>${momPill(k.mom)}</div></li>`;
       };
       const pdgRep = LC.outlets.PDG && LC.outlets.PDG.lead.repair;
       h += `<div class="ov-cats">${['phone', 'repair', 'cc'].map(k2 => `<div class="card ov-cat"><div class="ov-cat-h"><span class="cf-ico"><svg viewBox="0 0 24 24">${CI[k2]}</svg></span><b>${CAT_NAME[k2]}</b></div>
