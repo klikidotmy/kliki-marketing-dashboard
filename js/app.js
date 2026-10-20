@@ -649,49 +649,64 @@
     if (!LC.available) h += `<div class="card empty">Pecahan Phone / Repair / Cash Converter belum disambung.</div>`;
     else {
       const CI = { phone: '<rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/>', repair: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>', cc: '<path d="M4 8h13l-3-3M20 16H7l3 3"/>' };
-      const row = (lab, k) => {
-        const p = pctN(k.actual, k.target), lv = k.status.level;
-        return `<li class="op-k"><div class="op-kt"><span class="op-dot ${lv}">${lv === 'na' ? '–' : iconOf(k.status)}</span><span class="op-kl">${lab}</span><span class="op-kv"><b>${fullN(k.actual)}</b><small>/ ${fullN(k.target)}</small></span></div>
-          <div class="op-bar"><i class="${lv}" style="width:${Math.min(100, p || 0)}%"></i></div><div class="ov-cd"><span>${p == null ? '' : p + '% · '}harian ${fmt(k.daily)}${k.need != null ? ` · perlu <b>${fmt(Math.ceil(k.need))}</b>/hari` : ''}</span>${momPill(k.mom)}</div></li>`;
+      const CG = { phone: ['#1565FF', '#0A2E8A'], repair: ['#0EA5A4', '#0B4F6C'], cc: ['#7B5CF5', '#35188F'] };
+      const gauge = (lab, k) => {
+        const p = pctN(k.actual, k.target);
+        return `<div class="oc-g"><div class="op-ringw oc-ring">${ringS((k.actual || 0) / (k.target || 1), 'inv', 76)}<span class="ct-pc">${p == null ? '—' : p + '%'}</span></div>
+          <span class="oc-gl">${lab}</span><b>${fullN(k.actual)}</b><small>/ ${fullN(k.target)}</small></div>`;
       };
+      const foot = (lab, k) => `<li><span class="op-dot ${k.status.level}">${k.status.level === 'na' ? '–' : iconOf(k.status)}</span><span class="oc-fl">${lab}</span><span class="oc-fd">harian ${fmt(k.daily)}${k.need != null ? ` · perlu <b>${fmt(Math.ceil(k.need))}</b>` : ''}</span>${momPill(k.mom) || '<span class="tp na">—</span>'}</li>`;
       const pdgRep = LC.outlets.PDG && LC.outlets.PDG.lead.repair;
-      h += `<div class="ov-cats">${['phone', 'repair', 'cc'].map(k2 => `<div class="card ov-cat"><div class="ov-cat-h"><span class="cf-ico"><svg viewBox="0 0 24 24">${CI[k2]}</svg></span><b>${CAT_NAME[k2]}</b></div>
-        <ul class="ct-mix">${row('Lead', LC.lead[k2])}${row('Walk-in', LC.walkin[k2])}</ul>
-        ${k2 === 'repair' && pdgRep ? `<div class="ov-cn">Termasuk ${fmt(pdgRep)} lead repair Pendang (tiada servis).</div>` : ''}${k2 === 'cc' ? '<div class="ov-cn">CC = Trade-in + Buyback.</div>' : ''}</div>`).join('')}</div>`;
+      h += `<div class="ov-cats">${['phone', 'repair', 'cc'].map(k2 => `<div class="oc-card">
+        <div class="oc-top" style="--g1:${CG[k2][0]};--g2:${CG[k2][1]}"><div class="oc-h"><span class="oc-ic"><svg viewBox="0 0 24 24">${CI[k2]}</svg></span><b>${CAT_NAME[k2]}</b></div>
+          <div class="oc-gs">${gauge('Lead', LC.lead[k2])}${gauge('Walk-in', LC.walkin[k2])}</div></div>
+        <ul class="oc-foot">${foot('Lead', LC.lead[k2])}${foot('Walk-in', LC.walkin[k2])}</ul>
+        ${k2 === 'repair' && pdgRep ? `<div class="oc-n">Termasuk ${fmt(pdgRep)} lead repair Pendang (tiada servis).</div>` : k2 === 'cc' ? '<div class="oc-n">CC = Trade-in + Buyback.</div>' : ''}</div>`).join('')}</div>`;
     }
 
     // ---- 3. Content output ----
     h += secHead('Tab per-post · REPORT CONTENT DATA', 'Content output');
     if (!c) h += `<div class="card empty">${res.error ? `Tak dapat baca tab per-post: ${esc(res.error)}` : `Belum ada post direkod untuk ${monLabel(key)}.`}</div>`;
     else {
-      const LB = { totalContent: ['Total post', `Purata ${fmt(c.avg)} view/post`], pov: ['POV Customer', 'Content dari sudut pelanggan'], strategic: ['Strategic', c.noType ? `${c.noType} post tiada TYPE, tak dikira` : 'Educational · Trend · Review · Promo'] };
-      h += `<div class="ov-out">${['totalContent', 'pov', 'strategic'].map(id => {
+      const LB = { totalContent: ['Total post', `Purata ${fmt(c.avg)} view/post`], pov: ['POV Customer', 'Content dari sudut pelanggan'], strategic: ['Strategic', c.noType ? `${c.noType} post tiada TYPE` : 'Educational · Trend · Review · Promo'] };
+      const top = c.top[0];
+      h += `<div class="co-panel"><div class="co-items">${['totalContent', 'pov', 'strategic'].map(id => {
         const k = S(id);
-        if (!k) return `<div class="tk ct-k"><div class="tk-h"><span>${LB[id][0]}</span></div><div class="ct-kb"><div><b>—</b><small>Lajur TYPE tiada bulan ini</small></div></div></div>`;
+        if (!k) return `<div class="co-i"><span class="co-l">${LB[id][0]}</span><b class="co-v">—</b><small>Lajur TYPE tiada</small></div>`;
         const p = pctN(k.actual, k.target);
-        return `<div class="tk ct-k"><div class="tk-h"><span>${LB[id][0]}</span>${momPill(k.mom)}</div>
-          <div class="ct-kb"><div class="op-ringw ct-ring">${ringS((k.actual || 0) / k.target, k.status.level)}<span class="ct-pc">${p == null ? '—' : p + '%'}</span></div><div><b>${fullN(k.actual)}</b><small>/ ${fullN(k.target)} target</small></div></div><small class="ct-sub">${LB[id][1]}</small></div>`;
-      }).join('')}</div>`;
+        return `<div class="co-i"><div class="op-ringw co-ring">${ringS((k.actual || 0) / k.target, k.status.level, 92)}<span class="ct-pc">${p == null ? '—' : p + '%'}</span></div>
+          <div class="co-t"><span class="co-l">${LB[id][0]} ${momPill(k.mom)}</span><b class="co-v">${fullN(k.actual)}<small>/ ${fullN(k.target)}</small></b><small>${LB[id][1]}</small></div></div>`;
+      }).join('')}</div>
+      ${top ? `<div class="co-best"><span class="co-bl">★ Post terbaik</span><b>${esc(top.kategori)}${top.sub ? ' · ' + esc(top.sub) : ''}</b><span>${[top.type, CFG.outletNames[top.outlet] || top.outlet, top.date ? `${top.date.d}/${top.date.m}` : ''].filter(Boolean).map(esc).join(' · ')}</span><em>${fullN(top.views)} views</em></div>` : ''}</div>`;
       if (res.warning) h += `<div class="warn-box">⚠ ${esc(res.warning)}</div>`;
     }
 
     // ---- 4. Audience & hasil ----
     const PCL = { tiktok: '#2F63EE', instagram: '#7B5CF5', facebook: '#1FB6C9' };
+    const months = [];
+    { let yy = y, mm = m; for (let i = 0; i < 6; i++) { months.unshift([yy, mm]); [yy, mm] = KD.prevYM(yy, mm); } }
+    const hist = months.map(([yy, mm]) => { const cp = KD.company(state.ds, yy, mm), mcx = KD.monthCore(state.ds, yy, mm); return { views: cp.views, engagement: cp.engagement, newFollowers: cp.newFollowers, wa: mcx.v.wa }; });
     const split = k => { const t = co.plats.reduce((a, p) => a + (p[k] || 0), 0); return t ? `<div class="ov-split">${co.plats.filter(p => p[k]).map(p => `<i style="flex:${p[k]};background:${PCL[p.id]}" data-tip="${esc(`${p.name}: ${fmt(p[k])} (${Math.round(100 * p[k] / t)}%)`)}"></i>`).join('')}</div>` : ''; };
     const prow = (id, val, note = '') => `<li><span class="ov-pd" style="background:${PCL[id]}"></span><span class="ov-pn">${P(id).name}</span><span class="ov-pv">${val}</span>${note ? `<small>${note}</small>` : ''}</li>`;
-    const aCard = (eb, title, val, mom, body, foot) => `<div class="card ov-a"><div class="ov-ah"><span class="cf-eyebrow">${eb}</span>${mom}</div><h3>${title}</h3><b class="ov-av">${val}</b>${body}${foot ? `<div class="ov-af">${foot}</div>` : ''}</div>`;
+    const AIC = {
+      views: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+      eng: '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
+      fol: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M18 8v6M15 11h6"/>',
+      wa: '<path d="M4 20l1.3-3.9A8 8 0 1 1 8 19.1z"/><path d="M9 9.5c.3 2 2.5 4.2 4.5 4.5l1-1 1.8.8"/>',
+    };
+    const AG = { views: ['#5B8CFF', '#1A3DAA'], eng: ['#F472B6', '#9D3BE0'], fol: ['#2DD4BF', '#0E7490'], wa: ['#34D399', '#047857'] };
+    const aCard = (ic, title, val, mom, body, foot, hk) => `<div class="card ov-a" style="--a1:${AG[ic][0]};--a2:${AG[ic][1]}"><div class="ov-ah"><span class="ov-aic"><svg viewBox="0 0 24 24">${AIC[ic]}</svg></span><span class="ov-at">${title}</span>${mom}</div>
+      <b class="ov-av">${val}</b>${body}${foot ? `<div class="ov-af">${foot}</div>` : ''}<div class="ov-sp">${spark(hist.map(r => r[hk]))}<span>${MON[months[0][1] - 1]} – ${MON[m - 1]}</span></div></div>`;
     const tt = P('tiktok');
     const waAll = [mc.v.wa, mc.v.waOnline, mc.v.waBuyback].some(v => v != null) ? (mc.v.wa || 0) + (mc.v.waOnline || 0) + (mc.v.waBuyback || 0) : null;
-    h += secHead('Insight akaun · TikTok, Instagram, Facebook', 'Audience & hasil', `▲▼ vs ${prevLbl}, dinormalkan ikut hari data`);
+    h += secHead('Insight akaun · TikTok, Instagram, Facebook', 'Audience & hasil', `▲▼ vs ${prevLbl}, dinormalkan ikut hari data · garis = 6 bulan terakhir`);
     h += `<div class="ov-aud">`;
-    h += aCard('Reach', 'Total views', fmt(co.views), momPill(cc.ch('views')), split('views') + `<ul class="ov-pl">${co.plats.map(p => prow(p.id, fmt(p.views), p.id === 'tiktok' && p.views != null ? `${pctN(p.views, T.tiktokViews)}% target` : (p.views != null && co.views ? `${pctN(p.views, co.views)}%` : ''))).join('')}</ul>`, 'Target rasmi hanya untuk TikTok (4M).');
-    h += aCard('Interaksi', 'Total engagement', fmt(co.engagement), momPill(cc.ch('engagement')), split('engagement') + `<ul class="ov-pl">${co.plats.map(p => prow(p.id, fmt(p.engagement), p.id === 'tiktok' && tt.engagement != null ? `${pctN(tt.engagement, T.likes + T.comments + T.shares)}% target` : '')).join('')}</ul>`,
-      `TikTok: likes ${fmt(K.likes.actual)} · comments ${fmt(K.comments.actual)} · shares ${fmt(K.shares.actual)}`);
-    h += aCard('Pertumbuhan', 'Follower baru', fmt(co.newFollowers), momPill(cc.ch('newFollowers')), split('newFollowers') + `<ul class="ov-pl">${co.plats.map(p => prow(p.id, fmt(p.newFollowers))).join('')}</ul>`,
-      `TikTok net <b class="${(tt.netFollowers || 0) < T.netFollowersFloor ? 'neg' : ''}">${tt.netFollowers == null ? '—' : (tt.netFollowers > 0 ? '+' : '') + fmt(tt.netFollowers)}</b> · unfollow ${tt.lostFollowers == null ? '—' : fmt(tt.lostFollowers)} · had ${fmt(T.netFollowersFloor)}`);
-    h += aCard('Linktree', 'Klik WhatsApp', fmt(waAll), K.wa.actual == null ? '' : momPill(K.wa.mom),
-      `<ul class="ov-wl"><li><span>4 outlet</span><b>${fmt(K.wa.actual)}</b><small>${K.wa.actual == null ? 'belum diisi' : pctN(K.wa.actual, K.wa.target) + '% target'}</small></li><li><span>Online Postage</span><b>${fmt(mc.v.waOnline)}</b><small>HQ</small></li><li><span>Buyback</span><b>${fmt(mc.v.waBuyback)}</b><small>HQ</small></li><li><span>Lead 4 outlet</span><b>${fmt(L.actual)}</b><small>${K.wa.actual ? (L.actual / K.wa.actual).toFixed(1) + ' lead/klik' : ''}</small></li></ul>`,
-      'Target WA & lead meliputi 4 outlet sahaja.');
+    h += aCard('views', 'Total views', fmt(co.views), momPill(cc.ch('views')), split('views') + `<ul class="ov-pl">${co.plats.map(p => prow(p.id, fmt(p.views), p.id === 'tiktok' && p.views != null ? `${pctN(p.views, T.tiktokViews)}% target 4M` : '')).join('')}</ul>`, '', 'views');
+    h += aCard('eng', 'Total engagement', fmt(co.engagement), momPill(cc.ch('engagement')), split('engagement') + `<ul class="ov-pl">${co.plats.map(p => prow(p.id, fmt(p.engagement), p.id === 'tiktok' && tt.engagement != null ? `${pctN(tt.engagement, T.likes + T.comments + T.shares)}% target` : '')).join('')}</ul>`, '', 'engagement');
+    h += aCard('fol', 'Follower baru', fmt(co.newFollowers), momPill(cc.ch('newFollowers')), split('newFollowers') + `<ul class="ov-pl">${co.plats.map(p => prow(p.id, fmt(p.newFollowers))).join('')}</ul>`,
+      `TikTok net <b class="${(tt.netFollowers || 0) < T.netFollowersFloor ? 'neg' : ''}">${tt.netFollowers == null ? '—' : (tt.netFollowers > 0 ? '+' : '') + fmt(tt.netFollowers)}</b> · had ${fmt(T.netFollowersFloor)}`, 'newFollowers');
+    h += aCard('wa', 'Klik WhatsApp', fmt(waAll), K.wa.actual == null ? '' : momPill(K.wa.mom),
+      `<ul class="ov-wl"><li><span>4 outlet</span><b>${fmt(K.wa.actual)}</b><small>${K.wa.actual == null ? 'belum diisi' : pctN(K.wa.actual, K.wa.target) + '% target'}</small></li><li><span>Online Postage · HQ</span><b>${fmt(mc.v.waOnline)}</b></li><li><span>Buyback · HQ</span><b>${fmt(mc.v.waBuyback)}</b></li><li><span>Lead / klik outlet</span><b>${K.wa.actual ? (L.actual / K.wa.actual).toFixed(1) : '—'}</b></li></ul>`, '', 'wa');
     h += `</div>`;
 
     // ---- 5. KPI paling jauh + highlights ----
