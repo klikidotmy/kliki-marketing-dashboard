@@ -6,8 +6,10 @@
       contentSubmit: '1NxItlmxUlk1P1VECvarYmWUPyYRh9Ltnd6KmDpNDOec',
       reportContent: '1Q9XMBK0qBmZw8BLQT5w0pA3OC7EMFQz_ascdT50dYWI',
       // Mirror lead/walk-in dari MASTER SHEET SALES OUTLET (masterFRONT): tarikh + blok lead/walk-in setiap outlet sahaja.
-      // Kosongkan (null) jika belum ada; app akan guna jumlah dari CONTENT SUBMIT (tiada pecahan Phone/Repair/CC).
-      leadDetail: null,
+      // Sheet "KLIKI Lead Walk-in Mirror (untuk Dashboard)" tarik 31 kolum sahaja guna IMPORTRANGE (tiada angka RM).
+      // Jangan letak ID MASTER SHEET asal di sini: repo & site ini public.
+      // Set null untuk guna jumlah dari CONTENT SUBMIT (tiada pecahan Phone/Repair/CC).
+      leadDetail: '1Go5p9o2PE3xHZOhVmg1PZZZYKrqY7INaFiQ-28frz-w',
     },
 
     // Tab dalam CONTENT SUBMIT (gid tetap, tak bergantung pada nama tab)
@@ -44,7 +46,7 @@
     // Pecahan lead & walk-in (Phone / Repair / CC) ikut nama header masterFRONT.
     // Kulim tutup sementara, staf pindah ke Kelang Lama mulai 20/08/2026: dikira satu kedai (kunci KUL).
     leadDetail: {
-      gid: 0,
+      gid: 0, range: 'A1:AE2100',
       outlets: {
         KUL: [
           { until: '2026-08-19', lead: ['kul LEAD PHONE', 'kul LEAD REPAIR', 'kul LEAD CC'], walkin: ['kul WALK IN PHONE', 'kul WALK IN REPAIR', 'kul WALK IN CC'] },

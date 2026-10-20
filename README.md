@@ -17,9 +17,10 @@ Web app (PWA) untuk pantau prestasi marketing media sosial KLIKI. Data dibaca **
 - Target company = jumlah 4 outlet: **Lead 2,910, Walk-in 1,260**. Target harian = bulanan ÷ 26.
 - Kulim & Kelang Lama dikira satu kedai: kolum `kul` sehingga 19/08/2026, `kll` mulai 20/08/2026.
 - Jumlah dikira dari Phone + Repair + CC. Blok OVERALL dalam masterFRONT tidak dibaca (formula Lead Repair tertinggal AOR).
-- MASTER SHEET asal tidak dikongsi umum (ada angka jualan RM), jadi app baca sheet mirror yang hanya ada lead/walk-in. Tetapkan ID mirror dalam `sheets.leadDetail` di `js/config.js`. Selagi kosong, jumlah lead/walk-in diambil dari tab Leads / Walk-in CONTENT SUBMIT (tiada pecahan kategori).
+- MASTER SHEET asal ada angka jualan RM, jadi app **tidak** baca terus. App baca sheet mirror *KLIKI Lead Walk-in Mirror (untuk Dashboard)* (`sheets.leadDetail` dalam `js/config.js`). Mirror ini satu formula `IMPORTRANGE` di sel A1 tab `masterFRONT` yang tarik DATE + 30 kolum lead/walk-in (kul, aor, sgp, pdg, kll) sahaja, jadi ia update sendiri bila outlet isi master.
+- Jika header kolum dalam master bertukar, kemaskini julat dalam formula mirror dan nama header dalam `leadDetail.outlets`. Jika `sheets.leadDetail` = null, jumlah lead/walk-in diambil dari tab Leads / Walk-in CONTENT SUBMIT (tiada pecahan kategori).
 
-Kedua-dua sheet mesti dikongsi **"Anyone with the link → Viewer"** supaya app boleh baca.
+Semua sheet yang app baca (CONTENT SUBMIT, REPORT CONTENT DATA, mirror lead/walk-in) mesti dikongsi **"Anyone with the link → Viewer"** supaya app boleh baca.
 
 ## Tukar target / tambah tab bulan baru
 
