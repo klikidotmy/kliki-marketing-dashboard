@@ -313,7 +313,7 @@
     let h = `<div class="op-head"><div><span class="cf-eyebrow">Ranking outlet · ${monLabel(key)}</span><h2 class="op-h">Skor outlet</h2><p class="op-sub">KPI capai daripada jumlah KPI${live ? ` · dinilai ikut kadar ${o.days.leads} hari data` : ''}</p></div>
       <div class="op-legend"><span><i class="good"></i>${live ? 'On track' : 'Capai'}</span><span><i class="warn"></i>80–99% / naik</span><span><i class="bad"></i>Belum</span></div></div>`;
     h += `<div class="op-strip">${cards.map((cd, i) => `
-      <a class="op-tile${i === 0 ? ' top' : ''}" href="#o-${cd.x}">
+      <a class="op-tile${i === 0 ? ' op-lead' : ''}" href="#o-${cd.x}">
         <span class="op-rank">#${i + 1}</span>
         <div class="op-ringw">${ring(cd.ratio, i === 0 ? 'inv' : cd.lvl)}<span class="op-sc"><b>${cd.hit}</b>/${cd.total}</span></div>
         <div class="op-tn"><b>${esc(CFG.outletNames[cd.x])}</b><span>${cd.miss.length ? `${cd.miss.length} KPI merah` : 'Tiada KPI merah'}</span></div>
@@ -423,7 +423,7 @@
     });
     if (opts.target) {
       const ty = y(opts.target);
-      s += `<line class="tt" x1="${pl}" x2="${W - pr}" y1="${ty}" y2="${ty}"/><g class="ttl"><rect x="${W - pr - 74}" y="${ty - 10}" width="74" height="20" rx="10"/><text x="${W - pr - 37}" y="${ty + 4}" text-anchor="middle">Target ${tl(opts.target)}</text></g>`;
+      s += `<line class="tt" x1="${pl}" x2="${W - pr}" y1="${ty}" y2="${ty}"/><g class="ttl"><rect x="${pl + 4}" y="${ty - 21}" width="74" height="18" rx="9"/><text x="${pl + 41}" y="${ty - 8.5}" text-anchor="middle">Target ${tl(opts.target)}</text></g>`;
     }
     return s + '</svg>';
   }
@@ -455,7 +455,7 @@
     const tile = (lab, sub, k, opt = {}) => {
       const v = cur[k], d = opt.abs ? null : mom(v, prev && prev[k]);
       const dAbs = opt.abs && v != null && prev && prev[k] != null ? v - prev[k] : null;
-      return `<div class="tk${opt.top ? ' top' : ''}"><div class="tk-h"><span>${lab}</span>${opt.abs ? (dAbs == null ? '' : `<span class="tp ${dAbs >= 0 ? 'up' : 'dn'}">${dAbs >= 0 ? '+' : '−'}${fmt(Math.abs(dAbs))}</span>`) : pill(d)}</div>
+      return `<div class="tk${opt.top ? ' tk-lead' : ''}"><div class="tk-h"><span>${lab}</span>${opt.abs ? (dAbs == null ? '' : `<span class="tp ${dAbs >= 0 ? 'up' : 'dn'}">${dAbs >= 0 ? '+' : '−'}${fmt(Math.abs(dAbs))}</span>`) : pill(d)}</div>
         <b>${v == null ? '—' : fmt(v)}</b><small>${sub}</small>${spark(rows.map(r => r[k]), opt.top)}</div>`;
     };
     const best = (k) => rows.filter(r => r[k] != null).reduce((a, b) => (b[k] > (a ? a[k] : -Infinity) ? b : a), null);

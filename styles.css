@@ -730,14 +730,14 @@ li.lv-good .mr-v small { color: var(--good); } li.lv-warn .mr-v small { color: v
 .op-tile { position: relative; display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: 16px; text-decoration: none; color: inherit;
   background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); transition: transform .18s ease, box-shadow .18s ease; }
 .op-tile:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
-.op-tile.top { background: linear-gradient(140deg, #0A2E8A 0%, #1565FF 100%); border-color: transparent; color: #fff; box-shadow: 0 14px 30px -12px rgba(21, 101, 255, .55); }
+.op-tile.op-lead { background: linear-gradient(140deg, #0A2E8A 0%, #1565FF 100%); border-color: transparent; color: #fff; box-shadow: 0 14px 30px -12px rgba(21, 101, 255, .55); }
 .op-rank { position: absolute; top: 10px; right: 12px; font-size: 11px; font-weight: 800; color: var(--muted); letter-spacing: .04em; }
-.op-tile.top .op-rank { color: rgba(255,255,255,.75); }
+.op-tile.op-lead .op-rank { color: rgba(255,255,255,.75); }
 .op-ringw { position: relative; flex: none; width: 64px; height: 64px; }
 .op-sc { position: absolute; inset: 0; display: grid; place-items: center; font-size: 12px; color: var(--muted); font-weight: 600; }
 .op-sc b { font-size: 20px; font-weight: 800; color: var(--text); letter-spacing: -.02em; }
 .op-sc { display: flex; align-items: baseline; justify-content: center; padding-top: 19px; }
-.op-tile.top .op-sc, .op-tile.top .op-sc b { color: #fff; }
+.op-tile.op-lead .op-sc, .op-tile.op-lead .op-sc b { color: #fff; }
 .oring circle { fill: none; stroke-width: 6; }
 .oring .tr { stroke: var(--surface-2); }
 .oring .fg { stroke-linecap: round; transition: stroke-dashoffset .6s ease; }
@@ -746,7 +746,7 @@ li.lv-good .mr-v small { color: var(--good); } li.lv-warn .mr-v small { color: v
 .op-tn { display: flex; flex-direction: column; min-width: 0; }
 .op-tn b { font-size: 14.5px; font-weight: 700; letter-spacing: -.01em; }
 .op-tn span { font-size: 12px; color: var(--muted); }
-.op-tile.top .op-tn span { color: rgba(255,255,255,.8); }
+.op-tile.op-lead .op-tn span { color: rgba(255,255,255,.8); }
 
 .op-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 18px; align-items: start; }
 .op-card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); overflow: hidden; }
@@ -816,15 +816,15 @@ li.lv-good .mr-v small { color: var(--good); } li.lv-warn .mr-v small { color: v
 /* ---------- Trend (premium) ---------- */
 .tk-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
 .tk { position: relative; overflow: hidden; display: flex; flex-direction: column; padding: 16px 16px 0; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); }
-.tk.top { background: linear-gradient(140deg, #0A2E8A 0%, #1565FF 100%); border-color: transparent; color: #fff; box-shadow: 0 14px 30px -12px rgba(21, 101, 255, .55); }
+.tk.tk-lead { background: linear-gradient(140deg, #0A2E8A 0%, #1565FF 100%); border-color: transparent; color: #fff; box-shadow: 0 14px 30px -12px rgba(21, 101, 255, .55); }
 .tk-h { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 600; color: var(--text-2); }
-.tk.top .tk-h { color: rgba(255,255,255,.85); }
+.tk.tk-lead .tk-h { color: rgba(255,255,255,.85); }
 .tk > b { font-size: 26px; font-weight: 800; letter-spacing: -.03em; margin-top: 6px; line-height: 1.1; }
 .tk > small { font-size: 11.5px; color: var(--muted); }
-.tk.top > small { color: rgba(255,255,255,.75); }
+.tk.tk-lead > small { color: rgba(255,255,255,.75); }
 .tp { font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
 .tp.up { background: var(--good-bg); color: var(--good); } .tp.dn { background: var(--bad-bg); color: var(--bad); } .tp.na { background: var(--na-bg); color: var(--na); }
-.tk.top .tp { background: rgba(255,255,255,.18); color: #fff; }
+.tk.tk-lead .tp { background: rgba(255,255,255,.18); color: #fff; }
 .tspark { display: block; width: calc(100% + 32px); height: 40px; margin: 8px -16px 0; }
 .tspark .ln { fill: none; stroke: var(--brand); stroke-width: 2; vector-effect: non-scaling-stroke; }
 .tspark .ar { fill: var(--brand-soft); opacity: .8; }
