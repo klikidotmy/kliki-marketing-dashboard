@@ -35,7 +35,8 @@ Semua formula KPI ada dalam `js/data.js`. `js/app.js` hanya paparan.
 - **Overview: Company Marketing** (halaman utama): content output (Total / POV Customer / Strategic), Total Views, Total Engagement, Follower Growth merentas TikTok, Facebook, Instagram, WhatsApp Clicks & Leads, status KPI dan highlights. Tiada jadual outlet.
 - **Content Performance**: output vs target, prestasi platform, trend views bulanan, top content, prestasi ikut TYPE / kategori / bucket, funnel TOFU-MOFU-BOFU (muncul automatik bila tab per-post ada lajur bernilai TOFU/MOFU/BOFU).
 - **Marketing Analysis**: KPI capai / gagal / tiada data, perubahan vs bulan lepas, insights.
-- **Funnel, Outlet, Trend**: drill-down.
+- **Funnel** ("Dari content ke kedai"): View content & Profile visit (TikTok + IG + FB) → Buka Linktree (unique) → Klik WhatsApp 4 outlet → Lead → Walk-in, dengan ratio setiap peringkat dan kotak Channel HQ (WA Online Postage, WA Buyback). Lebar bar tetap mengecil untuk visual, bukan ikut skala.
+- **Outlet, Trend**: drill-down.
 
 Peraturan data: sel kosong = tiada data (bukan 0). Views per-post (tab bulanan) tidak dicampur dengan views Insight akaun. Engagement FB/IG = lajur Interactions (tiada pecahan like/comment/share). Net follower hanya untuk TikTok (FB/IG tiada data unfollow).
 

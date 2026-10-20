@@ -438,6 +438,10 @@
       wa: lt && CFG.outlets.some(x => lt['wa_' + x] != null) ? CFG.outlets.reduce((a, x) => a + (lt['wa_' + x] || 0), 0) : null,
       waOnline: lt ? lt.wa_Online ?? null : null, waBuyback: lt ? lt.wa_Buyback ?? null : null,
       leads: leadDays ? sumO('leads') : null, walkin: walkDays ? sumO('walkin') : null,
+      // Gabungan 3 platform untuk funnel "Dari content ke kedai" (FB/IG: views & visit dari Insight)
+      allViews: tt.days ? tt.views + (s.facebook.views || 0) + (s.instagram.views || 0) : null,
+      allVisits: tt.days && tt.profileViews != null ? tt.profileViews + (s.facebook.visit || 0) + (s.instagram.visit || 0) : null,
+      location: lt && CFG.outlets.some(x => lt['loc_' + x] != null) ? CFG.outlets.reduce((a, x) => a + (lt['loc_' + x] || 0), 0) : null,
     };
     v.conversion = v.leads ? 100 * v.walkin / v.leads : null;
     // faktor normalisasi (nisbah & data Linktree bulanan tak dinormalkan)
@@ -486,15 +490,15 @@
 
   // Funnel: Views → Profile → Linktree → WhatsApp → Leads → Walk-in
   const FUNNEL = [
-    { id: 'views', label: 'TikTok Views' },
-    { id: 'profileViews', label: 'Profile Views' },
-    { id: 'uniqueClicks', label: 'Klik Linktree (unik)' },
-    { id: 'wa', label: 'Klik WhatsApp outlet' },
-    { id: 'leads', label: 'Leads' },
-    { id: 'walkin', label: 'Walk-in' },
+    { id: 'allViews', label: 'View content', sub: 'TikTok + IG + FB' },
+    { id: 'allVisits', label: 'Profile visit', sub: 'TikTok + IG + FB' },
+    { id: 'uniqueClicks', label: 'Buka Linktree', sub: 'Unique view' },
+    { id: 'wa', label: 'Klik WhatsApp', sub: '4 outlet' },
+    { id: 'leads', label: 'Lead direkod', sub: 'Staff outlet', outlet: true },
+    { id: 'walkin', label: 'Walk-in direkod', sub: 'Klik lokasi', outlet: true },
   ];
   const STEP_NOTE = {
-    profileViews: 'buka profile',
+    allVisits: 'buka profile',
     uniqueClicks: 'klik Linktree',
     wa: 'klik WhatsApp outlet',
     leads: 'jadi leads',
@@ -521,7 +525,7 @@
     const cands = stages.filter(s => s.vsAvg != null);
     const weakest = cands.length ? cands.reduce((a, b) => (b.vsAvg < a.vsAvg ? b : a)) : null;
     const strongest = cands.length ? cands.reduce((a, b) => (b.vsAvg > a.vsAvg ? b : a)) : null;
-    return { stages, weakest: weakest && weakest.vsAvg < 0 ? weakest : null, strongest: strongest && strongest.vsAvg > 0 ? strongest : null };
+    return { stages, extra: { location: cur.location, waOnline: cur.waOnline, waBuyback: cur.waBuyback }, weakest: weakest && weakest.vsAvg < 0 ? weakest : null, strongest: strongest && strongest.vsAvg > 0 ? strongest : null };
   }
 
   // Bilangan bulan berturut-turut (berakhir bulan ini) yang memenuhi syarat

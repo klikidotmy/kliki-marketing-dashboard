@@ -187,7 +187,7 @@
 
   // Cadangan fokus ikut peringkat funnel paling lemah
   const ACT = {
-    profileViews: 'Hook 3 saat pertama dan CTA "tengok profile" dalam video.',
+    allVisits: 'Hook 3 saat pertama dan CTA "tengok profile" dalam video.',
     uniqueClicks: 'Semak bio & pin video: pastikan sebab untuk klik link jelas (harga, promo, lokasi).',
     wa: 'Semak susunan Linktree: butang WhatsApp outlet patut paling atas dan jelas.',
     leads: 'Semak masa balas WhatsApp di outlet; klik yang tak dibalas cepat tak jadi lead.',
@@ -201,22 +201,35 @@
     const live = isCurrent(key);
     const ib = insightBlock(y, m);
     if (!f.stages.some(s => s.value > 0)) return ib + `<div class="card empty">Belum ada data aliran pelanggan untuk ${monLabel(key)}.</div>`;
-    let h = `<h2>Aliran pelanggan <span class="note">· ${monLabel(key)}${live ? ' (bulan semasa)' : ''}</span></h2><div class="card flow">`;
+    // "Dari content ke kedai": bar berpusat, lebar tetap mengecil (bukan ikut skala; 4.5M vs 673 tak nampak jika ikut skala)
+    const W = [100, 62, 42, 35, 29, 22];
+    const rateTxt = s => {
+      const r = s.rate; if (r == null) return '';
+      if (s.id === 'wa') return ''; // klik WA tak unik: nisbah vs unique view mengelirukan
+      if (s.id === 'leads') { const wa = f.stages[i3('wa')].value; return wa ? `${(s.value / wa).toFixed(1)} lead / klik` : ''; }
+      if (s.id === 'walkin') return `${Math.round(r)}% dari lead`;
+      return fmtPct(r, r < 10 ? 2 : 1);
+    };
+    function i3(id) { return f.stages.findIndex(x => x.id === id); }
+    const ex = f.extra || {};
+    let h = `<h2>Aliran pelanggan <span class="note">· ${monLabel(key)}${live ? ' (bulan semasa)' : ''}</span></h2><div class="card cfun"><h3>Dari content ke kedai</h3><ol class="cf-list">`;
     f.stages.forEach((s, i) => {
-      if (i) {
-        const isW = f.weakest && f.weakest.id === s.id, isS = f.strongest && f.strongest.id === s.id;
-        const r = s.rate, w = r == null ? 0 : Math.min(100, r), mk = s.avg3 == null ? null : Math.min(100, s.avg3);
-        const cmpTxt = s.avg3 != null ? `Purata 3 bln ${fmtPct(s.avg3)}` : (s.prevRate != null ? `Bulan lepas ${fmtPct(s.prevRate)}` : 'Tiada perbandingan');
-        const dv = s.vsAvg == null ? '' : Math.abs(s.vsAvg) < 1 ? ' · ≈ sama' : ` · ${s.vsAvg >= 0 ? '▲' : '▼'}${Math.abs(s.vsAvg).toFixed(0)}%`;
-        h += `<div class="step ${isW ? 'weak' : ''} ${isS ? 'strong' : ''}">
-          <div class="row"><span class="rate">${fmtPct(r, r != null && r < 10 ? 2 : 1)} <span class="rn">${esc(s.note)}</span></span>
-            ${isW ? '<span class="tag bad">✕ Paling lemah</span>' : isS ? '<span class="tag good">✓ Paling baik</span>' : ''}</div>
-          ${r != null && r < 5 ? '' : `<div class="rbar" data-tip="${esc(`${s.note}: ${fmtPct(r)}${s.avg3 != null ? ' · purata 3 bln ' + fmtPct(s.avg3) : ''}`)}"><i style="width:${w.toFixed(1)}%"></i>${mk != null ? `<span class="avg" style="left:${mk.toFixed(1)}%"></span>` : ''}</div>`}
-          <div class="sub">${cmpTxt}${dv}</div></div>`;
-      }
-      h += `<div class="stage"><span class="name">${esc(s.label)}</span><span class="v">${fmt(s.value)}</span></div>`;
+      const isW = f.weakest && f.weakest.id === s.id, isS = f.strongest && f.strongest.id === s.id;
+      const rt = i ? rateTxt(s) : '';
+      const sub = s.id === 'walkin' ? `Klik lokasi: ${fmt(ex.location)}` : s.sub;
+      const tip = i && s.rate != null ? `${s.note}: ${fmtPct(s.rate)}${s.avg3 != null ? ' · purata 3 bln ' + fmtPct(s.avg3) : ''}` : '';
+      const avgTxt = rt && (isW || isS) ? `<small>${isW ? '▼ bawah' : '▲ atas'} purata 3 bln</small>` : '';
+      h += `<li class="cf-row${s.outlet ? ' out' : ''}">
+        <div class="cf-lbl"><b>${esc(s.label)}</b><span>${esc(sub)}</span></div>
+        <div class="cf-track"><div class="cf-bar" style="width:${W[i] || 20}%"${tip ? ` data-tip="${esc(tip)}"` : ''}>${s.value == null ? '—' : Math.round(s.value).toLocaleString('en-MY')}</div></div>
+        <div class="cf-rate${isW ? ' weak' : ''}${isS ? ' strong' : ''}">${rt}${avgTxt}</div>
+      </li>`;
     });
-    h += `</div><div class="chart-cap">Setiap kadar = peringkat ini ÷ peringkat atas. Bar = kadar (0–100%); garis kecil = purata 3 bulan. Klik WhatsApp tak unik; Leads & Walk-in termasuk pelanggan dari saluran lain, jadi kadar boleh lebih 100%.</div>`;
+    h += `</ol><p class="cf-note">Klik WhatsApp tak sama dengan mesej dihantar, dan lead outlet datang dari semua source. Ratio ni sebagai petunjuk je, bukan conversion sebenar.</p>`;
+    if (ex.waOnline != null || ex.waBuyback != null) {
+      h += `<div class="cf-hq"><b>Channel HQ (takde rekod lead)</b><span>WA Online Postage: <b>${fmt(ex.waOnline)}</b></span><span>WA Buyback: <b>${fmt(ex.waBuyback)}</b></span><span>Total: <b>${fmt((ex.waOnline || 0) + (ex.waBuyback || 0))}</b></span></div>`;
+    }
+    h += `</div>`;
     const act = f.weakest && ACT[f.weakest.id] ? `<div class="card action"><b>Cadangan fokus</b><p>${ACT[f.weakest.id]}</p></div>` : '';
     // Mobile: sorotan di atas (seperti asal). Desktop: dua lajur.
     return `<div class="fl-grid"><div class="fl-side">${ib ? `<h2 class="fl-h">Sorotan bulan ini</h2>${ib}` : ''}${act}</div><div class="fl-main">${h}</div></div>`;
