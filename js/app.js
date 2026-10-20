@@ -296,29 +296,85 @@
   async function viewOutlet(key) {
     const { o, live, cards } = outletScores(key);
     const { c } = await monthContent(key);
+    const [y, m] = parseKey(key);
+    const lc = KD.leadCategories(state.ds, y, m);
+    const fullN = n => n == null ? '—' : Math.round(n).toLocaleString('en-MY');
+    const OI = {
+      KUL: 'M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6', AOR: 'M4 21V10l8-6 8 6v11M9 21v-5h6v5M4 10h16',
+      SP: 'M4 9l1.5-5h13L20 9M4 9h16v2a2.7 2.7 0 0 1-5.3 0 2.7 2.7 0 0 1-5.4 0A2.7 2.7 0 0 1 4 11zM5 13v8h14v-8', PDG: 'M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21zM12 12a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z',
+    };
+    const ring = (ratio, lvl, size = 64) => {
+      const r = size / 2 - 5, C = 2 * Math.PI * r, off = C * (1 - Math.max(0, Math.min(1, ratio)));
+      return `<svg class="oring ${lvl}" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" aria-hidden="true"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" class="tr"/><circle cx="${size / 2}" cy="${size / 2}" r="${r}" class="fg" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 ${size / 2} ${size / 2})"/></svg>`;
+    };
+    const STW = { good: live ? 'On track' : 'Capai', warn: '80–99% / naik', bad: 'Belum capai', na: 'Tiada data' };
 
-    let h = `<h2>Skor outlet <span class="note">· KPI capai daripada jumlah</span></h2><div class="ostrip">${cards.map(c => `
-      <a class="otile" href="#o-${c.x}"><span class="on">${CFG.outletNames[c.x]}</span>
-        <span class="os ${c.lvl}">${c.hit}<span class="of">/${c.total}</span></span>
-        <span class="ob"><i class="${c.lvl}" style="width:${(c.ratio * 100).toFixed(0)}%"></i></span>
-        <span class="om">${c.miss.length ? `${c.miss.length} merah` : 'tiada merah'}</span></a>`).join('')}</div>`;
-    h += `<div class="legend one"><span><span class="st good">✓</span> ${live ? 'On track' : 'Capai'}</span><span><span class="st warn">!</span> 80–99%</span><span><span class="st warn">↗</span> Naik</span><span><span class="st bad">✕</span> Belum</span></div>`;
+    // ---- 1. Ranking strip ----
+    let h = `<div class="op-head"><div><span class="cf-eyebrow">Ranking outlet · ${monLabel(key)}</span><h2 class="op-h">Skor outlet</h2><p class="op-sub">KPI capai daripada jumlah KPI${live ? ` · dinilai ikut kadar ${o.days.leads} hari data` : ''}</p></div>
+      <div class="op-legend"><span><i class="good"></i>${live ? 'On track' : 'Capai'}</span><span><i class="warn"></i>80–99% / naik</span><span><i class="bad"></i>Belum</span></div></div>`;
+    h += `<div class="op-strip">${cards.map((cd, i) => `
+      <a class="op-tile${i === 0 ? ' top' : ''}" href="#o-${cd.x}">
+        <span class="op-rank">#${i + 1}</span>
+        <div class="op-ringw">${ring(cd.ratio, i === 0 ? 'inv' : cd.lvl)}<span class="op-sc"><b>${cd.hit}</b>/${cd.total}</span></div>
+        <div class="op-tn"><b>${esc(CFG.outletNames[cd.x])}</b><span>${cd.miss.length ? `${cd.miss.length} KPI merah` : 'Tiada KPI merah'}</span></div>
+      </a>`).join('')}</div>`;
+
+    // ---- 2. Kad outlet ----
+    const GROUPS = [
+      ['Content supply', ['rawPhone', 'rawRepair', 'customer', 'beforeAfter']],
+      ['Digital', ['wa', 'location']],
+      ['Kedai', ['leads', 'walkin', 'conversion']],
+    ];
+    const LBL = Object.fromEntries(OUTLET_ROWS.map(([l, k]) => [k, l]));
+    const catChips = (x, kind) => {
+      const v = lc.available && lc.outlets[x] ? lc.outlets[x][kind] : null;
+      if (!v || ['phone', 'repair', 'cc'].every(k => v[k] == null)) return '';
+      const tg = T.leadCat[x][kind];
+      return `<div class="op-cats">${[['phone', 'Phone'], ['repair', 'Repair'], ['cc', 'CC']].filter(([k]) => tg[k]).map(([k, n]) =>
+        `<span><em>${n}</em><b>${fullN(v[k])}</b><small>/${fmt(tg[k])}</small></span>`).join('')}</div>`;
+    };
+    const kRow = (x, k, vals) => {
+      const v = vals[k]; if (!v) return '';
+      const isC = k === 'conversion';
+      const pct = v.a == null ? 0 : Math.max(0, Math.min(100, 100 * v.a / v.tg));
+      const val = v.a == null ? '—' : isC ? fmtPct(v.a, 0) : fullN(v.a);
+      const tv = isC ? v.tg + '%' : fmt(v.tg);
+      const lvl = v.st.level;
+      return `<li class="op-k ${lvl}"><div class="op-kt"><span class="op-dot ${lvl}" title="${STW[lvl]}">${lvl === 'na' ? '–' : iconOf(v.st)}</span><span class="op-kl">${esc(LBL[k])}</span>
+          <span class="op-kv">${v.a == null ? '<i>tiada data</i>' : `<b>${val}</b><small>/ ${tv}</small>`}</span></div>
+        <div class="op-bar"><i class="${lvl}" style="width:${pct.toFixed(1)}%"></i></div>
+        ${k === 'leads' ? catChips(x, 'lead') : k === 'walkin' ? catChips(x, 'walkin') : ''}</li>`;
+    };
     const wide = innerWidth >= 1024;
-    h += `<div class="ogrid">` + cards.map((c, i) => `<details class="card outlet" id="o-${c.x}" ${wide || i === cards.length - 1 ? 'open' : ''}>
-      <summary><span class="row"><b class="oname">${CFG.outletNames[c.x]}</b><span class="score ${c.lvl}">${c.hit}/${c.total} capai</span></span>
-      ${c.miss.length ? `<span class="sub">Merah: ${c.miss.join(', ')}</span>` : ''}</summary>
-      <ul class="olist">${c.list}</ul></details>`).join('') + `</div>`;
+    h += `<div class="op-grid">` + cards.map((cd, i) => `<details class="op-card" id="o-${cd.x}" ${wide || i === cards.length - 1 ? 'open' : ''}>
+      <summary class="op-ch">
+        <span class="op-ci" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="${OI[cd.x] || OI.SP}"/></svg></span>
+        <span class="op-cn"><b>${esc(CFG.outletNames[cd.x])}</b><span>${cd.miss.length ? `Merah: ${esc(cd.miss.join(', '))}` : 'Semua KPI tiada merah'}</span></span>
+        <span class="op-cs"><b>${cd.hit}<small>/${cd.total}</small></b><span>capai</span></span>
+        <span class="op-chev" aria-hidden="true"></span>
+      </summary>
+      <div class="op-body">${GROUPS.map(([g, ks]) => {
+        const rows = ks.map(k => kRow(cd.x, k, cd.vals)).join('');
+        return rows ? `<div class="op-g"><span class="op-gh">${g}</span><ul>${rows}</ul></div>` : '';
+      }).join('')}</div></details>`).join('') + `</div>`;
+
+    // ---- 3. Content ikut outlet ----
     if (c) {
       const order = ['KUL', 'AOR', 'SP', 'PDG', 'HQ', 'REPOST'];
       const rank = x => order.indexOf(x) < 0 ? 99 : order.indexOf(x);
-      h += `<h2>Content ikut outlet <span class="note">· tab per-post</span></h2><div class="card"><div class="tbl-wrap"><table><thead><tr><th>Outlet</th><th>Post</th><th>Views</th><th>Purata</th><th>Gold+</th></tr></thead><tbody>`;
-      for (const x of Object.keys(c.outlets).sort((a, b) => rank(a) - rank(b))) {
+      const keys = Object.keys(c.outlets).sort((a, b) => rank(a) - rank(b));
+      const maxV = Math.max(...keys.map(x => c.outlets[x].views || 0), 1);
+      h += `<div class="op-head sm"><div><span class="cf-eyebrow">Tab per-post</span><h2 class="op-h">Content ikut outlet</h2></div></div>
+        <div class="card op-content"><div class="op-crow op-chd"><span>Outlet</span><span>Views</span><span>Post</span><span>Purata</span><span>Gold+</span></div>`;
+      for (const x of keys) {
         const v = c.outlets[x], gold = (v.tiers.Gold || 0) + (v.tiers.Diamond || 0);
-        h += `<tr><td>${esc(CFG.outletNames[x] || x)}</td><td>${v.posts}</td><td><b>${fmt(v.views)}</b></td><td>${fmt(v.views / v.posts)}</td><td>${gold}${v.tiers.Diamond ? ' 💎' : ''}</td></tr>`;
+        h += `<div class="op-crow"><span class="op-on">${esc(CFG.outletNames[x] || x)}</span>
+          <span class="op-vw"><b>${fmt(v.views)}</b><span class="op-vb"><i style="width:${(100 * (v.views || 0) / maxV).toFixed(1)}%"></i></span></span>
+          <span>${v.posts}</span><span>${fmt(v.views / v.posts)}</span><span class="op-gold">${gold ? `<em>${gold}</em>` : '0'}${v.tiers.Diamond ? ' 💎' : ''}</span></div>`;
       }
-      h += `</tbody></table></div></div>`;
+      h += `</div>`;
     }
-    h += `<div class="chart-cap">Ketik outlet untuk butiran (outlet paling lemah dibuka dulu). ↗ = bawah target tapi naik vs bulan lepas. Conversion = Walk-in ÷ Leads. Klik WhatsApp/Lokasi dari LINKTREE (${CFG.linktree.year}). ${live ? `Bulan semasa dinilai ikut kadar (${o.days.leads} hari data leads).` : ''}</div>`;
+    h += `<div class="chart-cap">Ketik nama outlet untuk buka/tutup butiran. Conversion = Walk-in ÷ Leads. Pecahan Phone/Repair/CC dari MASTER SHEET (mirror). Klik WhatsApp/Lokasi dari LINKTREE (${CFG.linktree.year}).</div>`;
     return h;
   }
 
