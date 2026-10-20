@@ -378,33 +378,116 @@
     return h;
   }
 
+  // ---------- Trend (premium) ----------
+  let tcId = 0;
+  const tl = v => Math.abs(v) >= 1e6 ? (v / 1e6).toFixed(1) + 'M' : Math.abs(v) >= 1e3 ? Math.round(v / 1e3) + 'K' : String(Math.round(v));
+  // Bar chart premium: satu atau beberapa siri (stacked). Bulan dipilih = solid + label nilai; bulan separa = pudar.
+  function tChart(rows, series, opts = {}) {
+    const id = 'tc' + (++tcId);
+    const W = opts.w || Math.min(chartW(), 1100), H = opts.h || (W > 500 ? 230 : 180), pl = 40, pr = 8, pt = 26, pb = 24;
+    const tot = rows.map(r => series.reduce((a, sr) => a + (r[sr.k] || 0), 0));
+    const hasAny = rows.map(r => series.some(sr => r[sr.k] != null));
+    let max = Math.max(...tot, opts.target || 0, 0) * 1.08, min = Math.min(...tot, 0) * 1.08;
+    if (max === min) max = min + 1;
+    const y = v => pt + (H - pt - pb) * (max - v) / (max - min);
+    const bw = (W - pl - pr) / rows.length, gap = Math.max(4, bw * 0.32), w = Math.max(3, bw - gap);
+    let s = `<svg class="tchart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(opts.aria || '')}"><defs>`;
+    series.forEach((sr, i) => { s += `<linearGradient id="${id}g${i}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sr.c1}"/><stop offset="1" stop-color="${sr.c2}"/></linearGradient>`; });
+    s += `<linearGradient id="${id}n" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F7A26B"/><stop offset="1" stop-color="#E5602A"/></linearGradient></defs>`;
+    [max, (max + min) / 2, min].forEach(t => { s += `<line class="tg" x1="${pl}" x2="${W - pr}" y1="${y(t).toFixed(1)}" y2="${y(t).toFixed(1)}"/><text class="ty" x="${pl - 6}" y="${(y(t) + 3.5).toFixed(1)}" text-anchor="end">${tl(t)}</text>`; });
+    if (min < 0) s += `<line class="tz" x1="${pl}" x2="${W - pr}" y1="${y(0)}" y2="${y(0)}"/>`;
+    rows.forEach((r, i) => {
+      const x = pl + i * bw + gap / 2, cx = x + w / 2;
+      const cls = (r._hl ? ' hl' : '') + (r._dim ? ' dim' : '') + (opts.hl && !r._hl ? ' mute' : '');
+      s += `<text class="tx${r._hl ? ' on' : ''}" x="${cx}" y="${H - 7}" text-anchor="middle">${esc(r._lab)}</text>`;
+      if (hasAny[i]) {
+        let acc = 0;
+        series.forEach((sr, j) => {
+          const v = r[sr.k]; if (v == null || v === 0) return;
+          const neg = v < 0, y1 = y(neg ? 0 : acc + v), y2 = y(neg ? v : acc), h = Math.max(1.5, y2 - y1);
+          const top = j === series.length - 1 || series.slice(j + 1).every(q => !r[q.k]);
+          const rr = top || neg ? Math.min(5, w / 2, h) : 0;
+          const fill = neg ? `url(#${id}n)` : `url(#${id}g${j})`;
+          s += neg
+            ? `<path class="tb${cls}" fill="${fill}" d="M${x},${y1}V${y1 + h - rr}q0,${rr} ${rr},${rr}h${w - 2 * rr}q${rr},0 ${rr},-${rr}V${y1}z"/>`
+            : `<path class="tb${cls}" fill="${fill}" d="M${x},${y1 + h}V${y1 + rr}q0,-${rr} ${rr},-${rr}h${w - 2 * rr}q${rr},0 ${rr},${rr}V${y1 + h}z"/>`;
+          if (!neg) acc += v;
+        });
+        if (r._hl) {
+          const tv = tot[i], ly = tv < 0 ? y(tv) + 15 : y(tv) - 8;
+          s += `<text class="tv" x="${cx}" y="${ly}" text-anchor="middle">${tl(tv)}</text>`;
+        }
+      }
+      const tip = !hasAny[i] ? `${r._full}: tiada data` : `${r._full}: ${series.length > 1 ? series.map(sr => `${sr.n} ${fmt(r[sr.k])}`).join(' · ') + ' · Total ' + fmt(tot[i]) : fmt(tot[i])}${r._dim ? ' (data separa)' : ''}`;
+      s += `<rect class="hit" x="${pl + i * bw}" y="${pt - 10}" width="${bw}" height="${H - pt - pb + 10}" data-tip="${esc(tip)}"/>`;
+    });
+    if (opts.target) {
+      const ty = y(opts.target);
+      s += `<line class="tt" x1="${pl}" x2="${W - pr}" y1="${ty}" y2="${ty}"/><g class="ttl"><rect x="${W - pr - 74}" y="${ty - 10}" width="74" height="20" rx="10"/><text x="${W - pr - 37}" y="${ty + 4}" text-anchor="middle">Target ${tl(opts.target)}</text></g>`;
+    }
+    return s + '</svg>';
+  }
+  function spark(vals, inv) {
+    const v = vals.map(x => x == null ? null : x), nn = v.filter(x => x != null);
+    if (nn.length < 2) return '';
+    const W = 120, H = 36, max = Math.max(...nn), min = Math.min(...nn, 0), rg = max - min || 1;
+    const pts = v.map((x, i) => x == null ? null : [(i / (v.length - 1)) * W, H - 3 - (H - 6) * (x - min) / rg]).filter(Boolean);
+    const d = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join('');
+    const last = pts[pts.length - 1];
+    return `<svg class="tspark${inv ? ' inv' : ''}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><path class="ar" d="${d}L${last[0]},${H}L${pts[0][0]},${H}Z"/><path class="ln" d="${d}"/><circle cx="${last[0]}" cy="${last[1]}" r="3"/></svg>`;
+  }
+
   function viewTrend(key) {
-    const series = KD.monthlySeries(state.ds).filter(r => r.key <= key).slice(-12);
-    const mk = (field, opts = {}) => barChart(series.map(r => {
+    const all = KD.monthlySeries(state.ds).filter(r => r.key <= key).slice(-12);
+    if (!all.length) return `<div class="card empty">Belum ada data trend.</div>`;
+    const sumO = (r, p) => { const v = CFG.outlets.map(x => r[p + x]).filter(z => z != null); return v.length ? v.reduce((a, b) => a + b, 0) : null; };
+    const rows = all.map(r => {
       const [yy, mm] = parseKey(r.key), dim = daysIn(yy, mm);
-      const days = r[field.split('_')[0] + '_days'] || 0;
-      const partial = days > 0 && days < dim * 0.9;
-      return { label: MON[mm - 1], value: r[field] ?? null, dim: partial, hl: r.key === key,
-        tip: r[field] == null ? `${monLabel(r.key)}: tiada data` : `${monLabel(r.key)}: ${fmt(r[field])}${partial ? ` (${days}/${dim} hari)` : ''}` };
-    }), { aria: opts.aria, target: opts.target, w: opts.w });
-    // Kad separuh lebar pada desktop (≥900px, .pair)
-    const half = Math.min(chartW(0.5, 900), 640);
-    const sec = (title, body) => `<div class="card"><div class="card-h"><div><h3>${title}</h3></div></div>${body}</div>`;
-    let h = `<h2>TikTok <span class="note">· garis putus = target 4M</span></h2><div class="pair">`;
-    h += sec('Views bulanan', mk('tt_views', { target: T.tiktokViews, aria: 'Views TikTok bulanan', w: half }));
-    h += sec('Net followers', mk('tt_netGrowth', { aria: 'Net followers bulanan', w: half }) + `<div class="chart-cap">Biru = bertambah, oren = berkurang. Had bawah ${fmt(T.netFollowersFloor)}.</div>`);
-    h += `</div><h2>Facebook & Instagram</h2><div class="pair">`;
-    h += sec('Facebook views', mk('fb_views', { aria: 'Views Facebook bulanan', w: half }) + `<div class="chart-cap">Bar pudar = data harian tak lengkap. Tiada bar = tiada data.</div>`);
-    h += sec('Instagram views', mk('ig_views', { aria: 'Views Instagram bulanan', w: half }));
-    const tot = series.map(r => ({ ...r, lead_all: CFG.outlets.reduce((a, x) => a + (r['lead_' + x] || 0), 0) || null, walk_all: CFG.outlets.reduce((a, x) => a + (r['walk_' + x] || 0), 0) || null }));
-    const mk2 = f => barChart(tot.map(r => ({ label: MON[+r.key.slice(5) - 1], value: r[f], hl: r.key === key, tip: `${monLabel(r.key)}: ${fmt(r[f])}` })), { w: half });
-    h += `</div><h2>Jualan (4 outlet)</h2><div class="pair">`;
-    h += sec('Leads', mk2('lead_all')) + sec('Walk-in', mk2('walk_all'));
+      const ttd = r.tt_days || 0;
+      const allV = r.tt_views == null && r.fb_views == null && r.ig_views == null ? null : (r.tt_views || 0) + (r.fb_views || 0) + (r.ig_views || 0);
+      return { ...r, _lab: MON[mm - 1], _full: monLabel(r.key), _hl: r.key === key, _dim: ttd > 0 && ttd < dim * 0.9, allV, lead_all: sumO(r, 'lead_'), walk_all: sumO(r, 'walk_') };
+    });
+    const cur = rows[rows.length - 1], prev = rows.length > 1 ? rows[rows.length - 2] : null;
+    const tgLead = CFG.outlets.reduce((a, x) => a + T.outlet[x].leads, 0), tgWalk = CFG.outlets.reduce((a, x) => a + T.outlet[x].walkin, 0);
+    const half = Math.min(chartW(0.5, 900), 640), full = Math.min(chartW(), 1100);
+    const mom = (a, b) => a == null || b == null || !b ? null : 100 * (a - b) / Math.abs(b);
+    const pill = v => v == null ? '<span class="tp na">—</span>' : `<span class="tp ${v >= 0 ? 'up' : 'dn'}">${v >= 0 ? '▲' : '▼'} ${Math.abs(v) >= 999 ? '>999' : Math.abs(v).toFixed(0)}%</span>`;
+    const tile = (lab, sub, k, opt = {}) => {
+      const v = cur[k], d = opt.abs ? null : mom(v, prev && prev[k]);
+      const dAbs = opt.abs && v != null && prev && prev[k] != null ? v - prev[k] : null;
+      return `<div class="tk${opt.top ? ' top' : ''}"><div class="tk-h"><span>${lab}</span>${opt.abs ? (dAbs == null ? '' : `<span class="tp ${dAbs >= 0 ? 'up' : 'dn'}">${dAbs >= 0 ? '+' : '−'}${fmt(Math.abs(dAbs))}</span>`) : pill(d)}</div>
+        <b>${v == null ? '—' : fmt(v)}</b><small>${sub}</small>${spark(rows.map(r => r[k]), opt.top)}</div>`;
+    };
+    const best = (k) => rows.filter(r => r[k] != null).reduce((a, b) => (b[k] > (a ? a[k] : -Infinity) ? b : a), null);
+    const avg = k => { const v = rows.map(r => r[k]).filter(x => x != null && !rows.find(q => q[k] === x)._dim); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
+    const card = (eb, title, meta, body, cap = '') => `<div class="card tcard"><div class="tc-h"><div><span class="cf-eyebrow">${eb}</span><h3>${title}</h3></div>${meta ? `<div class="tc-m">${meta}</div>` : ''}</div>${body}${cap ? `<div class="chart-cap">${cap}</div>` : ''}</div>`;
+    const meta = k => { const b = best(k), a = avg(k); return `${b ? `<span>Terbaik <b>${b._lab}</b> · ${fmt(b[k])}</span>` : ''}${a != null ? `<span>Purata <b>${fmt(a)}</b></span>` : ''}`; };
+    const legend = list => `<div class="tlg">${list.map(([n, c]) => `<span><i style="background:${c}"></i>${n}</span>`).join('')}</div>`;
+    const BL = { c1: '#6E9BFF', c2: '#2F63EE' }, NV = { c1: '#2C4FC4', c2: '#132E85' };
+
+    let h = `<div class="op-head"><div><span class="cf-eyebrow">12 bulan terakhir · sehingga ${monLabel(key)}</span><h2 class="op-h">Trend bulanan</h2><p class="op-sub">Perbandingan ${monLabel(key)} dengan ${prev ? prev._full : 'bulan lepas'}. Bulan pudar = data harian tak lengkap.</p></div></div>`;
+    h += `<div class="tk-strip">${tile('View content', 'TikTok + IG + FB', 'allV', { top: true })}${tile('TikTok views', 'Target ' + tl(T.tiktokViews), 'tt_views')}${tile('Lead', '4 outlet · target ' + fmt(tgLead), 'lead_all')}${tile('Walk-in', '4 outlet · target ' + fmt(tgWalk), 'walk_all')}</div>`;
+
+    h += card('Semua platform', 'View content ikut platform', meta('allV'),
+      legend([['TikTok', '#2F63EE'], ['Instagram', '#7B5CF5'], ['Facebook', '#1FB6C9']]) +
+      tChart(rows, [{ k: 'tt_views', n: 'TikTok', ...BL }, { k: 'ig_views', n: 'IG', c1: '#9C84FF', c2: '#6A47EE' }, { k: 'fb_views', n: 'FB', c1: '#4FD3E0', c2: '#15A2B8' }], { w: full, hl: true, aria: 'View content bulanan ikut platform' }));
+    h += `<div class="pair tpair">`;
+    h += card('TikTok', 'Views TikTok', meta('tt_views'), tChart(rows, [{ k: 'tt_views', n: 'Views', ...BL }], { w: half, hl: true, target: T.tiktokViews, aria: 'Views TikTok bulanan' }));
+    h += card('TikTok', 'Net followers', meta('tt_netGrowth'), tChart(rows, [{ k: 'tt_netGrowth', n: 'Net', ...BL }], { w: half, hl: true, aria: 'Net followers bulanan' }), `Oren = followers berkurang. Had bawah ${fmt(T.netFollowersFloor)}.`);
+    h += card('Kedai', 'Lead (4 outlet)', meta('lead_all'), tChart(rows, [{ k: 'lead_all', n: 'Lead', ...NV }], { w: half, hl: true, target: tgLead, aria: 'Lead bulanan' }));
+    h += card('Kedai', 'Walk-in (4 outlet)', meta('walk_all'), tChart(rows, [{ k: 'walk_all', n: 'Walk-in', ...NV }], { w: half, hl: true, target: tgWalk, aria: 'Walk-in bulanan' }));
     h += `</div>`;
-    h += `<h2>Jadual</h2><div class="card"><div class="tbl-wrap"><table><thead><tr><th>Bulan</th><th>TT Views</th><th>Net Fol.</th><th>FB</th><th>IG</th><th>Leads</th><th>Walk-in</th></tr></thead><tbody>`;
-    for (const r of [...tot].reverse())
-      h += `<tr><td>${monLabel(r.key)}</td><td>${fmt(r.tt_views)}</td><td>${fmt(r.tt_netGrowth)}</td><td>${fmt(r.fb_views)}</td><td>${fmt(r.ig_views)}</td><td>${fmt(r.lead_all)}</td><td>${fmt(r.walk_all)}</td></tr>`;
-    h += `</tbody></table></div></div>`;
+
+    // Jadual
+    const cell = (r, k, i) => {
+      const v = r[k], p = i > 0 ? rows[i - 1][k] : null, d = mom(v, p);
+      return `<td><b>${fmt(v)}</b>${d == null || k === 'tt_netGrowth' ? '' : `<span class="tdl ${d >= 0 ? 'up' : 'dn'}">${d >= 0 ? '▲' : '▼'}${Math.abs(d) >= 999 ? '>999' : Math.abs(d).toFixed(0)}%</span>`}</td>`;
+    };
+    h += `<div class="op-head sm"><div><span class="cf-eyebrow">Butiran</span><h2 class="op-h">Jadual bulanan</h2></div></div><div class="card ttable"><div class="tbl-wrap"><table><thead><tr><th>Bulan</th><th>View content</th><th>TikTok</th><th>Net fol.</th><th>FB</th><th>IG</th><th>Lead</th><th>Walk-in</th></tr></thead><tbody>`;
+    rows.map((r, i) => [r, i]).reverse().forEach(([r, i]) => {
+      h += `<tr class="${r._hl ? 'on' : ''}"><td class="tm">${r._full}${r._dim ? '<small>separa</small>' : ''}</td>${cell(r, 'allV', i)}${cell(r, 'tt_views', i)}${cell(r, 'tt_netGrowth', i)}${cell(r, 'fb_views', i)}${cell(r, 'ig_views', i)}${cell(r, 'lead_all', i)}${cell(r, 'walk_all', i)}</tr>`;
+    });
+    h += `</tbody></table></div></div><div class="chart-cap">▲▼ = beza vs bulan sebelumnya. Lead & Walk-in dari MASTER SHEET (mirror). Views FB/IG dari tab Insight.</div>`;
     return h;
   }
 
