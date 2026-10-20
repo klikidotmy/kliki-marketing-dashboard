@@ -1047,7 +1047,7 @@ a.ct-item:hover, a.ct-first:hover { transform: translateY(-2px); }
 .an-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; margin-top: 12px; }
 .an-ch { font-size: 10.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 8px; }
 .an-ch.up { color: var(--good); } .an-ch.dn { color: var(--bad); }
-.an-mv { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.an-mv { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
 .an-mvt { display: flex; min-width: 0; justify-content: space-between; gap: 8px; font-size: 12.5px; } .an-mvt span { color: var(--text-2); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .an-mvt b { font-weight: 800; white-space: nowrap; } .an-mvt b.up { color: var(--good); } .an-mvt b.dn { color: var(--bad); }
 .an-mvb { height: 5px; border-radius: 999px; background: var(--surface-2); margin-top: 4px; overflow: hidden; }
