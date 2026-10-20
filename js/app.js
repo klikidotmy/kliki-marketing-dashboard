@@ -380,7 +380,7 @@
 
   // ---------- Trend (premium) ----------
   let tcId = 0;
-  const tl = v => Math.abs(v) >= 1e6 ? (v / 1e6).toFixed(1) + 'M' : Math.abs(v) >= 1e3 ? Math.round(v / 1e3) + 'K' : String(Math.round(v));
+  const tl = v => Math.abs(v) >= 1e6 ? (v / 1e6).toFixed(1) + 'M' : Math.abs(v) >= 1e4 ? Math.round(v / 1e3) + 'K' : Math.round(v).toLocaleString('en-MY');
   // Bar chart premium: satu atau beberapa siri (stacked). Bulan dipilih = solid + label nilai; bulan separa = pudar.
   function tChart(rows, series, opts = {}) {
     const id = 'tc' + (++tcId);
@@ -423,7 +423,9 @@
     });
     if (opts.target) {
       const ty = y(opts.target);
-      s += `<line class="tt" x1="${pl}" x2="${W - pr}" y1="${ty}" y2="${ty}"/><g class="ttl"><rect x="${pl + 4}" y="${ty - 21}" width="74" height="18" rx="9"/><text x="${pl + 41}" y="${ty - 8.5}" text-anchor="middle">Target ${tl(opts.target)}</text></g>`;
+      s += `<line class="tt" x1="${pl}" x2="${W - pr}" y1="${ty}" y2="${ty}"/>`;
+      const lt = 'Target ' + tl(opts.target), lw = lt.length * 6.3 + 14;
+      s += `<g class="ttl"><rect x="${pl + 4}" y="${ty - 21}" width="${lw}" height="18" rx="9"/><text x="${pl + 4 + lw / 2}" y="${ty - 8.5}" text-anchor="middle">${lt}</text></g>`;
     }
     return s + '</svg>';
   }
