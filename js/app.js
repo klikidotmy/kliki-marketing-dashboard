@@ -875,7 +875,7 @@
     const up = [...withMom].sort((a, b) => b.mom - a.mom).filter(k => k.mom > 0).slice(0, 5);
     const down = [...withMom].sort((a, b) => a.mom - b.mom).filter(k => k.mom < 0).slice(0, 5);
     const mx = Math.max(1, ...withMom.map(k => Math.min(150, Math.abs(k.mom))));
-    const mv = (list, cls) => list.length ? `<ul class="an-mv">${list.map(k => `<li><div class="an-mvt"><span>${esc(k.label)}</span><b class="${cls}">${k.mom > 0 ? '▲' : '▼'} ${Math.abs(k.mom) >= 999 ? '>999' : Math.abs(k.mom).toFixed(0)}%</b></div><div class="an-mvb ${cls}"><i style="width:${(100 * Math.min(150, Math.abs(k.mom)) / mx).toFixed(1)}%"></i></div></li>`).join('')}</ul>` : '<div class="ct-emp">Tiada</div>';
+    const mv = (list, cls) => list.length ? `<ul class="an-mv">${list.map(k => `<li><div class="an-mvt"><span data-tip="${esc(k.label)}">${esc(k.label)}</span><b class="${cls}">${k.mom > 0 ? '▲' : '▼'} ${Math.abs(k.mom) >= 999 ? '>999' : Math.abs(k.mom).toFixed(0)}%</b></div><div class="an-mvb ${cls}"><i style="width:${(100 * Math.min(150, Math.abs(k.mom)) / mx).toFixed(1)}%"></i></div></li>`).join('')}</ul>` : '<div class="ct-emp">Tiada</div>';
     h += `<div class="pair tpair" style="margin-top:16px">
       <div class="card tcard"><div class="tc-h"><div><span class="cf-eyebrow">Dari data sebenar</span><h3>Insights</h3></div></div>
         ${ins.length ? `<ul class="ov-hl">${ins.map(i => `<li class="${i.kind}"><span class="ov-hi">${i.kind === 'good' ? '✓' : '!'}</span><div><b>${esc(i.title)}</b><p>${esc(i.text)}</p></div>${i.chip ? `<span class="ov-chip ${i.kind}">${esc(i.chip)}</span>` : ''}</li>`).join('')}</ul>` : '<div class="ct-emp">Belum cukup data.</div>'}${act}</div>
