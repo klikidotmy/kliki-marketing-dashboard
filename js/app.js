@@ -858,45 +858,56 @@
     const { c, pc, cPace, live } = await monthContent(key);
     const [py, pm] = KD.prevYM(y, m), prevLbl = monShort(py, pm);
     const sc = KD.scorecard(state.ds, y, m, c, pc, cPace);
-    let h = `<div class="ov-hello"><p>Analisis KPI <b>${monLabel(key)}</b> berbanding target rasmi dan ${monLabel(KD.ym(py, pm))}${live ? ' · bulan semasa dinilai ikut kadar hari' : ''}</p></div>`;
-    h += `<div class="sc-tiles"><div class="good"><b>${sc.hit.length}</b><span>${live ? 'On track' : 'Capai target'}</span></div><div class="bad"><b>${sc.miss.length}</b><span>${live ? 'Ketinggalan' : 'Gagal capai'}</span></div><div class="na"><b>${sc.na.length}</b><span>Tiada data</span></div></div>`;
+    const n = sc.list.length, nH = sc.hit.length, nM = sc.miss.length, nN = sc.na.length;
+    let h = secHead(`Analisis KPI · ${monLabel(key)}`, 'Marketing analysis', `Semua KPI bertarget berbanding target rasmi dan ${monLabel(KD.ym(py, pm))}${live ? ' · bulan semasa dinilai ikut kadar hari' : ''}.`, '');
 
-    // sorotan + cadangan
+    // ---- 1. Skor ----
+    const tileA = (cls, num, lab, sub) => `<div class="an-t ${cls}"><b>${num}</b><span>${lab}</span><small>${sub}</small></div>`;
+    h += `<div class="an-score"><div class="an-big"><span class="ov-eb">Skor bulan ini</span><div class="an-bn"><b>${nH}</b><span>/ ${n} KPI ${live ? 'on track' : 'capai'}</span></div>
+        <div class="ov-seg">${nH ? `<i class="good" style="flex:${nH}"></i>` : ''}${nM ? `<i class="bad" style="flex:${nM}"></i>` : ''}${nN ? `<i class="na" style="flex:${nN}"></i>` : ''}</div>
+        <p>${n ? Math.round(100 * nH / n) : 0}% KPI ${live ? 'on track' : 'capai target'}${nM ? ` · ${nM} perlu tindakan` : ''}</p></div>
+      ${tileA('good', nH, live ? 'On track' : 'Capai target', 'KPI hijau')}${tileA('bad', nM, live ? 'Ketinggalan' : 'Gagal capai', 'Jurang terbesar disenarai dulu')}${tileA('na', nN, 'Tiada data', 'Tak dikira sebagai 0')}</div>`;
+
+    // ---- 2. Insights + perubahan ----
     const ins = KD.insights(state.ds, y, m), f = KD.funnel(state.ds, y, m);
-    const act = f.weakest && ACT[f.weakest.id] ? `<div class="card action"><b>Cadangan fokus: ${esc(f.weakest.label)}</b><p>${ACT[f.weakest.id]}</p></div>` : '';
-    // perubahan terbesar vs bulan lepas
+    const act = f.weakest && ACT[f.weakest.id] ? `<div class="an-act"><span class="an-ai">→</span><div><b>Cadangan fokus: ${esc(f.weakest.label)}</b><p>${ACT[f.weakest.id]}</p></div></div>` : '';
     const withMom = sc.list.filter(k => k.mom != null && Number.isFinite(k.mom) && !k.floor);
-    const up = [...withMom].sort((a, b) => b.mom - a.mom).filter(k => k.mom > 0).slice(0, 4);
-    const down = [...withMom].sort((a, b) => a.mom - b.mom).filter(k => k.mom < 0).slice(0, 4);
-    const mv = (list, cls) => list.length ? `<ul class="sc-list">${list.map(k => `<li><span>${esc(k.label)}</span><b class="${cls}">${k.mom > 0 ? '▲' : '▼'} ${Math.abs(k.mom) >= 999 ? '>999' : Math.abs(k.mom).toFixed(0)}%</b></li>`).join('')}</ul>` : '<div class="empty">Tiada</div>';
-    h += `<div class="ov-row r11">
-      <div class="card"><div class="card-h"><div><h3>Insights</h3><div class="sub">Dijana dari data sebenar</div></div></div>
-        ${ins.length ? `<ul class="hl-list">${ins.map(i => `<li class="${i.kind}"><span class="hi">${i.kind === 'good' ? '✓' : '✕'}</span><div><b>${esc(i.title)}</b><p>${esc(i.text)}</p></div><span class="ins-c">${esc(i.chip || '')}</span></li>`).join('')}</ul>` : '<div class="empty">Belum cukup data.</div>'}${act}</div>
-      <div class="card"><div class="card-h"><div><h3>Perubahan vs ${prevLbl}</h3><div class="sub">Dinormalkan ikut hari data supaya bulan separa boleh dibanding</div></div></div>
-        <div class="pair tight"><div><div class="sc-h">Naik paling banyak</div>${mv(up, 'up')}</div><div><div class="sc-h">Turun paling banyak</div>${mv(down, 'down')}</div></div></div>
+    const up = [...withMom].sort((a, b) => b.mom - a.mom).filter(k => k.mom > 0).slice(0, 5);
+    const down = [...withMom].sort((a, b) => a.mom - b.mom).filter(k => k.mom < 0).slice(0, 5);
+    const mx = Math.max(1, ...withMom.map(k => Math.min(150, Math.abs(k.mom))));
+    const mv = (list, cls) => list.length ? `<ul class="an-mv">${list.map(k => `<li><div class="an-mvt"><span>${esc(k.label)}</span><b class="${cls}">${k.mom > 0 ? '▲' : '▼'} ${Math.abs(k.mom) >= 999 ? '>999' : Math.abs(k.mom).toFixed(0)}%</b></div><div class="an-mvb ${cls}"><i style="width:${(100 * Math.min(150, Math.abs(k.mom)) / mx).toFixed(1)}%"></i></div></li>`).join('')}</ul>` : '<div class="ct-emp">Tiada</div>';
+    h += `<div class="pair tpair" style="margin-top:16px">
+      <div class="card tcard"><div class="tc-h"><div><span class="cf-eyebrow">Dari data sebenar</span><h3>Insights</h3></div></div>
+        ${ins.length ? `<ul class="ov-hl">${ins.map(i => `<li class="${i.kind}"><span class="ov-hi">${i.kind === 'good' ? '✓' : '!'}</span><div><b>${esc(i.title)}</b><p>${esc(i.text)}</p></div>${i.chip ? `<span class="ov-chip ${i.kind}">${esc(i.chip)}</span>` : ''}</li>`).join('')}</ul>` : '<div class="ct-emp">Belum cukup data.</div>'}${act}</div>
+      <div class="card tcard"><div class="tc-h"><div><span class="cf-eyebrow">Dinormalkan ikut hari data</span><h3>Perubahan vs ${prevLbl}</h3></div></div>
+        <div class="an-cols"><div><div class="an-ch up">Naik paling banyak</div>${mv(up, 'up')}</div><div><div class="an-ch dn">Turun paling banyak</div>${mv(down, 'dn')}</div></div></div>
     </div>`;
 
-    const trow = k => {
+    // ---- 3. Senarai KPI ----
+    const GI = { Content: 'C', TikTok: 'TT', 'Linktree & WhatsApp': 'LT', 'Leads & Walk-in': 'LW' };
+    const krow = k => {
       const st = k.status, pct = k.floor ? null : st.pct, w = pct == null ? 0 : Math.min(100, pct);
       const tg = k.floor ? `≥ ${fmt(k.target)}` : fmtVal(k.target, k.unit);
-      const momTxt = k.floor || (k.nowN != null && k.nowN < 0) ? cmp(k, k.prev, '') : delta(k.mom, '');
-      return `<tr><td>${esc(k.label)}<small>${esc(k.group)}</small></td><td>${tg}</td><td><b>${fmtVal(k.actual, k.unit)}</b></td>
-        <td><span class="ach"><span class="mini"><i class="${st.level}" style="width:${w.toFixed(0)}%"></i></span>${pct == null ? '—' : Math.round(pct) + '%'}</span></td>
-        <td>${momTxt || '—'}</td><td>${chipK(k)}</td></tr>`;
+      const momTxt = k.floor || (k.nowN != null && k.nowN < 0) ? cmp(k, k.prev, '') : momPill(k.mom);
+      return `<li class="an-k"><span class="an-g">${GI[k.group] || '•'}</span>
+        <div class="an-kn"><b>${esc(k.label)}</b><small>${esc(k.group || '')}</small></div>
+        <div class="an-kp"><div class="an-kv"><b>${fmtVal(k.actual, k.unit)}</b><small>/ ${tg}</small><span class="an-pc ${st.level}">${pct == null ? '—' : Math.round(pct) + '%'}</span></div><div class="op-bar"><i class="${st.level}" style="width:${w.toFixed(0)}%"></i></div></div>
+        <div class="an-km">${momTxt || '<span class="tp na">—</span>'}</div><div class="an-ks">${chipK(k)}</div></li>`;
     };
-    const tbl = (title, list, sub) => list.length ? `<h2>${title} <span class="note">· ${list.length} KPI${sub ? ' · ' + sub : ''}</span></h2><div class="card"><div class="tbl-wrap"><table class="tva"><thead><tr><th>KPI</th><th>Target</th><th>Actual</th><th>Achievement</th><th>vs ${prevLbl}</th><th>Status</th></tr></thead><tbody>${list.map(trow).join('')}</tbody></table></div></div>` : '';
-    h += tbl(live ? 'KPI on track' : 'KPI capai target', sc.hit);
-    h += tbl(live ? 'KPI ketinggalan' : 'KPI gagal capai', sc.miss, 'jurang terbesar di atas');
-    if (sc.na.length) {
+    const blk = (eb, title, list, sub) => list.length ? secHead(eb, `${title} <span class="an-n">${list.length}</span>`, sub) + `<div class="card an-list"><div class="an-hd"><span></span><span>KPI</span><span>Actual / target</span><span>vs ${prevLbl}</span><span>Status</span></div><ul>${list.map(krow).join('')}</ul></div>` : '';
+    h += blk('Perlu tindakan', live ? 'KPI ketinggalan' : 'KPI gagal capai', sc.miss, 'Disusun ikut jurang terbesar dulu.');
+    h += blk('Prestasi baik', live ? 'KPI on track' : 'KPI capai target', sc.hit);
+    if (nN) {
       const byG = {};
       for (const k of sc.na) (byG[k.group] = byG[k.group] || []).push(k.label);
-      h += `<h2>Tiada data <span class="note">· tidak dikira sebagai 0</span></h2><div class="card"><ul class="na-why">${Object.entries(byG).map(([g, l]) => `<li><b>${esc(l.join(', '))}</b><p>${esc(NA_WHY[g] || 'Sumber data kosong')}</p></li>`).join('')}</ul></div>`;
+      h += secHead('Tak dikira sebagai 0', 'Tiada data') + `<div class="an-na">${Object.entries(byG).map(([g, l]) => `<div class="card an-nac"><span class="an-g">${GI[g] || '•'}</span><div><b>${esc(g)}</b><p>${esc(NA_WHY[g] || 'Sumber data kosong')}</p><small>${esc(l.join(', '))}</small></div></div>`).join('')}</div>`;
     }
     if (!c) h += `<div class="warn-box">⚠ KPI content tidak dinilai kerana tab per-post ${monLabel(key)} tiada data.</div>`;
     if (c && live) h += `<div class="chart-cap">Views content per-post bulan semasa masih bertambah (video baru belum cukup umur), jadi perbandingan views per-post dengan bulan lepas belum muktamad.</div>`;
     h += `<div class="chart-cap">Status: ✓ capai/on track · ! 80–99% · ↗ bawah target tapi naik vs bulan lepas · ✕ bawah target & tak naik. Butiran aliran pelanggan di tab Funnel.</div>`;
     return h;
   }
+
 
   // Status data: dalam menu ⓘ, bukan di setiap page
   function fillInfo() {
