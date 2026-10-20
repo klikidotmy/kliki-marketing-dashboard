@@ -734,82 +734,114 @@
     return s + '</svg>';
   }
 
+  function ringS(ratio, lvl, size = 58) {
+    const r = size / 2 - 5, C = 2 * Math.PI * r, off = C * (1 - Math.max(0, Math.min(1, ratio || 0)));
+    return `<svg class="oring ${lvl}" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" aria-hidden="true"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" class="tr"/><circle cx="${size / 2}" cy="${size / 2}" r="${r}" class="fg" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 ${size / 2} ${size / 2})"/></svg>`;
+  }
+  const momPill = (v, inv) => v == null || !Number.isFinite(v) ? '' : `<span class="tp ${v >= 0 ? 'up' : 'dn'}">${v >= 0 ? '▲' : '▼'} ${Math.abs(v) >= 999 ? '>999' : Math.abs(v).toFixed(0)}%</span>`;
+  const secHead = (eb, title, sub = '', cls = 'sm') => `<div class="op-head ${cls}"><div><span class="cf-eyebrow">${eb}</span><h2 class="op-h">${title}</h2>${sub ? `<p class="op-sub">${sub}</p>` : ''}</div></div>`;
+
   async function viewContent(key) {
     const [y, m] = parseKey(key);
     const { res, c, pc, cPace, live } = await monthContent(key);
     const [py, pm] = KD.prevYM(y, m), prevLbl = monShort(py, pm);
-    let h = '';
+    const fullN = n => n == null ? '—' : Math.round(n).toLocaleString('en-MY');
+    let h = secHead(`Content · ${monLabel(key)}`, 'Content performance', `Output, prestasi platform dan content terbaik. ▲▼ vs ${prevLbl}${live ? ' · bulan semasa dinilai ikut kadar hari' : ''}.`, '');
 
     // ---- 1. Output vs target ----
-    h += `<h2>Content output vs target</h2>`;
     if (!c) h += `<div class="card empty">${res.error ? `Tak dapat baca tab per-post untuk ${monLabel(key)}: ${esc(res.error)}` : `Belum ada post direkod untuk ${monLabel(key)}.`}</div>`;
     else {
       const sc = KD.scorecard(state.ds, y, m, c, pc, cPace);
-      const ids = ['totalContent', 'pov', 'strategic', 'postViews'].filter(id => sc.list.some(k => k.id === id));
-      const ks = ids.map(id => { const k = sc.list.find(x => x.id === id); return { ...k, nowN: k.nowN, prev: k.prev, lyN: null }; });
+      const ids = ['totalContent', 'pov', 'strategic', 'postViews'];
+      const SUB = { totalContent: 'Semua post bulan ini', pov: 'Video POV customer', strategic: 'Educational, trend, review, promo', postViews: 'Jumlah view semua post' };
+      const LB = { totalContent: 'Total post', pov: 'POV Customer', strategic: 'Strategic', postViews: 'Views content' };
       h += res.warning ? `<div class="warn-box">⚠ ${esc(res.warning)}</div>` : '';
-      h += kpiList(ks);
+      h += `<div class="tk-strip ct-strip">${ids.map(id => sc.list.find(k => k.id === id)).filter(Boolean).map((k, i) => {
+        const lvl = k.status.level, lead = i === 0;
+        const pct = k.status.pct == null ? null : Math.round(k.status.pct);
+        const v = k.id === 'postViews' ? fmt(k.actual) : fullN(k.actual), tg = k.id === 'postViews' ? fmt(k.target) : fullN(k.target);
+        return `<div class="tk ct-k${lead ? ' tk-lead' : ''}"><div class="tk-h"><span>${LB[k.id]}</span>${momPill(k.mom)}</div>
+          <div class="ct-kb"><div class="op-ringw ct-ring">${ringS((k.actual || 0) / k.target, lead ? 'inv' : lvl)}<span class="ct-pc">${pct == null ? '—' : pct + '%'}</span></div>
+          <div><b>${v}</b><small>/ ${tg} target</small></div></div><small class="ct-sub">${SUB[k.id]}</small></div>`;
+      }).join('')}</div>`;
       if (c.noType) h += `<div class="warn-box">⚠ ${c.noType} post tiada TYPE dalam sheet, jadi tak dikira sebagai POV atau Strategic.</div>`;
       if (c.hasType) {
-        const mix = (title, counts, tg) => `<div class="card"><b>${title}</b><table><thead><tr><th></th><th>Post</th><th>Target</th><th>Status</th></tr></thead><tbody>${Object.keys(tg).map(k => {
-          const st = KD.status(counts[k], tg[k], cPace);
-          return `<tr><td>${esc(k)}</td><td><b>${counts[k]}</b></td><td>${tg[k]}</td><td><span class="st ${st.level}">${iconOf(st)}</span></td></tr>`;
-        }).join('')}</tbody></table></div>`;
-        h += `<h2>Strategic mix</h2><div class="pair">` + mix('Jenis', c.typeCount, T.strategicType) + mix('Subjek', c.subjCount, T.strategicSubject) + `</div>`;
+        const mix = (eb, title, counts, tg) => {
+          const tot = Object.keys(tg).reduce((a, k2) => a + (counts[k2] || 0), 0), tt = Object.values(tg).reduce((a, b) => a + b, 0);
+          return `<div class="card tcard"><div class="tc-h"><div><span class="cf-eyebrow">${eb}</span><h3>${title}</h3></div><div class="tc-m"><span><b>${tot}</b> / ${tt} post</span></div></div><ul class="ct-mix">${Object.keys(tg).map(k2 => {
+            const st = KD.status(counts[k2], tg[k2], cPace), pct = Math.min(100, 100 * counts[k2] / tg[k2]);
+            return `<li class="op-k"><div class="op-kt"><span class="op-dot ${st.level}">${iconOf(st)}</span><span class="op-kl">${esc(k2)}</span><span class="op-kv"><b>${counts[k2]}</b><small>/ ${tg[k2]}</small></span></div><div class="op-bar"><i class="${st.level}" style="width:${pct.toFixed(1)}%"></i></div></li>`;
+          }).join('')}</ul></div>`;
+        };
+        h += secHead('Strategic mix', 'Pecahan post strategic');
+        h += `<div class="pair tpair">` + mix('Ikut jenis', 'Content type', c.typeCount, T.strategicType) + mix('Ikut subjek', 'Subjek', c.subjCount, T.strategicSubject) + `</div>`;
       } else h += `<div class="chart-cap" style="margin-top:8px">Lajur TYPE (POV Customer / Strategic) bermula dari tab SEPT'26.</div>`;
     }
 
     // ---- 2. Prestasi platform ----
     const cc = KD.companyCompare(state.ds, y, m), co = cc.cur, dim = daysIn(y, m);
-    const cell = (p, k) => `<td><b>${fmt(p[k])}</b>${p[k] != null ? delta(cc.ch(k, p.id), '') : ''}</td>`;
-    h += `<h2>Prestasi TikTok, Instagram & Facebook <span class="note">· ▲▼ vs ${prevLbl}, dinormalkan ikut hari data</span></h2>
-      <div class="card"><div class="tbl-wrap"><table class="ptbl"><thead><tr><th>Platform</th><th>Views</th><th>Reach</th><th>Engagement</th><th>Follower baru</th><th>Hari data</th></tr></thead><tbody>
-      ${co.plats.map(p => `<tr><td><span class="pcell">${platIc(p.id)}${p.name}</span></td>${cell(p, 'views')}${cell(p, 'reach')}${cell(p, 'engagement')}${cell(p, 'newFollowers')}<td>${p.days}/${dim}</td></tr>`).join('')}
-      <tr class="tot"><td>Jumlah</td><td><b>${fmt(co.views)}</b>${delta(cc.ch('views'), '')}</td><td><b>${fmt(co.reach)}</b></td><td><b>${fmt(co.engagement)}</b>${delta(cc.ch('engagement'), '')}</td><td><b>${fmt(co.newFollowers)}</b>${delta(cc.ch('newFollowers'), '')}</td><td></td></tr>
-      </tbody></table></div><div class="chart-cap">Engagement TikTok = Likes + Comments + Shares; Facebook & Instagram = Interactions. Reach tidak dijumlahkan sebagai audiens unik (orang sama boleh dikira di beberapa platform).</div></div>`;
+    const PC = { tiktok: ['#0B1530', '#2F63EE', 'TT'], instagram: ['#6A47EE', '#E0457B', 'IG'], facebook: ['#1877F2', '#4FA3FF', 'FB'] };
+    h += secHead('Insight akaun', 'Prestasi platform', `Views, reach, engagement dan follower baru · dinormalkan ikut hari data untuk ▲▼`);
+    h += `<div class="ct-plats">${co.plats.map(p => {
+      const [c1, c2, ab] = PC[p.id] || ['#2F63EE', '#6E9BFF', '?'];
+      const share = co.views && p.views != null ? Math.round(100 * p.views / co.views) : null;
+      return `<div class="ct-pc-card"><div class="ct-ph" style="--c1:${c1};--c2:${c2}"><span class="ct-pa">${ab}</span><span class="ct-pn"><b>${p.name}</b><span>${p.days}/${dim} hari data</span></span>${share != null ? `<span class="ct-sh">${share}%<small>views</small></span>` : ''}</div>
+        <div class="ct-pb"><span class="ct-pl">Views</span><div class="ct-pv"><b>${fmt(p.views)}</b>${momPill(cc.ch('views', p.id))}</div>
+        <div class="ct-ps"><div><span>Reach</span><b>${fmt(p.reach)}</b></div><div><span>Engagement</span><b>${fmt(p.engagement)}</b>${momPill(cc.ch('engagement', p.id))}</div><div><span>Follower baru</span><b>${fmt(p.newFollowers)}</b></div></div></div></div>`;
+    }).join('')}
+      <div class="ct-pc-card ct-tot"><div class="ct-pb"><span class="ct-pl">Jumlah 3 platform</span><div class="ct-pv"><b>${fmt(co.views)}</b>${momPill(cc.ch('views'))}</div>
+        <div class="ct-ps"><div><span>Engagement</span><b>${fmt(co.engagement)}</b>${momPill(cc.ch('engagement'))}</div><div><span>Follower baru</span><b>${fmt(co.newFollowers)}</b>${momPill(cc.ch('newFollowers'))}</div></div></div></div></div>
+      <div class="chart-cap">Engagement TikTok = Likes + Comments + Shares; Facebook & Instagram = Interactions. Reach tak dijumlahkan sebab orang sama boleh dikira di beberapa platform.</div>`;
 
     // ---- 3. Trend views bulanan ----
-    const series = KD.monthlySeries(state.ds).filter(r => r.key <= key).slice(-12);
-    const rows = series.map(r => {
+    const series = KD.monthlySeries(state.ds).filter(r => r.key <= key).slice(-12).map(r => {
       const [yy, mm] = parseKey(r.key), d = daysIn(yy, mm);
-      const partial = ['tt', 'fb', 'ig'].some(p => r[p + '_days'] && r[p + '_days'] < d * 0.9);
-      const parts = [{ v: r.tt_views, c: PCOL.tt }, { v: r.fb_views, c: PCOL.fb }, { v: r.ig_views, c: PCOL.ig }];
-      const tot = parts.reduce((a, p) => a + (p.v || 0), 0);
-      return { label: MON[mm - 1], parts, hl: r.key === key, dim: partial,
-        tip: `${monLabel(r.key)}: ${fmt(tot)} · TikTok ${fmt(r.tt_views)} · FB ${fmt(r.fb_views)} · IG ${fmt(r.ig_views)}${partial ? ' (data tak lengkap)' : ''}` };
+      return { ...r, _lab: MON[mm - 1], _full: monLabel(r.key), _hl: r.key === key, _dim: ['tt', 'fb', 'ig'].some(q => r[q + '_days'] && r[q + '_days'] < d * 0.9) };
     });
-    h += `<h2>Trend views bulanan</h2><div class="card"><div class="card-h"><div><h3>Views ikut platform</h3><div class="sub">12 bulan terakhir · Insight akaun</div></div>
-      <div class="legend"><span><i style="background:${PCOL.tt}"></i>TikTok</span><span><i style="background:${PCOL.fb}"></i>Facebook</span><span><i style="background:${PCOL.ig}"></i>Instagram</span></div></div>
-      ${stackChart(rows, { aria: 'Views bulanan ikut platform' })}<div class="chart-cap">Bar pudar = data harian bulan itu belum lengkap.</div></div>`;
+    h += `<div class="card tcard" style="margin-top:16px"><div class="tc-h"><div><span class="cf-eyebrow">12 bulan terakhir</span><h3>Views ikut platform</h3></div></div>
+      <div class="tlg"><span><i style="background:#2F63EE"></i>TikTok</span><span><i style="background:#7B5CF5"></i>Instagram</span><span><i style="background:#1FB6C9"></i>Facebook</span></div>
+      ${tChart(series, [{ k: 'tt_views', n: 'TikTok', c1: '#6E9BFF', c2: '#2F63EE' }, { k: 'ig_views', n: 'IG', c1: '#9C84FF', c2: '#6A47EE' }, { k: 'fb_views', n: 'FB', c1: '#4FD3E0', c2: '#15A2B8' }], { w: Math.min(chartW(), 1100), hl: true, aria: 'Views bulanan ikut platform' })}
+      <div class="chart-cap">Bar pudar = data harian bulan itu belum lengkap.</div></div>`;
 
     if (!c) return h;
 
     // ---- 4. Top content ----
-    h += `<h2>Top-performing content</h2><div class="card"><ul class="tcl">${c.top.map((p, i) => {
+    const topV = c.top.length ? c.top[0].views || 1 : 1;
+    const tierB = t => `<span class="ct-tier ${t}">${t}</span>`;
+    h += secHead('Top 5 · views TikTok per post', 'Content terbaik', `${c.total} post · purata ${fmt(c.avg)} view/post${c.top.some(p => p.url) ? ' · ketik untuk buka video' : ''}`);
+    h += `<div class="ct-top">${c.top.map((p, i) => {
       const tier = KD.tierOf(p.views);
       const ttl = `${p.kategori}${p.sub ? ' · ' + p.sub : ''}`;
-      const meta = [p.date ? `${p.date.d}/${p.date.m}` : '', p.type, CFG.outletNames[p.outlet] || p.outlet].filter(Boolean).join(' · ');
-      const inner = `<span class="rk">${i + 1}</span><span style="min-width:0"><span class="tt" style="display:block">${esc(ttl)}${p.url ? ' <span style="color:var(--brand);font-size:11px">▶</span>' : ''}</span><span class="tm" style="display:block">${esc(meta)}</span></span>
-        <span class="tv">${fmt(p.views)}<span class="tier ${tier}">${tier}</span></span>`;
-      return `<li>${p.url ? `<a class="tc" href="${esc(p.url)}" target="_blank" rel="noopener">${inner}</a>` : `<div class="tc">${inner}</div>`}</li>`;
-    }).join('')}</ul><div class="chart-cap">${c.top.some(p => p.url) ? 'Ketik post untuk buka video. ' : ''}Views TikTok per post · ${c.total} post · purata ${fmt(c.avg)}/post.</div></div>`;
+      const meta = [p.date ? `${p.date.d}/${p.date.m}` : '', p.type, CFG.outletNames[p.outlet] || p.outlet].filter(Boolean);
+      const inner = i === 0
+        ? `<span class="ct-r1">#1</span><div class="ct-t1"><span class="ct-tl">${esc(ttl)}</span><span class="ct-tm">${meta.map(esc).join(' · ')}</span></div><div class="ct-tv1"><b>${fullN(p.views)}</b><span>views</span>${tierB(tier)}</div>${p.url ? '<span class="ct-play" aria-hidden="true">▶</span>' : ''}`
+        : `<span class="ct-rk">${i + 1}</span><div class="ct-tx"><span class="ct-tl">${esc(ttl)}</span><span class="ct-tm">${meta.map(esc).join(' · ')}</span><span class="ct-tb"><i style="width:${(100 * (p.views || 0) / topV).toFixed(1)}%"></i></span></div><div class="ct-tv"><b>${fmt(p.views)}</b>${tierB(tier)}</div>`;
+      const cls = i === 0 ? 'ct-first' : 'ct-item';
+      return p.url ? `<a class="${cls}" href="${esc(p.url)}" target="_blank" rel="noopener">${inner}</a>` : `<div class="${cls}">${inner}</div>`;
+    }).join('')}</div>`;
 
-    // ---- 5. Content type & funnel ----
-    const grpTable = (title, g, order) => {
-      const keys = Object.keys(g).sort((a, b) => (order ? order.indexOf(a) - order.indexOf(b) : g[b].views - g[a].views));
-      const tv = keys.reduce((a, k) => a + g[k].views, 0);
-      return `<div class="card"><b>${title}</b><div class="tbl-wrap"><table><thead><tr><th></th><th>Post</th><th>Views</th><th>Purata</th><th>% views</th></tr></thead><tbody>${keys.map(k => `<tr><td>${esc(k)}</td><td>${g[k].posts}</td><td><b>${fmt(g[k].views)}</b></td><td>${fmt(g[k].views / g[k].posts)}</td><td>${tv ? Math.round(100 * g[k].views / tv) + '%' : '—'}</td></tr>`).join('')}</tbody></table></div></div>`;
+    // ---- 5. Content type, funnel, kategori, bucket ----
+    const shareCard = (eb, title, g, order) => {
+      const keys = Object.keys(g).sort((a, b2) => (order ? order.indexOf(a) - order.indexOf(b2) : g[b2].views - g[a].views));
+      const tv = keys.reduce((a, k2) => a + g[k2].views, 0);
+      const maxAvg = Math.max(...keys.map(k2 => g[k2].views / g[k2].posts), 1);
+      return `<div class="card tcard"><div class="tc-h"><div><span class="cf-eyebrow">${eb}</span><h3>${title}</h3></div></div><ul class="ct-share">${keys.map(k2 => {
+        const pc2 = tv ? 100 * g[k2].views / tv : 0, av = g[k2].views / g[k2].posts;
+        return `<li><div class="ct-srow"><span class="ct-sn">${esc(k2)}<small>${g[k2].posts} post</small></span><span class="ct-sv"><b>${fmt(g[k2].views)}</b><small>${Math.round(pc2)}%</small></span></div>
+          <div class="ct-sbar"><i style="width:${pc2.toFixed(1)}%"></i></div><div class="ct-savg">Purata <b>${fmt(av)}</b>/post${av === maxAvg && keys.length > 1 ? ' <span class="ct-best">Purata tertinggi</span>' : ''}</div></li>`;
+      }).join('')}</ul></div>`;
     };
-    h += `<h2>Prestasi ikut content type & funnel</h2><div class="pair wide">`;
-    h += c.hasType ? grpTable('Content type (TYPE)', c.byType) : `<div class="card"><b>Content type</b><div class="empty">Lajur TYPE tiada dalam tab bulan ini.</div></div>`;
-    h += c.hasFunnel ? grpTable('Funnel (TOFU / MOFU / BOFU)', c.byFunnel, ['TOFU', 'MOFU', 'BOFU'])
-      : `<div class="card"><b>Funnel TOFU / MOFU / BOFU</b><div class="empty">Tab per-post belum ada lajur TOFU/MOFU/BOFU.<br>Tambah satu lajur dengan nilai TOFU, MOFU atau BOFU untuk setiap post dan bahagian ini akan dipaparkan secara automatik.</div></div>`;
-    h += `</div>`;
-    h += `<div class="pair wide">${grpTable('Kategori', c.kategori)}<div class="card"><b>Views ikut bucket <span class="note">· bebas, tak dijumlahkan</span></b><div class="list" style="margin-top:10px">${Object.entries(c.bucketStats).map(([k, b]) => {
-      const st = KD.status(b.views, b.target, cPace);
-      return `<div class="li"><div class="top-row"><span class="name"><span class="st ${st.level}">${iconOf(st)}</span> ${esc(k)}</span><span class="nums"><b>${fmt(b.views)}</b> / ${fmt(b.target)} · ${b.posts} post</span></div>${bar(b.views, b.target, st, cPace)}</div>`;
-    }).join('')}</div></div></div>`;
-    h += `<div class="chart-cap">Diamond ≥ 1M · Gold ≥ 300K · Silver ≥ 100K. ${live ? 'Bulan semasa: status dinilai ikut kadar hari.' : ''}</div>`;
+    h += secHead('Prestasi ikut kumpulan', 'Type, funnel & kategori', 'Bar = bahagian daripada jumlah views. Purata/post tunjuk jenis content yang paling berbaloi.');
+    h += `<div class="pair tpair">`;
+    h += c.hasType ? shareCard('Lajur TYPE', 'Content type', c.byType) : `<div class="card tcard"><h3>Content type</h3><div class="empty">Lajur TYPE tiada dalam tab bulan ini.</div></div>`;
+    h += c.hasFunnel ? shareCard('TOFU · MOFU · BOFU', 'Funnel', c.byFunnel, ['TOFU', 'MOFU', 'BOFU'])
+      : `<div class="card tcard"><div class="tc-h"><div><span class="cf-eyebrow">TOFU · MOFU · BOFU</span><h3>Funnel</h3></div></div><div class="ct-emp">Tab per-post belum ada lajur TOFU/MOFU/BOFU. Tambah satu lajur dengan nilai TOFU, MOFU atau BOFU untuk setiap post dan bahagian ini akan keluar sendiri.</div></div>`;
+    h += shareCard('Lajur KATEGORI', 'Kategori', c.kategori);
+    h += `<div class="card tcard"><div class="tc-h"><div><span class="cf-eyebrow">Target views</span><h3>Views ikut bucket</h3></div><div class="tc-m"><span>Bebas, tak dijumlahkan</span></div></div><ul class="ct-mix">${Object.entries(c.bucketStats).map(([k2, b2]) => {
+      const st = KD.status(b2.views, b2.target, cPace), pct = Math.min(100, 100 * b2.views / b2.target);
+      return `<li class="op-k"><div class="op-kt"><span class="op-dot ${st.level}">${iconOf(st)}</span><span class="op-kl">${esc(k2)}<small class="ct-pp">${b2.posts} post</small></span><span class="op-kv"><b>${fmt(b2.views)}</b><small>/ ${fmt(b2.target)}</small></span></div><div class="op-bar"><i class="${st.level}" style="width:${pct.toFixed(1)}%"></i></div></li>`;
+    }).join('')}</ul></div>`;
+    h += `</div><div class="chart-cap">Tier: Diamond ≥ 1M · Gold ≥ 300K · Silver ≥ 100K · Bronze bawah 100K. ${live ? 'Bulan semasa: status dinilai ikut kadar hari.' : ''}</div>`;
     return h;
   }
 
