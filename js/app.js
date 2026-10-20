@@ -616,92 +616,96 @@
     const K = KD.kpis(state.ds, y, m);
     const cc = KD.companyCompare(state.ds, y, m), co = cc.cur;
     const P = id => co.plats.find(p => p.id === id);
-    const momD = v => delta(v, 'vs ' + prevLbl);
+    const LC = KD.leadCategories(state.ds, y, m);
+    const mc = KD.monthCore(state.ds, y, m);
+    const fullN = n => n == null ? '—' : Math.round(n).toLocaleString('en-MY');
+    const pctN = (a, t) => a == null || !t ? null : Math.round(100 * a / t);
+    const L = LC.available ? LC.lead.total : { ...K.leads, daily: Math.round(K.leads.target / T.labelDays) };
+    const Wk = LC.available ? LC.walkin.total : { ...K.walkin, daily: Math.round(K.walkin.target / T.labelDays) };
+    const n = sc.list.length, nH = sc.hit.length, nM = sc.miss.length, nN = sc.na.length;
 
-    let h = `<div class="ov-hello"><p>Prestasi Marketing KLIKI <b>${monLabel(key)}</b> · semua outlet & platform digabung${live ? ` · hari ${today}/${dim}, status dinilai ikut kadar hari` : ''}</p>
-      <span class="badge"><span class="live-dot"></span>${live ? 'Bulan semasa' : 'Bulan lengkap'}</span></div>`;
+    // ---- 1. Hero ----
+    const heroStat = (lab, k, sub) => {
+      const p = pctN(k.actual, k.target);
+      return `<div class="ov-hs"><div class="op-ringw">${ringS((k.actual || 0) / (k.target || 1), 'inv', 64)}<span class="ct-pc">${p == null ? '—' : p + '%'}</span></div>
+        <div class="ov-hv"><span>${lab}</span><b>${fullN(k.actual)}</b><small>/ ${fullN(k.target)} target${momPill(k.mom) ? ' ' + momPill(k.mom) : ''}</small>${sub ? `<em>${sub}</em>` : ''}</div></div>`;
+    };
+    const needTxt = k => k.need != null ? `Perlu ${fmt(Math.ceil(k.need))}/hari` : `Harian ${fmt(k.daily)}`;
+    let h = `<section class="ov-hero">
+      <div class="ov-hero-top"><div><span class="ov-eb">Company marketing · ${monLabel(key)}</span><h2>Prestasi bulan ini</h2>
+        <p>Semua outlet & platform digabung${live ? ` · hari ${today}/${dim}, status ikut kadar hari` : ''}</p></div>
+        <span class="ov-badge"><span class="live-dot"></span>${live ? 'Bulan semasa' : 'Bulan lengkap'}</span></div>
+      <div class="ov-hero-grid">
+        ${heroStat('Total lead', L, needTxt(L))}
+        ${heroStat('Total walk-in', Wk, needTxt(Wk))}
+        <div class="ov-hs"><div class="ov-hv"><span>View content</span><b>${fmt(co.views)}</b><small>TikTok + IG + FB ${momPill(cc.ch('views'))}</small><em>TikTok ${fmt(P('tiktok').views)} / target ${fmt(T.tiktokViews)}</em></div></div>
+        <div class="ov-hs ov-kpi"><div class="ov-hv"><span>Status KPI</span><b>${nH}<small class="ov-of">/${n}</small></b><small>${live ? 'on track' : 'capai target'}</small></div>
+          <div class="ov-seg">${nH ? `<i class="good" style="flex:${nH}"></i>` : ''}${nM ? `<i class="bad" style="flex:${nM}"></i>` : ''}${nN ? `<i class="na" style="flex:${nN}"></i>` : ''}</div>
+          <div class="ov-segl"><span><i class="good"></i>${nH} capai</span><span><i class="bad"></i>${nM} belum</span><span><i class="na"></i>${nN} tiada data</span></div></div>
+      </div></section>`;
 
-    // ---- 0. Lead & Walk-in company (fokus utama) ----
-    h += leadSection(key, prevLbl);
+    // ---- 2. Lead & walk-in ikut kategori ----
+    h += secHead('Fokus utama · 4 outlet digabung', 'Lead & walk-in ikut kategori', `Target company = jumlah target outlet. Sumber: MASTER SHEET (mirror), ${LC.days || 0} hari data.`);
+    if (!LC.available) h += `<div class="card empty">Pecahan Phone / Repair / Cash Converter belum disambung.</div>`;
+    else {
+      const CI = { phone: '<rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/>', repair: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>', cc: '<path d="M4 8h13l-3-3M20 16H7l3 3"/>' };
+      const row = (lab, k) => {
+        const p = pctN(k.actual, k.target), lv = k.status.level;
+        return `<li class="op-k"><div class="op-kt"><span class="op-dot ${lv}">${lv === 'na' ? '–' : iconOf(k.status)}</span><span class="op-kl">${lab}</span>${momPill(k.mom)}<span class="op-kv"><b>${fullN(k.actual)}</b><small>/ ${fullN(k.target)}</small></span></div>
+          <div class="op-bar"><i class="${lv}" style="width:${Math.min(100, p || 0)}%"></i></div><div class="ov-cd">${p == null ? '' : p + '% · '}harian ${fmt(k.daily)}${k.need != null ? ` · perlu <b>${fmt(Math.ceil(k.need))}</b>/hari` : ''}</div></li>`;
+      };
+      const pdgRep = LC.outlets.PDG && LC.outlets.PDG.lead.repair;
+      h += `<div class="ov-cats">${['phone', 'repair', 'cc'].map(k2 => `<div class="card ov-cat"><div class="ov-cat-h"><span class="cf-ico"><svg viewBox="0 0 24 24">${CI[k2]}</svg></span><b>${CAT_NAME[k2]}</b></div>
+        <ul class="ct-mix">${row('Lead', LC.lead[k2])}${row('Walk-in', LC.walkin[k2])}</ul>
+        ${k2 === 'repair' && pdgRep ? `<div class="ov-cn">Termasuk ${fmt(pdgRep)} lead repair Pendang (tiada servis).</div>` : ''}${k2 === 'cc' ? '<div class="ov-cn">CC = Trade-in + Buyback.</div>' : ''}</div>`).join('')}</div>`;
+    }
 
-    // ---- 1. Content output ----
-    h += `<h2 class="sec">Content output <span class="note">· tab per-post bulanan, REPORT CONTENT DATA</span></h2>`;
+    // ---- 3. Content output ----
+    h += secHead('Tab per-post · REPORT CONTENT DATA', 'Content output');
     if (!c) h += `<div class="card empty">${res.error ? `Tak dapat baca tab per-post: ${esc(res.error)}` : `Belum ada post direkod untuk ${monLabel(key)}.`}</div>`;
     else {
-      const noType = 'Lajur TYPE tiada dalam tab bulan ini';
-      const ph = { actual: null, target: null, status: { level: 'na' }, partial: false };
-      h += `<div class="kc-grid g3">
-        ${ovCard(S('totalContent'), { icon: 'posts', hero: true, sub: `${fmt(c.avg)} views purata/post`, d: momD(S('totalContent').mom) })}
-        ${ovCard(c.hasType ? S('pov') : { ...ph, target: T.povCustomer }, { icon: 'pov', label: 'POV Customer', sub: 'Content dari sudut pelanggan', d: c.hasType ? momD(S('pov').mom) : '', note: c.hasType ? '' : noType })}
-        ${ovCard(c.hasType ? S('strategic') : { ...ph, target: T.strategic }, { icon: 'strat', label: 'Strategic Posts', sub: 'Educational · Trend · Review · Promo', d: c.hasType ? momD(S('strategic').mom) : '', note: c.hasType ? (c.noType ? `${c.noType} post tiada TYPE, tak dikira` : '') : noType })}
-      </div>`;
+      const LB = { totalContent: ['Total post', `Purata ${fmt(c.avg)} view/post`], pov: ['POV Customer', 'Content dari sudut pelanggan'], strategic: ['Strategic', c.noType ? `${c.noType} post tiada TYPE, tak dikira` : 'Educational · Trend · Review · Promo'] };
+      h += `<div class="ov-out">${['totalContent', 'pov', 'strategic'].map(id => {
+        const k = S(id);
+        if (!k) return `<div class="tk ct-k"><div class="tk-h"><span>${LB[id][0]}</span></div><div class="ct-kb"><div><b>—</b><small>Lajur TYPE tiada bulan ini</small></div></div></div>`;
+        const p = pctN(k.actual, k.target);
+        return `<div class="tk ct-k"><div class="tk-h"><span>${LB[id][0]}</span>${momPill(k.mom)}</div>
+          <div class="ct-kb"><div class="op-ringw ct-ring">${ringS((k.actual || 0) / k.target, k.status.level)}<span class="ct-pc">${p == null ? '—' : p + '%'}</span></div><div><b>${fullN(k.actual)}</b><small>/ ${fullN(k.target)} target</small></div></div><small class="ct-sub">${LB[id][1]}</small></div>`;
+      }).join('')}</div>`;
       if (res.warning) h += `<div class="warn-box">⚠ ${esc(res.warning)}</div>`;
     }
 
-    // ---- 2. Audience & hasil ----
-    h += `<h2 class="sec">Audience & hasil <span class="note">· Insight akaun TikTok, Facebook, Instagram</span></h2><div class="mc-grid">`;
-    const daysTxt = co.plats.filter(p => p.days).map(p => `${p.name} ${p.days}/${dim} hari`).join(' · ');
+    // ---- 4. Audience & hasil ----
+    const PCL = { tiktok: '#2F63EE', instagram: '#7B5CF5', facebook: '#1FB6C9' };
+    const split = k => { const t = co.plats.reduce((a, p) => a + (p[k] || 0), 0); return t ? `<div class="ov-split">${co.plats.filter(p => p[k]).map(p => `<i style="flex:${p[k]};background:${PCL[p.id]}" data-tip="${esc(`${p.name}: ${fmt(p[k])} (${Math.round(100 * p[k] / t)}%)`)}"></i>`).join('')}</div>` : ''; };
+    const prow = (id, val, note = '') => `<li><span class="ov-pd" style="background:${PCL[id]}"></span><span class="ov-pn">${P(id).name}</span><span class="ov-pv">${val}</span>${note ? `<small>${note}</small>` : ''}</li>`;
+    const aCard = (eb, title, val, mom, body, foot) => `<div class="card ov-a"><div class="ov-ah"><span class="cf-eyebrow">${eb}</span>${mom}</div><h3>${title}</h3><b class="ov-av">${val}</b>${body}${foot ? `<div class="ov-af">${foot}</div>` : ''}</div>`;
     const tt = P('tiktok');
-    // Views
-    h += mCard({ ic: 'views', label: 'Total Views', sub: 'Merentas platform',
-      value: fmt(co.views), d: momD(cc.ch('views')),
-      rows: co.plats.map(p => mRow(platIc(p.id), p.name + (p.id === 'tiktok' ? ' <span class="tgt">target ' + fmt(T.tiktokViews) + '</span>' : ''),
-        p.views == null ? '—' : fmt(p.views),
-        p.id === 'tiktok' && p.views != null ? `${Math.round(100 * p.views / T.tiktokViews)}% · ${statusWord(K.views.status, K.views.partial)}` : (p.views != null && co.views ? `${Math.round(100 * p.views / co.views)}% daripada jumlah` : 'tiada data'),
-        p.id === 'tiktok' ? 'lv-' + K.views.status.level : '')),
-      note: `${daysTxt || 'Tiada data'}. Target rasmi hanya untuk TikTok.` });
-    // Engagement
-    const engRow = (k, name) => mRow('', name, fmt(K[k].actual), K[k].actual == null ? '' : `${pctOf(K[k].actual, K[k].target)}`, 'lv-' + K[k].status.level + ' sub');
-    h += mCard({ ic: 'eng', label: 'Total Engagement', sub: 'Merentas platform',
-      value: fmt(co.engagement), d: momD(cc.ch('engagement')),
-      rows: [
-        mRow(platIc('tiktok'), 'TikTok <span class="tgt">likes + comments + shares</span>', fmt(tt.engagement), tt.engagement == null ? 'tiada data' : `${Math.round(100 * tt.engagement / (T.likes + T.comments + T.shares))}% daripada ${fmt(T.likes + T.comments + T.shares)}`),
-        engRow('likes', 'Likes'), engRow('comments', 'Comments'), engRow('shares', 'Shares'),
-        ...['facebook', 'instagram'].map(id => { const p = P(id); return mRow(platIc(id), `${p.name} <span class="tgt">interactions</span>`, fmt(p.engagement), p.engagement == null ? 'tiada data' : ''); }),
-      ],
-      note: 'Facebook & Instagram: sheet hanya rekod jumlah Interactions, tiada pecahan like/comment/share.' });
-    // Followers
-    h += mCard({ ic: 'fol', label: 'Follower Growth', sub: 'Follower baru, semua platform',
-      value: fmt(co.newFollowers), d: momD(cc.ch('newFollowers')),
-      rows: [
-        mRow(platIc('tiktok'), 'TikTok <span class="tgt">follower baru</span>', fmt(tt.newFollowers), tt.newFollowers == null ? 'tiada data' : `${pctOf(tt.newFollowers, T.newFollowers)}`, 'lv-' + K.newFollowers.status.level),
-        mRow('', 'Unfollow', tt.lostFollowers == null ? '—' : '−' + fmt(tt.lostFollowers), '', 'sub'),
-        mRow('', 'Net', tt.netFollowers == null ? '—' : (tt.netFollowers > 0 ? '+' : '') + fmt(tt.netFollowers), `had bawah ${fmt(T.netFollowersFloor)}`, 'lv-' + K.netGrowth.status.level + ' sub'),
-        ...['facebook', 'instagram'].map(id => { const p = P(id); return mRow(platIc(id), `${p.name} <span class="tgt">follow baru</span>`, fmt(p.newFollowers), p.newFollowers == null ? 'tiada data' : momD(cc.ch('newFollowers', id))); }),
-      ],
-      note: 'Facebook & Instagram tiada data unfollow, jadi net follower hanya untuk TikTok.' });
-    // WhatsApp & Leads
-    const mc = KD.monthCore(state.ds, y, m);
     const waAll = [mc.v.wa, mc.v.waOnline, mc.v.waBuyback].some(v => v != null) ? (mc.v.wa || 0) + (mc.v.waOnline || 0) + (mc.v.waBuyback || 0) : null;
-    h += mCard({ ic: 'wa', label: 'WhatsApp Clicks & Leads', sub: 'LINKTREE (bulanan) · tab Leads (harian)',
-      value: K.wa.actual == null ? '—' : fmt(K.wa.actual), valueSub: K.wa.actual == null ? 'LINKTREE belum diisi' : 'klik WA outlet',
-      d: K.wa.actual == null ? '' : cmp(K.wa, K.wa.prev, 'vs ' + prevLbl),
-      rows: [
-        mRow('', 'Klik WA 4 outlet', fmt(K.wa.actual), K.wa.actual == null ? 'belum diisi' : pctOf(K.wa.actual, K.wa.target), 'lv-' + K.wa.status.level),
-        mRow('', 'Klik WA Online Postage', fmt(mc.v.waOnline), mc.v.waOnline == null ? 'belum diisi' : '', 'sub'),
-        mRow('', 'Klik WA Buyback', fmt(mc.v.waBuyback), mc.v.waBuyback == null ? 'belum diisi' : '', 'sub'),
-        mRow('', 'Jumlah semua butang WA', fmt(waAll), '', 'sub'),
-        mRow('', 'Leads 4 outlet', fmt(K.leads.actual), K.leads.actual == null ? 'tiada data bulan ini' : `${pctOf(K.leads.actual, K.leads.target)} · ${mc.days.leads} hari data`, 'lv-' + K.leads.status.level),
-      ],
-      note: 'Target WA (6,000) & Leads hanya meliputi 4 outlet. Online Postage & Buyback tiada target.' });
+    h += secHead('Insight akaun · TikTok, Instagram, Facebook', 'Audience & hasil', `▲▼ vs ${prevLbl}, dinormalkan ikut hari data`);
+    h += `<div class="ov-aud">`;
+    h += aCard('Reach', 'Total views', fmt(co.views), momPill(cc.ch('views')), split('views') + `<ul class="ov-pl">${co.plats.map(p => prow(p.id, fmt(p.views), p.id === 'tiktok' && p.views != null ? `${pctN(p.views, T.tiktokViews)}% target` : (p.views != null && co.views ? `${pctN(p.views, co.views)}%` : ''))).join('')}</ul>`, 'Target rasmi hanya untuk TikTok (4M).');
+    h += aCard('Interaksi', 'Total engagement', fmt(co.engagement), momPill(cc.ch('engagement')), split('engagement') + `<ul class="ov-pl">${co.plats.map(p => prow(p.id, fmt(p.engagement), p.id === 'tiktok' && tt.engagement != null ? `${pctN(tt.engagement, T.likes + T.comments + T.shares)}% target` : '')).join('')}</ul>`,
+      `TikTok: likes ${fmt(K.likes.actual)} · comments ${fmt(K.comments.actual)} · shares ${fmt(K.shares.actual)}`);
+    h += aCard('Pertumbuhan', 'Follower baru', fmt(co.newFollowers), momPill(cc.ch('newFollowers')), split('newFollowers') + `<ul class="ov-pl">${co.plats.map(p => prow(p.id, fmt(p.newFollowers))).join('')}</ul>`,
+      `TikTok net <b class="${(tt.netFollowers || 0) < T.netFollowersFloor ? 'neg' : ''}">${tt.netFollowers == null ? '—' : (tt.netFollowers > 0 ? '+' : '') + fmt(tt.netFollowers)}</b> · unfollow ${tt.lostFollowers == null ? '—' : fmt(tt.lostFollowers)} · had ${fmt(T.netFollowersFloor)}`);
+    h += aCard('Linktree', 'Klik WhatsApp', fmt(waAll), K.wa.actual == null ? '' : momPill(K.wa.mom),
+      `<ul class="ov-wl"><li><span>4 outlet</span><b>${fmt(K.wa.actual)}</b><small>${K.wa.actual == null ? 'belum diisi' : pctN(K.wa.actual, K.wa.target) + '% target'}</small></li><li><span>Online Postage</span><b>${fmt(mc.v.waOnline)}</b><small>HQ</small></li><li><span>Buyback</span><b>${fmt(mc.v.waBuyback)}</b><small>HQ</small></li><li><span>Lead 4 outlet</span><b>${fmt(L.actual)}</b><small>${K.wa.actual ? (L.actual / K.wa.actual).toFixed(1) + ' lead/klik' : ''}</small></li></ul>`,
+      'Target WA & lead meliputi 4 outlet sahaja.');
     h += `</div>`;
 
-    // ---- 3. Ringkasan status KPI + sorotan ----
-    const n = sc.list.length, nH = sc.hit.length, nM = sc.miss.length, nN = sc.na.length;
-    const seg = (v, cls) => v ? `<i class="${cls}" style="flex:${v}"></i>` : '';
-    const scoreCard = `<div class="card"><div class="card-h"><div><h3>Status KPI bulan ini</h3><div class="sub">${n} KPI bertarget${live ? ' · dinilai ikut kadar hari' : ''}</div></div>
-        <button class="link-btn" data-goto="analisis">Analisis penuh →</button></div>
-      <div class="sc-nums"><div class="good"><b>${nH}</b><span>${live ? 'On track' : 'Capai'}</span></div><div class="bad"><b>${nM}</b><span>Belum capai</span></div><div class="na"><b>${nN}</b><span>Tiada data</span></div></div>
-      <div class="sc-bar">${seg(nH, 'good')}${seg(nM, 'bad')}${seg(nN, 'na')}</div>
-      ${nM ? `<div class="sc-h">Paling jauh dari target</div><ul class="sc-list">${sc.miss.slice(0, 5).map(k => `<li><span>${esc(k.label)}</span><b>${Math.round((k.status.pct ?? 0))}%</b></li>`).join('')}</ul>` : ''}
-    </div>`;
+    // ---- 5. KPI paling jauh + highlights ----
     const ins = KD.insights(state.ds, y, m);
     const hl = ins.map(i => ({ ...i }));
     if (c && c.top[0]) { const p = c.top[0]; hl.push({ kind: 'good', title: 'Post terbaik bulan ini', chip: fmt(p.views), text: `${p.kategori}${p.sub ? ' · ' + p.sub : ''}${p.type ? ' · ' + p.type : ''}${p.date ? `, ${p.date.d}/${p.date.m}` : ''}.` }); }
-    const hlCard = `<div class="card"><div class="card-h"><div><h3>Key Highlights</h3><div class="sub">Dijana dari data sebenar bulan ini</div></div></div>
-      ${hl.length ? `<ul class="hl-list">${hl.map(i => `<li class="${i.kind}"><span class="hi">${i.kind === 'good' ? '✓' : '✕'}</span><div><b>${esc(i.title)}</b><p>${esc(i.text)}</p></div><span class="ins-c">${esc(i.chip || '')}</span></li>`).join('')}</ul>` : '<div class="empty">Belum cukup data untuk highlight.</div>'}</div>`;
-    h += `<div class="ov-row r11">${scoreCard}${hlCard}</div>`;
-    h += `<div class="chart-cap">Prestasi setiap outlet ada di tab Outlet. Views content per-post (tab bulanan) tidak dicampur dengan views Insight akaun untuk elak double count.</div>`;
+    h += secHead('Ringkasan', 'Status & highlights');
+    h += `<div class="pair tpair">
+      <div class="card tcard"><div class="tc-h"><div><span class="cf-eyebrow">${n} KPI bertarget</span><h3>Paling jauh dari target</h3></div><button class="link-btn" data-goto="analisis">Analisis penuh →</button></div>
+        ${nM ? `<ul class="ct-mix">${sc.miss.slice(0, 5).map(k => { const p = Math.round(k.status.pct ?? 0); return `<li class="op-k"><div class="op-kt"><span class="op-dot bad">✕</span><span class="op-kl">${esc(k.label)}</span><span class="op-kv"><b>${p}%</b></span></div><div class="op-bar"><i class="bad" style="width:${Math.min(100, p)}%"></i></div></li>`; }).join('')}</ul>` : '<div class="ct-emp">Semua KPI capai target. 🎉</div>'}</div>
+      <div class="card tcard"><div class="tc-h"><div><span class="cf-eyebrow">Dari data sebenar</span><h3>Key highlights</h3></div></div>
+        ${hl.length ? `<ul class="ov-hl">${hl.map(i => `<li class="${i.kind}"><span class="ov-hi">${i.kind === 'good' ? '✓' : '!'}</span><div><b>${esc(i.title)}</b><p>${esc(i.text)}</p></div>${i.chip ? `<span class="ov-chip ${i.kind}">${esc(i.chip)}</span>` : ''}</li>`).join('')}</ul>` : '<div class="ct-emp">Belum cukup data untuk highlight.</div>'}</div>
+    </div>`;
+    h += `<div class="chart-cap">Butiran setiap outlet di tab Outlet. Views per-post (tab bulanan) tak dicampur dengan views Insight akaun untuk elak double count.</div>`;
     return h;
   }
 
