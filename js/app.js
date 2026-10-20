@@ -201,33 +201,53 @@
     const live = isCurrent(key);
     const ib = insightBlock(y, m);
     if (!f.stages.some(s => s.value > 0)) return ib + `<div class="card empty">Belum ada data aliran pelanggan untuk ${monLabel(key)}.</div>`;
-    // "Dari content ke kedai": bar berpusat, lebar tetap mengecil (bukan ikut skala; 4.5M vs 673 tak nampak jika ikut skala)
-    const W = [100, 62, 42, 35, 29, 22];
-    const rateTxt = s => {
-      const r = s.rate; if (r == null) return '';
-      if (s.id === 'wa') return ''; // klik WA tak unik: nisbah vs unique view mengelirukan
-      if (s.id === 'leads') { const wa = f.stages[i3('wa')].value; return wa ? `${(s.value / wa).toFixed(1)} lead / klik` : ''; }
-      if (s.id === 'walkin') return `${Math.round(r)}% dari lead`;
-      return fmtPct(r, r < 10 ? 2 : 1);
+    // "Dari content ke kedai": corong bersambung. Lebar segmen tetap mengecil (visual), bukan ikut skala.
+    const W = [100, 80, 64, 52, 42, 34, 28];
+    const COL = ['#5B8CFF', '#4479FB', '#2F63EE', '#2350D6', '#1A3DAA', '#132E85'];
+    const ICO = {
+      allViews: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+      allVisits: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+      uniqueClicks: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+      wa: '<path d="M4 20l1.3-3.9A8 8 0 1 1 8 19.1z"/><path d="M9 9.5c.3 2 2.5 4.2 4.5 4.5l1-1 1.8.8"/>',
+      leads: '<path d="M4 5h16v11H8l-4 4z"/><path d="M8 9h8M8 12h5"/>',
+      walkin: '<path d="M4 9l1.5-5h13L20 9M4 9h16v2a2.7 2.7 0 0 1-5.3 0 2.7 2.7 0 0 1-5.4 0A2.7 2.7 0 0 1 4 11zM5 13v7h14v-7"/>',
     };
+    const ico = id => `<span class="cf-ico" aria-hidden="true"><svg viewBox="0 0 24 24">${ICO[id] || ''}</svg></span>`;
     function i3(id) { return f.stages.findIndex(x => x.id === id); }
+    const rateTxt = s => {
+      const r = s.rate; if (r == null) return null;
+      if (s.id === 'wa') return null; // klik WA tak unik: nisbah vs unique view mengelirukan
+      if (s.id === 'leads') { const wa = f.stages[i3('wa')].value; return wa ? { v: (s.value / wa).toFixed(1), u: 'lead / klik' } : null; }
+      if (s.id === 'walkin') return { v: Math.round(r) + '%', u: 'dari lead' };
+      return { v: fmtPct(r, r < 10 ? 2 : 1), u: s.note };
+    };
     const ex = f.extra || {};
-    let h = `<h2>Aliran pelanggan <span class="note">· ${monLabel(key)}${live ? ' (bulan semasa)' : ''}</span></h2><div class="card cfun"><h3>Dari content ke kedai</h3><ol class="cf-list">`;
+    const top = f.stages[0].value, end = f.stages[f.stages.length - 1].value;
+    const every = top && end ? Math.round(top / end) : null;
+    let h = `<h2>Aliran pelanggan <span class="note">· ${monLabel(key)}${live ? ' (bulan semasa)' : ''}</span></h2>
+      <div class="card cfun"><div class="cf-head"><div><span class="cf-eyebrow">Customer journey</span><h3>Dari content ke kedai</h3></div>
+      ${every ? `<div class="cf-kpi"><b>1 : ${every.toLocaleString('en-MY')}</b><span>1 walk-in setiap ${every.toLocaleString('en-MY')} view</span></div>` : ''}</div><ol class="cf-list">`;
     f.stages.forEach((s, i) => {
       const isW = f.weakest && f.weakest.id === s.id, isS = f.strongest && f.strongest.id === s.id;
-      const rt = i ? rateTxt(s) : '';
+      const rt = i ? rateTxt(s) : null;
       const sub = s.id === 'walkin' ? `Klik lokasi: ${fmt(ex.location)}` : s.sub;
-      const tip = i && s.rate != null ? `${s.note}: ${fmtPct(s.rate)}${s.avg3 != null ? ' · purata 3 bln ' + fmtPct(s.avg3) : ''}` : '';
-      const avgTxt = rt && (isW || isS) ? `<small>${isW ? '▼ bawah' : '▲ atas'} purata 3 bln</small>` : '';
+      const a = (100 - W[i]) / 2, b = (100 - (W[i + 1] || W[i] - 6)) / 2;
+      const clip = `polygon(${a}% 0, ${100 - a}% 0, ${100 - b}% 100%, ${b}% 100%)`;
+      const tip = i && s.rate != null ? `${s.note}: ${fmtPct(s.rate)}${s.avg3 != null ? ' · purata 3 bln ' + fmtPct(s.avg3) : ''}` : `${s.label}: ${s.value == null ? '—' : Math.round(s.value).toLocaleString('en-MY')}`;
+      const pill = rt ? `<div class="cf-pill${isW ? ' weak' : isS ? ' strong' : ''}"><b>${rt.v}</b><span>${esc(rt.u)}</span></div>${isW || isS ? `<small class="cf-vs ${isW ? 'weak' : 'strong'}">${isW ? '▼ bawah' : '▲ atas'} purata 3 bln</small>` : ''}` : '';
       h += `<li class="cf-row${s.outlet ? ' out' : ''}">
-        <div class="cf-lbl"><b>${esc(s.label)}</b><span>${esc(sub)}</span></div>
-        <div class="cf-track"><div class="cf-bar" style="width:${W[i] || 20}%"${tip ? ` data-tip="${esc(tip)}"` : ''}>${s.value == null ? '—' : Math.round(s.value).toLocaleString('en-MY')}</div></div>
-        <div class="cf-rate${isW ? ' weak' : ''}${isS ? ' strong' : ''}">${rt}${avgTxt}</div>
+        <div class="cf-lbl">${ico(s.id)}<div><b>${esc(s.label)}</b><span>${esc(sub)}</span></div></div>
+        <div class="cf-seg" style="--c:${COL[i] || COL[COL.length - 1]};clip-path:${clip}" data-tip="${esc(tip)}"><span>${s.value == null ? '—' : Math.round(s.value).toLocaleString('en-MY')}</span></div>
+        <div class="cf-rate">${pill}</div>
       </li>`;
     });
-    h += `</ol><p class="cf-note">Klik WhatsApp tak sama dengan mesej dihantar, dan lead outlet datang dari semua source. Ratio ni sebagai petunjuk je, bukan conversion sebenar.</p>`;
+    h += `</ol><div class="cf-legend"><span><i class="pl"></i>Data platform & Linktree</span><span><i class="ou"></i>Direkod staff outlet</span></div>
+      <p class="cf-note">Klik WhatsApp tak sama dengan mesej dihantar, dan lead outlet datang dari semua source. Ratio ni sebagai petunjuk je, bukan conversion sebenar.</p>`;
     if (ex.waOnline != null || ex.waBuyback != null) {
-      h += `<div class="cf-hq"><b>Channel HQ (takde rekod lead)</b><span>WA Online Postage: <b>${fmt(ex.waOnline)}</b></span><span>WA Buyback: <b>${fmt(ex.waBuyback)}</b></span><span>Total: <b>${fmt((ex.waOnline || 0) + (ex.waBuyback || 0))}</b></span></div>`;
+      h += `<div class="cf-hq"><div class="cf-hq-h"><b>Channel HQ</b><span>Takde rekod lead</span></div>
+        <div class="cf-hq-t"><span>WA Online Postage</span><b>${fmt(ex.waOnline)}</b></div>
+        <div class="cf-hq-t"><span>WA Buyback</span><b>${fmt(ex.waBuyback)}</b></div>
+        <div class="cf-hq-t tot"><span>Total klik</span><b>${fmt((ex.waOnline || 0) + (ex.waBuyback || 0))}</b></div></div>`;
     }
     h += `</div>`;
     const act = f.weakest && ACT[f.weakest.id] ? `<div class="card action"><b>Cadangan fokus</b><p>${ACT[f.weakest.id]}</p></div>` : '';
