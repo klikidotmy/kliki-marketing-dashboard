@@ -86,21 +86,55 @@
       telegram: 1300,
       conversion: 40,
 
-      // Target lead & walk-in SETIAP outlet ikut kategori. Target company = jumlah 4 outlet.
-      // Pendang tiada servis repair. Target harian = bulanan ÷ 26 (label sahaja).
-      leadCat: {
-        KUL: { lead: { phone: 480, repair: 210, cc: 90 }, walkin: { phone: 150, repair: 180, cc: 30 } },
-        AOR: { lead: { phone: 480, repair: 210, cc: 90 }, walkin: { phone: 150, repair: 180, cc: 30 } },
-        SP:  { lead: { phone: 480, repair: 210, cc: 90 }, walkin: { phone: 150, repair: 180, cc: 30 } },
-        PDG: { lead: { phone: 480, repair: 0,   cc: 90 }, walkin: { phone: 150, repair: 0,   cc: 30 } },
+      // ===== Target lead & walk-in =====
+      // Sumber: "WhatsApp Leads and Walk-in Required", Marketing reference Okt–Dis 2026 (PDF).
+      // Kategori: phone / repair / cc. "cc" = CCTI Received dalam PDF. Pendang tiada repair.
+      // Setiap bulan: [phone, repair, cc, total] ikut PDF. Angka company (seksyen 2 PDF) & total outlet
+      // diambil terus dari PDF (bukan dijumlahkan semula) supaya sama dengan angka yang boss pegang.
+      // Bulan yang tiada dalam `months` dan selepas `legacy.until` = "target belum ditetapkan".
+      leadPlan: {
+        // Hari outlet TUTUP (0 = Ahad … 3 = Rabu). Lead hari tutup dicatat hari bekerja berikutnya.
+        // Kulim/Kelang Lama buka setiap hari.
+        closedWeekdays: { KUL: [], AOR: [3], SP: [3], PDG: [3] },
+        months: {
+          '2026-10': {
+            company: { lead: [1453, 816, 311, 2580], walkin: [436, 449, 118, 1003] },
+            AOR: { lead: [349, 221, 93, 663], walkin: [105, 121, 35, 261] },
+            SP:  { lead: [454, 287, 93, 835], walkin: [136, 158, 35, 330] },
+            KUL: { lead: [488, 308, 93, 889], walkin: [146, 170, 35, 351] },
+            PDG: { lead: [163, 0, 31, 194],   walkin: [49, 0, 12, 61] },
+          },
+          '2026-11': {
+            company: { lead: [1254, 705, 311, 2270], walkin: [376, 387, 118, 882] },
+            AOR: { lead: [301, 190, 93, 585], walkin: [90, 105, 35, 230] },
+            SP:  { lead: [392, 248, 93, 733], walkin: [118, 136, 35, 289] },
+            KUL: { lead: [421, 266, 93, 780], walkin: [126, 146, 35, 308] },
+            PDG: { lead: [140, 0, 31, 171],   walkin: [42, 0, 12, 54] },
+          },
+          '2026-12': {
+            company: { lead: [1562, 877, 311, 2751], walkin: [469, 483, 118, 1069] },
+            AOR: { lead: [375, 237, 93, 705], walkin: [112, 130, 35, 278] },
+            SP:  { lead: [488, 309, 93, 890], walkin: [146, 170, 35, 352] },
+            KUL: { lead: [524, 331, 93, 949], walkin: [157, 182, 35, 375] },
+            PDG: { lead: [175, 0, 31, 206],   walkin: [52, 0, 12, 64] },
+          },
+        },
+        // Target lama (sebelum Okt 2026), dikekalkan untuk bulan sejarah sahaja.
+        legacy: {
+          until: '2026-09',
+          KUL: { lead: [480, 210, 90, 780], walkin: [150, 180, 30, 360] },
+          AOR: { lead: [480, 210, 90, 780], walkin: [150, 180, 30, 360] },
+          SP:  { lead: [480, 210, 90, 780], walkin: [150, 180, 30, 360] },
+          PDG: { lead: [480, 0, 90, 570],   walkin: [150, 0, 30, 180] },
+        },
       },
-      labelDays: 26,
 
+      // Target lead/walk-in outlet TIDAK di sini lagi: lihat leadPlan di atas.
       outlet: {
-        KUL: { rawPhone: 4, rawRepair: 2, customer: 52, beforeAfter: 26, leads: 780, walkin: 360, wa: 1500, location: 300 },
-        AOR: { rawPhone: 4, rawRepair: 2, customer: 52, beforeAfter: 26, leads: 780, walkin: 360, wa: 1500, location: 300 },
-        SP:  { rawPhone: 4, rawRepair: 2, customer: 52, beforeAfter: 26, leads: 780, walkin: 360, wa: 1500, location: 300 },
-        PDG: { rawPhone: 4, rawRepair: null, customer: 52, beforeAfter: null, leads: 570, walkin: 180, wa: 1500, location: 300 },
+        KUL: { rawPhone: 4, rawRepair: 2, customer: 52, beforeAfter: 26, wa: 1500, location: 300 },
+        AOR: { rawPhone: 4, rawRepair: 2, customer: 52, beforeAfter: 26, wa: 1500, location: 300 },
+        SP:  { rawPhone: 4, rawRepair: 2, customer: 52, beforeAfter: 26, wa: 1500, location: 300 },
+        PDG: { rawPhone: 4, rawRepair: null, customer: 52, beforeAfter: null, wa: 1500, location: 300 },
       },
     },
 

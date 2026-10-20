@@ -450,7 +450,14 @@
       leads: leadDays ? dim / leadDays : null, walkin: walkDays ? dim / walkDays : null,
     };
     const norm = k => v[k] == null ? null : v[k] * (f[k] || 1);
-    return { v, norm, pace: { tt: tt.days ? Math.min(1, tt.days / dim) : 1, out: leadDays ? Math.min(1, leadDays / dim) : 1 }, days: { tt: tt.days, leads: leadDays }, dim };
+    // pace lead/walk-in ikut hari operasi setiap outlet (Rabu tutup kecuali Kulim/Kelang Lama)
+    const lp = leadPlan(y, m), lpg = leadProgress(ds, y, m), calOut = leadDays ? Math.min(1, leadDays / dim) : 1;
+    const pace = {
+      tt: tt.days ? Math.min(1, tt.days / dim) : 1,
+      out: lp ? companyPace(lp, lpg, 'lead', 'total') : calOut,
+      outW: lp ? companyPace(lp, lpg, 'walkin', 'total') : calOut,
+    };
+    return { v, norm, pace, days: { tt: tt.days, leads: leadDays }, dim };
   }
 
   const KPI_DEFS = [
@@ -466,8 +473,8 @@
     { id: 'ctrAction', label: 'CTR Action Linktree', target: T => T.ctrAction, unit: '%' },
     { id: 'telegram', label: 'Klik Telegram', target: T => T.telegram },
     { id: 'wa', label: 'Klik WhatsApp (4 outlet)', target: T => CFG.outlets.reduce((a, x) => a + T.outlet[x].wa, 0) },
-    { id: 'leads', label: 'Leads (4 outlet)', target: T => CFG.outlets.reduce((a, x) => a + T.outlet[x].leads, 0), pace: 'out' },
-    { id: 'walkin', label: 'Walk-in (4 outlet)', target: T => CFG.outlets.reduce((a, x) => a + T.outlet[x].walkin, 0), pace: 'out' },
+    { id: 'leads', label: 'Leads (4 outlet)', target: (T, y, m) => { const p = leadPlan(y, m); return p ? p.company.lead.total : null; }, pace: 'out' },
+    { id: 'walkin', label: 'Walk-in (4 outlet)', target: (T, y, m) => { const p = leadPlan(y, m); return p ? p.company.walkin.total : null; }, pace: 'outW' },
     { id: 'conversion', label: 'Conversion', target: T => T.conversion, unit: '%' },
   ];
 
@@ -481,9 +488,10 @@
       const now = cur.norm(d.id), p = prev.norm(d.id), l = ly.norm(d.id);
       const mom = change(now, p), yoy = change(now, l);
       const improving = now != null && p != null ? now > p : null;
-      const st = status(actual, d.target(CFG.targets), pace, d.floor, improving);
-      const ratio = d.floor || actual == null ? null : actual / (d.target(CFG.targets) * Math.max(pace, 0.0001));
-      out[d.id] = { ...d, target: d.target(CFG.targets), actual, pace, mom, yoy, prev: p, nowN: now, lyN: l, status: st, ratio, partial: pace < 1 };
+      const target = d.target(CFG.targets, y, m);
+      const st = status(actual, target, pace, d.floor, improving);
+      const ratio = d.floor || actual == null || target == null ? null : actual / (target * Math.max(pace, 0.0001));
+      out[d.id] = { ...d, target, actual, pace, mom, yoy, prev: p, nowN: now, lyN: l, status: st, ratio, partial: pace < 1 };
     }
     return out;
   }
@@ -649,11 +657,64 @@
     return res;
   }
 
+  // ===== Pelan target lead & walk-in (CFG.targets.leadPlan) =====
+  // Pulangkan { key, outlets: { X: { lead: {phone, repair, cc, total}, walkin: {...} } }, company: {...} }
+  // atau null jika bulan itu tiada target ("target belum ditetapkan").
+  const CATS_T = ['phone', 'repair', 'cc', 'total'];
+  function leadPlan(y, m) {
+    const P = CFG.targets.leadPlan, key = ym(y, m);
+    let src = P.months[key], tag = key;
+    if (!src) {
+      if (P.legacy && key <= P.legacy.until) { src = P.legacy; tag = 'legacy'; } else return null;
+    }
+    const outlets = {};
+    for (const x of KEYS.outlet4) {
+      outlets[x] = {};
+      for (const kind of ['lead', 'walkin']) { const a = src[x][kind]; outlets[x][kind] = { phone: a[0], repair: a[1], cc: a[2], total: a[3] }; }
+    }
+    const company = { lead: {}, walkin: {} };
+    for (const kind of ['lead', 'walkin']) {
+      for (const c of CATS_T) company[kind][c] = KEYS.outlet4.reduce((s2, x) => s2 + outlets[x][kind][c], 0);
+      if (src.company) CATS_T.forEach((c, i) => { company[kind][c] = src.company[kind][i]; }); // angka company ikut PDF
+    }
+    return { key: tag, outlets, company };
+  }
+  // Bilangan hari outlet BUKA dalam bulan (antara hari `from` hingga `to`, inklusif)
+  function opDays(x, y, m, from = 1, to = daysIn(y, m)) {
+    const closed = (CFG.targets.leadPlan.closedWeekdays || {})[x] || [];
+    let n = 0;
+    for (let d = from; d <= to; d++) if (!closed.includes(new Date(y, m - 1, d).getDay())) n++;
+    return n;
+  }
+  // Kemajuan bulan ikut hari operasi setiap outlet. day = tarikh terakhir yang ada data lead/walk-in.
+  // pace outlet = hari operasi yang dah lepas ÷ hari operasi sebulan (1 jika belum ada data / bulan penuh).
+  function leadProgress(ds, y, m) {
+    const src = ds.leadDetail && ds.leadDetail.length ? ds.leadDetail : (ds.leads || []);
+    const day = src.filter(inMonth(y, m)).reduce((a, r) => Math.max(a, r.date.d), 0);
+    const out = { day, dim: daysIn(y, m), outlets: {} };
+    for (const x of KEYS.outlet4) {
+      const total = opDays(x, y, m), done = day ? opDays(x, y, m, 1, day) : 0;
+      out.outlets[x] = { total, done, left: total - done, pace: day && total ? Math.min(1, done / total) : 1 };
+    }
+    return out;
+  }
+  // Pace company = jumlah jangkaan setiap outlet sehingga hari ini ÷ jumlah target outlet
+  function companyPace(plan, prog, kind, c) {
+    let t = 0, e = 0;
+    for (const x of KEYS.outlet4) { const v = plan.outlets[x][kind][c]; t += v; e += v * prog.outlets[x].pace; }
+    return t ? e / t : 1;
+  }
+  // Target sehari pada hari biasa (semua outlet buka) = jumlah (target outlet ÷ hari operasi outlet)
+  function leadDaily(y, m, kind, c = 'total') {
+    const plan = leadPlan(y, m); if (!plan) return null;
+    return KEYS.outlet4.reduce((a, x) => { const n = opDays(x, y, m); return a + (n ? plan.outlets[x][kind][c] / n : 0); }, 0);
+  }
+
   // Lead & walk-in level company ikut kategori (Phone / Repair / CC) berbanding target company.
-  // pace = hari data ÷ hari sebulan (sama seperti KPI Leads). Tiada mirror = hanya jumlah (pecahan null).
+  // pace & "perlu sehari" dikira ikut hari operasi setiap outlet (lihat leadProgress).
+  // Tiada mirror = hanya jumlah (pecahan null). Tiada target bulan itu = target null, status 'na'.
   function leadCategories(ds, y, m) {
-    const T = CFG.targets.leadCat, dim = daysIn(y, m);
-    const tgt = (kind, c) => KEYS.outlet4.reduce((a, x) => a + T[x][kind][c], 0);
+    const plan = leadPlan(y, m), prog = leadProgress(ds, y, m), dim = prog.dim;
     const one = (yy, mm) => {
       const rows = (ds.leadDetail || []).filter(inMonth(yy, mm));
       const days = rows.length;
@@ -669,26 +730,43 @@
       return res;
     };
     const cur = one(y, m), [py, pm] = prevYM(y, m), prev = one(py, pm);
-    const pace = cur.days ? Math.min(1, cur.days / dim) : 1;
-    const out = { available: !!(ds.leadDetail && ds.leadDetail.length), days: cur.days, pace, outlets: cur.outlets };
+    const calPace = prog.day ? Math.min(1, prog.day / dim) : 1;
+    const out = {
+      available: !!(ds.leadDetail && ds.leadDetail.length), days: cur.days, lastDay: prog.day,
+      pace: plan ? companyPace(plan, prog, 'lead', 'total') : calPace,
+      outlets: cur.outlets, plan, progress: prog, noTarget: !plan,
+    };
+    const outletActual = (x, kind, c) => {
+      const v = cur.outlets[x] && cur.outlets[x][kind]; if (!v) return 0;
+      return c === 'total' ? CATS.reduce((s2, k) => s2 + (v[k] || 0), 0) : (v[c] || 0);
+    };
     for (const kind of ['lead', 'walkin']) {
       out[kind] = {};
-      for (const c of [...CATS, 'total']) {
+      for (const c of CATS_T) {
         const a = c === 'total' ? (CATS.every(k => cur[kind][k] == null) ? null : CATS.reduce((s2, k) => s2 + (cur[kind][k] || 0), 0)) : cur[kind][c];
         const pa = c === 'total' ? (CATS.every(k => prev[kind][k] == null) ? null : CATS.reduce((s2, k) => s2 + (prev[kind][k] || 0), 0)) : prev[kind][c];
-        const target = c === 'total' ? CATS.reduce((s2, k) => s2 + tgt(kind, k), 0) : tgt(kind, c);
+        const target = plan ? plan.company[kind][c] : null;
+        const pace = plan ? companyPace(plan, prog, kind, c) : calPace;
         const nowN = a == null || !cur.days ? null : a * dim / cur.days;
         const prevN = pa == null || !prev.days ? null : pa * daysIn(py, pm) / prev.days;
         const st = status(a, target, pace, false, nowN != null && prevN != null ? nowN > prevN : null);
-        const remaining = dim - cur.days;
+        // Perlu sehari (hari biasa) = jumlah baki setiap outlet ÷ baki hari operasi outlet itu
+        let need = null;
+        if (plan && pace < 1 && a != null) {
+          need = 0;
+          for (const x of KEYS.outlet4) {
+            const p = prog.outlets[x]; if (p.left <= 0) continue;
+            need += Math.max(0, plan.outlets[x][kind][c] - outletActual(x, kind, c)) / p.left;
+          }
+        }
         out[kind][c] = { actual: a, target, pace, partial: pace < 1, status: st, mom: change(nowN, prevN), prev: prevN,
-          daily: Math.round(target / CFG.targets.labelDays), need: pace < 1 && remaining > 0 && a != null ? Math.max(0, target - a) / remaining : null };
+          daily: leadDaily(y, m, kind, c), calDaily: target != null ? target / dim : null, need };
       }
     }
     return out;
   }
 
-  const API = { leadCategories, parseLeadDetail, company, companyCompare, scorecard, kpis, funnel, insights, monthCore, prevYM, change, parseCSV, num, parseDate, parseDaily, parsePosts, parseLinktree, KEYS, loadAll, loadMonthPosts, monthsAvailable, social, contentStats, outletStats, monthlySeries, status, tierOf, ym, daysIn };
+  const API = { leadCategories, leadPlan, leadProgress, leadDaily, opDays, parseLeadDetail, company, companyCompare, scorecard, kpis, funnel, insights, monthCore, prevYM, change, parseCSV, num, parseDate, parseDaily, parsePosts, parseLinktree, KEYS, loadAll, loadMonthPosts, monthsAvailable, social, contentStats, outletStats, monthlySeries, status, tierOf, ym, daysIn };
   root.KD = API;
   if (typeof module !== 'undefined') module.exports = API;
 })(typeof window !== 'undefined' ? window : globalThis);

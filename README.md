@@ -13,8 +13,18 @@ Web app (PWA) untuk pantau prestasi marketing media sosial KLIKI. Data dibaca **
 | Mirror MASTER SHEET SALES OUTLET | masterFRONT (tarikh + blok lead/walk-in sahaja) | Lead & Walk-in company ikut Phone / Repair / Cash Converter |
 
 ### Lead & Walk-in company (Overview, paling atas)
-- Target outlet: Lead 780 (Phone 480 / Repair 210 / CC 90), Walk-in 360 (150 / 180 / 30). Pendang tiada repair: Lead 570, Walk-in 180.
-- Target company = jumlah 4 outlet: **Lead 2,910, Walk-in 1,260**. Target harian = bulanan ÷ 26.
+- Target ikut brief **WhatsApp Leads and Walk-in Required, Okt–Dis 2026** (`targets.leadPlan` dalam `js/config.js`). Target berbeza setiap bulan dan setiap outlet. Kategori Phone / Repair / CC (CC = "CCTI Received" dalam brief). Pendang tiada repair.
+
+  | Company | Okt | Nov | Dis |
+  |---|---|---|---|
+  | Lead (Phone / Repair / CC) | 2,580 (1,453 / 816 / 311) | 2,270 (1,254 / 705 / 311) | 2,751 (1,562 / 877 / 311) |
+  | Walk-in | 1,003 (436 / 449 / 118) | 882 (376 / 387 / 118) | 1,069 (469 / 483 / 118) |
+
+- Angka company & total outlet diambil terus dari brief (bukan dijumlahkan semula), jadi jumlah kategori outlet boleh beza 1 akibat pembundaran brief.
+- **Hari operasi:** Alor Setar, Sg Petani, Pendang tutup Rabu; Kulim/Kelang Lama buka setiap hari (`leadPlan.closedWeekdays`). Lead hari tutup dicatat hari bekerja berikutnya.
+- **Status on track** = actual ÷ jangkaan sehingga tarikh data terakhir, dengan jangkaan = jumlah (target outlet × hari operasi dah lepas ÷ hari operasi sebulan).
+- **Harian** = target sehari pada hari biasa (semua outlet buka). **Perlu sehari** = jumlah baki setiap outlet ÷ baki hari operasi outlet itu. Purata kalendar brief (target ÷ hari sebulan) dipapar sebagai rujukan sahaja.
+- Bulan sebelum Okt 2026 guna target lama (`leadPlan.legacy`: Lead 780 / Walk-in 360 per outlet, Pendang 570 / 180). Bulan selepas Dis 2026 tanpa entri dalam `leadPlan.months` = "target belum ditetapkan" (tiada status).
 - Kulim & Kelang Lama dikira satu kedai: kolum `kul` sehingga 19/08/2026, `kll` mulai 20/08/2026.
 - Jumlah dikira dari Phone + Repair + CC. Blok OVERALL dalam masterFRONT tidak dibaca (formula Lead Repair tertinggal AOR).
 - MASTER SHEET asal ada angka jualan RM, jadi app **tidak** baca terus. App baca sheet mirror *KLIKI Lead Walk-in Mirror (untuk Dashboard)* (`sheets.leadDetail` dalam `js/config.js`). Mirror ini satu formula `IMPORTRANGE` di sel A1 tab `masterFRONT` yang tarik DATE + 30 kolum lead/walk-in (kul, aor, sgp, pdg, kll) sahaja, jadi ia update sendiri bila outlet isi master.
@@ -25,7 +35,7 @@ Semua sheet yang app baca (CONTENT SUBMIT, REPORT CONTENT DATA, mirror lead/walk
 ## Tukar target / tambah tab bulan baru
 
 Semua dalam `js/config.js`:
-- `targets` — target rasmi bulanan
+- `targets` — target rasmi bulanan. Target lead/walk-in bulan baru: tambah entri `'YYYY-MM'` dalam `targets.leadPlan.months` (format `[phone, repair, cc, total]`).
 - `monthTabs` — `gid` tab per-post ikut bulan. Bulan yang tiada dalam senarai akan dicari ikut nama tab (contoh `NOV'26`, `DIS'26`) dan disahkan ikut tarikh dalam tab.
 
 Semua formula KPI ada dalam `js/data.js`. `js/app.js` hanya paparan.

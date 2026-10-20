@@ -267,17 +267,20 @@
     const o = KD.outletStats(state.ds, y, m), po = KD.outletStats(state.ds, ...KD.prevYM(y, m));
     const live = isCurrent(key);
     const pace = live ? Math.max(o.days.leads, 1) / daysIn(y, m) : 1;
+    const plan = KD.leadPlan(y, m), prog = KD.leadProgress(state.ds, y, m);
     const cards = CFG.outlets.map(x => {
       let hit = 0, total = 0, miss = [], list = '';
       const vals = {};
       for (const [label, k] of OUTLET_ROWS) {
-        const tg = k === 'conversion' ? T.conversion : T.outlet[x][k];
+        const isLW = k === 'leads' || k === 'walkin';
+        const tg = k === 'conversion' ? T.conversion : isLW ? (plan ? plan.outlets[x][k === 'leads' ? 'lead' : 'walkin'].total : null) : T.outlet[x][k];
         const a = o.outlets[x][k];
         if (tg == null) continue;
         if (a == null) { vals[k] = { a: null, tg, st: { level: 'na' } }; list += `<li><span class="st na">–</span><span class="k">${label}</span><span class="v">tiada data</span></li>`; continue; }
         total++;
         const p = po.outlets[x][k];
-        const st = KD.status(a, tg, k === 'conversion' ? 1 : pace, false, p != null ? a > p : null);
+        const kPace = k === 'conversion' ? 1 : isLW ? (live ? prog.outlets[x].pace : 1) : pace;
+        const st = KD.status(a, tg, kPace, false, p != null ? a > p : null);
         vals[k] = { a, tg, st };
         if (st.level === 'good') hit++;
         if (st.level === 'bad') miss.push(label);
@@ -329,7 +332,7 @@
     const catChips = (x, kind) => {
       const v = lc.available && lc.outlets[x] ? lc.outlets[x][kind] : null;
       if (!v || ['phone', 'repair', 'cc'].every(k => v[k] == null)) return '';
-      const tg = T.leadCat[x][kind];
+      const tg = lc.plan ? lc.plan.outlets[x][kind] : { phone: null, repair: null, cc: null };
       return `<div class="op-cats">${[['phone', 'Phone'], ['repair', 'Repair'], ['cc', 'CC']].filter(([k]) => tg[k] || v[k]).map(([k, n]) =>
         `<span><em>${n}</em><b>${fullN(v[k])}</b>${tg[k] ? `<small>/${fmt(tg[k])}</small>` : '<small>tiada target</small>'}</span>`).join('')}</div>`;
     };
@@ -450,7 +453,8 @@
       return { ...r, _lab: MON[mm - 1], _full: monLabel(r.key), _hl: r.key === key, _dim: ttd > 0 && ttd < dim * 0.9, allV, lead_all: sumO(r, 'lead_'), walk_all: sumO(r, 'walk_') };
     });
     const cur = rows[rows.length - 1], prev = rows.length > 1 ? rows[rows.length - 2] : null;
-    const tgLead = CFG.outlets.reduce((a, x) => a + T.outlet[x].leads, 0), tgWalk = CFG.outlets.reduce((a, x) => a + T.outlet[x].walkin, 0);
+    const tPlan = KD.leadPlan(...parseKey(key));
+    const tgLead = tPlan ? tPlan.company.lead.total : null, tgWalk = tPlan ? tPlan.company.walkin.total : null;
     const half = Math.min(chartW(0.5, 900), 640), full = Math.min(chartW(), 1100);
     const mom = (a, b) => a == null || b == null || !b ? null : 100 * (a - b) / Math.abs(b);
     const pill = v => v == null ? '<span class="tp na">—</span>' : `<span class="tp ${v >= 0 ? 'up' : 'dn'}">${v >= 0 ? '▲' : '▼'} ${Math.abs(v) >= 999 ? '>999' : Math.abs(v).toFixed(0)}%</span>`;
@@ -468,7 +472,7 @@
     const BL = { c1: '#6E9BFF', c2: '#2F63EE' }, NV = { c1: '#2C4FC4', c2: '#132E85' };
 
     let h = `<div class="op-head"><div><span class="cf-eyebrow">12 bulan terakhir · sehingga ${monLabel(key)}</span><h2 class="op-h">Trend bulanan</h2><p class="op-sub">Perbandingan ${monLabel(key)} dengan ${prev ? prev._full : 'bulan lepas'}. Bulan pudar = data harian tak lengkap.</p></div></div>`;
-    h += `<div class="tk-strip">${tile('View content', 'TikTok + IG + FB', 'allV', { top: true })}${tile('TikTok views', 'Target ' + tl(T.tiktokViews), 'tt_views')}${tile('Lead', '4 outlet · target ' + fmt(tgLead), 'lead_all')}${tile('Walk-in', '4 outlet · target ' + fmt(tgWalk), 'walk_all')}</div>`;
+    h += `<div class="tk-strip">${tile('View content', 'TikTok + IG + FB', 'allV', { top: true })}${tile('TikTok views', 'Target ' + tl(T.tiktokViews), 'tt_views')}${tile('Lead', tgLead == null ? '4 outlet · target belum ditetapkan' : '4 outlet · target ' + fmt(tgLead), 'lead_all')}${tile('Walk-in', tgWalk == null ? '4 outlet · target belum ditetapkan' : '4 outlet · target ' + fmt(tgWalk), 'walk_all')}</div>`;
 
     h += card('Semua platform', 'View content ikut platform', meta('allV'),
       legend([['TikTok', '#2F63EE'], ['Instagram', '#7B5CF5'], ['Facebook', '#1FB6C9']]) +
@@ -563,9 +567,9 @@
     const LC = KD.leadCategories(state.ds, y, m);
     const K = KD.kpis(state.ds, y, m);
     const momD = v => delta(v, 'vs ' + prevLbl);
-    let h = `<h2 class="sec">Lead & Walk-in company <span class="note">· 4 outlet digabung, target = jumlah target outlet</span></h2>`;
+    let h = `<h2 class="sec">Lead & Walk-in company <span class="note">· 4 outlet digabung${LC.noTarget ? ', target belum ditetapkan' : ', target ikut brief Okt–Dis 2026'}</span></h2>`;
     // Kad jumlah: guna pecahan mirror jika ada, jika tidak jumlah dari tab Leads / Walk-in
-    const tot = kind => LC.available ? LC[kind].total : { ...K[kind === 'lead' ? 'leads' : 'walkin'], daily: Math.round(K[kind === 'lead' ? 'leads' : 'walkin'].target / T.labelDays), need: null };
+    const tot = kind => LC.available ? LC[kind].total : { ...K[kind === 'lead' ? 'leads' : 'walkin'], daily: KD.leadDaily(y, m, kind), calDaily: null, need: null };
     const L = tot('lead'), W = tot('walkin');
     const pctOf2 = k => k.target && k.actual != null ? Math.round(100 * k.actual / k.target) : null;
     const lvl = k => k.status.level;
@@ -576,7 +580,7 @@
         <div class="tk-top">${icon(ic)}<span class="kc-l">${label}</span><span class="chip ${lvl(k)}">${iconOf(k.status)} ${statusWord(k.status, k.partial)}</span></div>
         <div class="tk-mid"><span class="tk-v">${fmt(k.actual)}</span><span class="tk-t">/ ${fmt(k.target)}</span><span class="tk-p">${p == null ? '—' : p + '%'}</span></div>
         ${k.actual == null ? '<div class="prog"><i style="width:0"></i></div>' : bar(k.actual, k.target, k.status, k.pace)}
-        <div class="tk-f">${momD(k.mom) || '<span></span>'}<span>Harian ${fmt(k.daily)}${k.need != null ? ` · perlu <b>${fmt(Math.ceil(k.need))}</b>/hari` : ''}</span></div>
+        <div class="tk-f">${momD(k.mom) || '<span></span>'}<span>${k.target == null ? 'Target belum ditetapkan' : `Harian ${fmt(Math.round(k.daily))}${k.need != null ? ` · perlu <b>${fmt(Math.ceil(k.need))}</b>/hari` : ''}`}</span></div>
       </div>`;
     };
     h += `<div class="kc-grid g2">${totCard(L, 'Total Leads', 'lead', true)}${totCard(W, 'Total Walk-in', 'walk', false)}</div>`;
@@ -594,12 +598,12 @@
     };
     const pdgRep = LC.outlets.PDG && LC.outlets.PDG.lead.repair;
     h += `<div class="kc-grid g3 cat-grid">${['phone', 'repair', 'cc'].map(c => `<div class="kc cat-kc">
-      <div class="kc-h">${icon(c)}<span class="kc-l">${CAT_NAME[c]}<small>Harian: lead ${fmt(LC.lead[c].daily)} · walk-in ${fmt(LC.walkin[c].daily)}</small></span></div>
+      <div class="kc-h">${icon(c)}<span class="kc-l">${CAT_NAME[c]}<small>${LC.noTarget ? 'Target belum ditetapkan' : `Harian: lead ${fmt(Math.round(LC.lead[c].daily))} · walk-in ${fmt(Math.round(LC.walkin[c].daily))}`}</small></span></div>
       ${row('Lead', LC.lead[c])}${row('Walk-in', LC.walkin[c])}
       ${c === 'repair' && pdgRep ? `<div class="kc-note">Termasuk ${fmt(pdgRep)} lead repair Pendang (tiada servis).</div>` : ''}
       ${c === 'cc' ? '<div class="kc-note">CC = Trade-in + Buyback.</div>' : ''}
     </div>`).join('')}</div>`;
-    h += `<div class="chart-cap">Sumber: MASTER SHEET SALES OUTLET (diisi staf outlet), ${LC.days} hari data. Kulim & Kelang Lama dikira satu kedai. Jumlah dikira dari Phone + Repair + CC, bukan blok OVERALL dalam sheet.</div>`;
+    h += `<div class="chart-cap">Sumber: MASTER SHEET SALES OUTLET (diisi staf outlet), data sehingga ${LC.lastDay || 0}/${m}. Kulim & Kelang Lama dikira satu kedai. Jumlah dikira dari Phone + Repair + CC, bukan blok OVERALL dalam sheet. ${LC.noTarget ? '' : `Harian & perlu sehari = hari biasa semua outlet buka; status ikut hari operasi (AOR, SP, PDG tutup Rabu). Purata kalendar ikut brief: lead ${fmt(Math.round(LC.lead.total.calDaily))}, walk-in ${fmt(Math.round(LC.walkin.total.calDaily))} sehari.`}</div>`;
     return h;
   }
 
@@ -620,17 +624,17 @@
     const mc = KD.monthCore(state.ds, y, m);
     const fullN = n => n == null ? '—' : Math.round(n).toLocaleString('en-MY');
     const pctN = (a, t) => a == null || !t ? null : Math.round(100 * a / t);
-    const L = LC.available ? LC.lead.total : { ...K.leads, daily: Math.round(K.leads.target / T.labelDays) };
-    const Wk = LC.available ? LC.walkin.total : { ...K.walkin, daily: Math.round(K.walkin.target / T.labelDays) };
+    const L = LC.available ? LC.lead.total : { ...K.leads, daily: KD.leadDaily(y, m, 'lead') };
+    const Wk = LC.available ? LC.walkin.total : { ...K.walkin, daily: KD.leadDaily(y, m, 'walkin') };
     const n = sc.list.length, nH = sc.hit.length, nM = sc.miss.length, nN = sc.na.length;
 
     // ---- 1. Hero ----
     const heroStat = (lab, k, sub) => {
       const p = pctN(k.actual, k.target);
-      return `<div class="ov-hs"><div class="op-ringw">${ringS((k.actual || 0) / (k.target || 1), 'inv', 64)}<span class="ct-pc">${p == null ? '—' : p + '%'}</span></div>
-        <div class="ov-hv"><span>${lab}</span><b>${fullN(k.actual)}</b><small>/ ${fullN(k.target)} target${momPill(k.mom) ? ' ' + momPill(k.mom) : ''}</small>${sub ? `<em>${sub}</em>` : ''}</div></div>`;
+      return `<div class="ov-hs"><div class="op-ringw">${ringS(k.target ? (k.actual || 0) / k.target : 0, 'inv', 64)}<span class="ct-pc">${p == null ? '—' : p + '%'}</span></div>
+        <div class="ov-hv"><span>${lab}</span><b>${fullN(k.actual)}</b><small>${k.target == null ? 'target belum ditetapkan' : `/ ${fullN(k.target)} target`}${momPill(k.mom) ? ' ' + momPill(k.mom) : ''}</small>${sub ? `<em>${sub}</em>` : ''}</div></div>`;
     };
-    const needTxt = k => k.need != null ? `Perlu ${fmt(Math.ceil(k.need))}/hari` : `Harian ${fmt(k.daily)}`;
+    const needTxt = k => k.target == null ? '' : k.need != null ? `Perlu ${fmt(Math.ceil(k.need))}/hari` : `Harian ${fmt(Math.round(k.daily))}`;
     let h = `<section class="ov-hero">
       <div class="ov-hero-top"><div><span class="ov-eb">Company marketing · ${monLabel(key)}</span><h2>Prestasi bulan ini</h2>
         <p>Semua outlet & platform digabung${live ? ` · hari ${today}/${dim}, status ikut kadar hari` : ''}</p></div>
@@ -645,17 +649,17 @@
       </div></section>`;
 
     // ---- 2. Lead & walk-in ikut kategori ----
-    h += secHead('Fokus utama · 4 outlet digabung', 'Lead & walk-in ikut kategori', `Target company = jumlah target outlet. Sumber: MASTER SHEET (mirror), ${LC.days || 0} hari data.`);
+    h += secHead('Fokus utama · 4 outlet digabung', 'Lead & walk-in ikut kategori', LC.noTarget ? `Target ${monLabel(key)} belum ditetapkan. Sumber: MASTER SHEET (mirror).` : `Target ikut brief Okt–Dis 2026, status ikut hari operasi outlet (Rabu tutup kecuali Kulim/Kelang Lama). Sumber: MASTER SHEET (mirror), data sehingga ${LC.lastDay || 0}/${m}.`);
     if (!LC.available) h += `<div class="card empty">Pecahan Phone / Repair / Cash Converter belum disambung.</div>`;
     else {
       const CI = { phone: '<rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/>', repair: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>', cc: '<path d="M4 8h13l-3-3M20 16H7l3 3"/>' };
       const CG = { phone: ['#1565FF', '#0A2E8A'], repair: ['#0EA5A4', '#0B4F6C'], cc: ['#7B5CF5', '#35188F'] };
       const gauge = (lab, k) => {
         const p = pctN(k.actual, k.target);
-        return `<div class="oc-g"><div class="op-ringw oc-ring">${ringS((k.actual || 0) / (k.target || 1), 'inv', 76)}<span class="ct-pc">${p == null ? '—' : p + '%'}</span></div>
-          <span class="oc-gl">${lab}</span><b>${fullN(k.actual)}</b><small>/ ${fullN(k.target)}</small></div>`;
+        return `<div class="oc-g"><div class="op-ringw oc-ring">${ringS(k.target ? (k.actual || 0) / k.target : 0, 'inv', 76)}<span class="ct-pc">${p == null ? '—' : p + '%'}</span></div>
+          <span class="oc-gl">${lab}</span><b>${fullN(k.actual)}</b><small>${k.target == null ? 'tiada target' : `/ ${fullN(k.target)}`}</small></div>`;
       };
-      const foot = (lab, k) => `<li><span class="op-dot ${k.status.level}">${k.status.level === 'na' ? '–' : iconOf(k.status)}</span><span class="oc-fl">${lab}</span><span class="oc-fd">harian ${fmt(k.daily)}${k.need != null ? ` · perlu <b>${fmt(Math.ceil(k.need))}</b>` : ''}</span>${momPill(k.mom) || '<span class="tp na">—</span>'}</li>`;
+      const foot = (lab, k) => `<li><span class="op-dot ${k.status.level}">${k.status.level === 'na' ? '–' : iconOf(k.status)}</span><span class="oc-fl">${lab}</span><span class="oc-fd">${k.target == null ? 'tiada target' : `harian ${fmt(Math.round(k.daily))}${k.need != null ? ` · perlu <b>${fmt(Math.ceil(k.need))}</b>` : ''}`}</span>${momPill(k.mom) || '<span class="tp na">—</span>'}</li>`;
       const pdgRep = LC.outlets.PDG && LC.outlets.PDG.lead.repair;
       h += `<div class="ov-cats">${['phone', 'repair', 'cc'].map(k2 => `<div class="oc-card">
         <div class="oc-top" style="--g1:${CG[k2][0]};--g2:${CG[k2][1]}"><div class="oc-h"><span class="oc-ic"><svg viewBox="0 0 24 24">${CI[k2]}</svg></span><b>${CAT_NAME[k2]}</b></div>
