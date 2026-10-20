@@ -806,7 +806,7 @@ li.lv-good .mr-v small { color: var(--good); } li.lv-warn .mr-v small { color: v
 @media (max-width: 900px) { .op-grid { grid-template-columns: 1fr; } }
 @media (max-width: 560px) {
   .op-tile { flex-direction: column; align-items: flex-start; gap: 10px; padding: 14px; }
-  .op-ringw { width: 56px; height: 56px; } .op-ringw svg { width: 56px; height: 56px; } .op-sc { padding-top: 16px; } .op-sc b { font-size: 17px; }
+  .op-tile .op-ringw { width: 56px; height: 56px; } .op-sc { padding-top: 16px; } .op-sc b { font-size: 17px; }
   .op-ch { padding: 14px; } .op-body { padding: 4px 14px 14px; }
   .op-crow { grid-template-columns: 1fr 1.4fr .5fr; }
   .op-crow > :nth-child(4), .op-crow > :nth-child(5) { display: none; }
@@ -1123,3 +1123,6 @@ a.ct-item:hover, a.ct-first:hover { transform: translateY(-2px); }
 @media (max-width: 900px) { .co-items { grid-template-columns: minmax(0, 1fr); } .co-i + .co-i { border-left: 0; border-top: 1px solid var(--line); } }
 @media (max-width: 560px) { .co-i { padding: 16px; } .co-ring { width: 76px; height: 76px; } .co-ring svg { width: 76px; height: 76px; } .co-v { font-size: 28px; } .co-best em { margin-left: 0; } }
 @media (max-width: 1300px) and (min-width: 901px) { .co-i { padding: 18px 14px; gap: 12px; } .co-ring, .co-ring svg { width: 72px; height: 72px; } .co-ring .ct-pc { font-size: 14px; } .co-v { font-size: 28px; } }
+
+/* Cincin sentiasa penuhi bekas, teks % kekal di tengah */
+.op-ringw > svg { display: block; width: 100%; height: 100%; }
