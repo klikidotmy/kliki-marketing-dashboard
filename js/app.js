@@ -628,25 +628,30 @@
     const Wk = LC.available ? LC.walkin.total : { ...K.walkin, daily: KD.leadDaily(y, m, 'walkin') };
     const n = sc.list.length, nH = sc.hit.length, nM = sc.miss.length, nN = sc.na.length;
 
-    // ---- 1. Hero ----
-    const heroStat = (lab, k, sub) => {
+    // ---- 1. Hero (compact: 2 gauge + 2 tile mini + baris kadar harian) ----
+    const heroG = (lab, k) => {
       const p = pctN(k.actual, k.target);
-      return `<div class="ov-hs"><div class="op-ringw">${ringS(k.target ? (k.actual || 0) / k.target : 0, 'inv', 64)}<span class="ct-pc">${p == null ? '—' : p + '%'}</span></div>
-        <div class="ov-hv"><span>${lab}</span><b>${fullN(k.actual)}</b><small>${k.target == null ? 'target belum ditetapkan' : `/ ${fullN(k.target)} target`}${momPill(k.mom) ? ' ' + momPill(k.mom) : ''}</small>${sub ? `<em>${sub}</em>` : ''}</div></div>`;
+      return `<div class="oc-g ov-g"><div class="op-ringw oc-ring">${ringS(k.target ? (k.actual || 0) / k.target : 0, 'inv', 76)}<span class="ct-pc">${p == null ? '—' : p + '%'}</span></div>
+        <span class="oc-gl">${lab}</span><b>${fullN(k.actual)}</b><small>${k.target == null ? 'tiada target' : `/ ${fullN(k.target)}`}</small></div>`;
     };
-    const needTxt = k => k.target == null ? '' : k.need != null ? `Perlu ${fmt(Math.ceil(k.need))}/hari` : `Harian ${fmt(Math.round(k.daily))}`;
+    const heroF = (lab, k) => {
+      const lv = k.status ? k.status.level : 'na';
+      return `<li><span class="op-dot ${lv}">${lv === 'na' ? '–' : iconOf(k.status)}</span><span class="oc-fl">${lab}</span><span class="oc-fd">${k.target == null ? 'tiada target' : `harian ${fmt(Math.round(k.daily))}${k.need != null ? ` · perlu <b>${fmt(Math.ceil(k.need))}</b>` : ''}`}</span>${momPill(k.mom) || '<span class="tp na">—</span>'}</li>`;
+    };
     let h = `<section class="ov-hero">
-      <div class="ov-hero-top"><div><span class="ov-eb">Company marketing · ${monLabel(key)}</span><h2>Prestasi bulan ini</h2>
-        <p>Semua outlet & platform digabung${live ? ` · hari ${today}/${dim}, status ikut kadar hari` : ''}</p></div>
-        <span class="ov-badge"><span class="live-dot"></span>${live ? 'Bulan semasa' : 'Bulan lengkap'}</span></div>
-      <div class="ov-hero-grid">
-        ${heroStat('Total lead', L, needTxt(L))}
-        ${heroStat('Total walk-in', Wk, needTxt(Wk))}
-        <div class="ov-hs"><div class="ov-hv"><span>View content</span><b>${fmt(co.views)}</b><small>TikTok + IG + FB ${momPill(cc.ch('views'))}</small><em>TikTok ${fmt(P('tiktok').views)} / target ${fmt(T.tiktokViews)}</em></div></div>
-        <div class="ov-hs ov-kpi"><div class="ov-hv"><span>Status KPI</span><b>${nH}<small class="ov-of">/${n}</small></b><small>${live ? 'on track' : 'capai target'}</small></div>
+      <div class="ov-hero-top"><div><span class="ov-eb">Company marketing · ${monLabel(key)}</span><h2>Prestasi bulan ini</h2></div>
+        <span class="ov-badge"><span class="live-dot"></span>${live ? `Hari ${today}/${dim}` : 'Bulan lengkap'}</span></div>
+      <div class="ov-hg">
+        ${heroG('Total lead', L)}
+        ${heroG('Total walk-in', Wk)}
+        <div class="ov-mt"><span class="oc-gl">View content</span><b>${fmt(co.views)}</b><small>TikTok + IG + FB</small><div class="ov-mf">${momPill(cc.ch('views')) || ''}<em>TT ${fmt(P('tiktok').views)}/${fmt(T.tiktokViews)}</em></div></div>
+        <div class="ov-mt"><span class="oc-gl">Status KPI</span><b>${nH}<small class="ov-of">/${n}</small></b><small>${live ? 'on track' : 'capai target'}</small>
           <div class="ov-seg">${nH ? `<i class="good" style="flex:${nH}"></i>` : ''}${nM ? `<i class="bad" style="flex:${nM}"></i>` : ''}${nN ? `<i class="na" style="flex:${nN}"></i>` : ''}</div>
-          <div class="ov-segl"><span><i class="good"></i>${nH} capai</span><span><i class="bad"></i>${nM} belum</span><span><i class="na"></i>${nN} tiada data</span></div></div>
-      </div></section>`;
+          <div class="ov-segl"><span><i class="good"></i>${nH}</span><span><i class="bad"></i>${nM}</span>${nN ? `<span><i class="na"></i>${nN}</span>` : ''}</div></div>
+      </div>
+      <ul class="oc-foot ov-foot">${heroF('Lead', L)}${heroF('Walk-in', Wk)}</ul>
+      <p class="ov-hn">Semua outlet & platform digabung${live ? ', status ikut kadar hari' : ''}</p>
+    </section>`;
 
     // ---- 2. Lead & walk-in ikut kategori ----
     h += secHead('Fokus utama · 4 outlet digabung', 'Lead & walk-in ikut kategori', LC.noTarget ? `Target ${monLabel(key)} belum ditetapkan. Sumber: MASTER SHEET (mirror).` : `Target ikut brief Okt–Dis 2026, status ikut hari operasi outlet (Rabu tutup kecuali Kulim/Kelang Lama). Sumber: MASTER SHEET (mirror), data sehingga ${LC.lastDay || 0}/${m}.`);

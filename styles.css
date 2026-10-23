@@ -1126,3 +1126,29 @@ a.ct-item:hover, a.ct-first:hover { transform: translateY(-2px); }
 
 /* Cincin sentiasa penuhi bekas, teks % kekal di tengah */
 .op-ringw > svg { display: block; width: 100%; height: 100%; }
+
+/* ---- Overview hero compact (v35): gaya kad kategori ---- */
+.ov-hero { padding: 18px 18px 14px; }
+.ov-hero-top { flex-direction: row !important; align-items: center !important; gap: 10px !important; }
+.ov-hero h2 { margin: 2px 0 0; }
+.ov-hg { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
+.ov-g .oc-gl, .ov-mt .oc-gl { opacity: .8; }
+.ov-mt { display: flex; flex-direction: column; justify-content: center; min-width: 0; padding: 12px; border-radius: 14px; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.14); }
+.ov-mt .oc-gl { margin: 0 0 2px; }
+.ov-mt > b { font-size: 22px; font-weight: 800; letter-spacing: -.02em; line-height: 1.1; }
+.ov-mt > small { font-size: 11px; opacity: .75; }
+.ov-mf { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.ov-mf em { font-style: normal; font-size: 10.5px; opacity: .7; }
+.ov-mt .tp { background: rgba(255,255,255,.18); color: #fff; }
+.ov-mt .ov-seg { margin-top: 8px; height: 6px; }
+.ov-mt .ov-segl { margin-top: 5px; gap: 8px; }
+.ov-foot { margin-top: 10px; padding: 10px 12px; border-radius: 14px; background: rgba(0,0,0,.18); }
+.ov-foot .oc-fd { color: rgba(255,255,255,.7); } .ov-foot .oc-fd b { color: #fff; }
+.ov-foot .tp.up { background: rgba(69,224,154,.2); color: #6FF0B4; } .ov-foot .tp.dn { background: rgba(255,122,127,.2); color: #FF9DA1; }
+.ov-foot .tp.na { background: rgba(255,255,255,.14); color: rgba(255,255,255,.7); }
+.ov-hn { margin: 10px 2px 0 !important; font-size: 11px !important; opacity: .6 !important; }
+@media (max-width: 1200px) { .ov-hg { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .ov-hero { padding: 16px 14px 12px; } .ov-hg { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.ov-hero-top > div { min-width: 0; }
+.ov-hero .ov-eb { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 10.5px; }
+@media (max-width: 640px) { .ov-hero .ov-badge { padding: 5px 10px; font-size: 11.5px; } }
