@@ -746,17 +746,18 @@
     };
     for (const kind of ['lead', 'walkin']) {
       out[kind] = {};
-      for (const c of CATS_T) {
+      for (const c of [...CATS_T, 'others']) {
+        const noT = c === 'others'; // others: tiada target, tiada pace/perlu sehari
         const a = c === 'total' ? (CATS.every(k => cur[kind][k] == null) ? null : CATS.reduce((s2, k) => s2 + (cur[kind][k] || 0), 0)) : cur[kind][c];
         const pa = c === 'total' ? (CATS.every(k => prev[kind][k] == null) ? null : CATS.reduce((s2, k) => s2 + (prev[kind][k] || 0), 0)) : prev[kind][c];
-        const target = plan ? plan.company[kind][c] : null;
-        const pace = plan ? companyPace(plan, prog, kind, c) : calPace;
+        const target = plan && !noT ? plan.company[kind][c] : null;
+        const pace = plan && !noT ? companyPace(plan, prog, kind, c) : calPace;
         const nowN = a == null || !cur.days ? null : a * dim / cur.days;
         const prevN = pa == null || !prev.days ? null : pa * daysIn(py, pm) / prev.days;
         const st = status(a, target, pace, false, nowN != null && prevN != null ? nowN > prevN : null);
         // Perlu sehari (hari biasa) = jumlah baki setiap outlet ÷ baki hari operasi outlet itu
         let need = null;
-        if (plan && pace < 1 && a != null) {
+        if (plan && !noT && pace < 1 && a != null) {
           need = 0;
           for (const x of KEYS.outlet4) {
             const p = prog.outlets[x]; if (p.left <= 0) continue;
@@ -764,10 +765,8 @@
           }
         }
         out[kind][c] = { actual: a, target, pace, partial: pace < 1, status: st, mom: change(nowN, prevN), prev: prevN,
-          daily: leadDaily(y, m, kind, c), calDaily: target != null ? target / dim : null, need };
+          daily: noT ? null : leadDaily(y, m, kind, c), calDaily: target != null ? target / dim : null, need };
       }
-      // Others: sudah termasuk dalam total di atas, tiada target sendiri
-      out[kind].others = { actual: cur[kind].others };
     }
     return out;
   }
