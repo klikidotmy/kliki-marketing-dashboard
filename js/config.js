@@ -43,18 +43,19 @@
 
     linktree: { gid: 2026029153, range: 'A1:L40', year: 2026 },
 
-    // Pecahan lead & walk-in (Phone / Repair / CC) ikut nama header masterFRONT.
+    // Pecahan lead & walk-in (Phone / Repair / CC / Others) ikut nama header masterFRONT.
+    // others = [lead, walk-in]: kolum AF:AM, diisi auto dari Outlet Tracker mulai 23/10/2026 (tiada target).
     // Kulim tutup sementara, staf pindah ke Kelang Lama mulai 20/08/2026: dikira satu kedai (kunci KUL).
     leadDetail: {
-      gid: 0, range: 'A1:AE2100',
+      gid: 0, range: 'A1:AM2100',
       outlets: {
         KUL: [
           { until: '2026-08-19', lead: ['kul LEAD PHONE', 'kul LEAD REPAIR', 'kul LEAD CC'], walkin: ['kul WALK IN PHONE', 'kul WALK IN REPAIR', 'kul WALK IN CC'] },
-          { from: '2026-08-20', lead: ['kll PHONE LEAD', 'kll REPAIR LEAD', 'kll CC LEAD'], walkin: ['kll PHONE WALK IN PHONE', 'kll REPAIR WALK IN REPAIR', 'kll WALK IN CC'] },
+          { from: '2026-08-20', lead: ['kll PHONE LEAD', 'kll REPAIR LEAD', 'kll CC LEAD'], walkin: ['kll PHONE WALK IN PHONE', 'kll REPAIR WALK IN REPAIR', 'kll WALK IN CC'], others: ['kll LEAD OTHERS', 'kll WALK IN OTHERS'] },
         ],
-        AOR: [{ lead: ['aor LEAD PHONE', 'aor LEAD REPAIR', 'aor LEAD CC'], walkin: ['aor WALK IN PHONE', 'aor WALK IN REPAIR', 'aor WALK IN CC'] }],
-        SP: [{ lead: ['sgp LEAD PHONE', 'sgp LEAD REPAIR', 'sgp LEAD CC'], walkin: ['sgp WALK IN PHONE', 'sgp WALK IN REPAIR', 'sgp WALK IN CC'] }],
-        PDG: [{ lead: ['pdg LEAD PHONE', 'pdg LEAD REPAIR', 'pdg LEAD CC'], walkin: ['pdg WALK IN PHONE', 'pdg WALK IN REPAIR', 'pdg WALK IN CC'] }],
+        AOR: [{ lead: ['aor LEAD PHONE', 'aor LEAD REPAIR', 'aor LEAD CC'], walkin: ['aor WALK IN PHONE', 'aor WALK IN REPAIR', 'aor WALK IN CC'], others: ['aor LEAD OTHERS', 'aor WALK IN OTHERS'] }],
+        SP: [{ lead: ['sgp LEAD PHONE', 'sgp LEAD REPAIR', 'sgp LEAD CC'], walkin: ['sgp WALK IN PHONE', 'sgp WALK IN REPAIR', 'sgp WALK IN CC'], others: ['sgp LEAD OTHERS', 'sgp WALK IN OTHERS'] }],
+        PDG: [{ lead: ['pdg LEAD PHONE', 'pdg LEAD REPAIR', 'pdg LEAD CC'], walkin: ['pdg WALK IN PHONE', 'pdg WALK IN REPAIR', 'pdg WALK IN CC'], others: ['pdg LEAD OTHERS', 'pdg WALK IN OTHERS'] }],
       },
     },
 
