@@ -525,6 +525,7 @@
     phone: '<rect x="7" y="3" width="10" height="18" rx="2.5"/><path d="M11 18h2"/>',
     repair: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17v3h3l5.3-5.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.3-.6-.6-2.3z"/>',
     cc: '<path d="M4 12a8 8 0 0 1 13.7-5.6L20 9M20 4v5h-5"/><path d="M20 12a8 8 0 0 1-13.7 5.6L4 15M4 20v-5h5"/>',
+    others: '<circle cx="6" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="18" cy="12" r="1.6"/>',
   };
   const icon = k => `<span class="kc-ic"><svg viewBox="0 0 24 24" aria-hidden="true">${IC[k]}</svg></span>`;
   const PLAT_AB = { tiktok: ['tt', 'T'], facebook: ['fb', 'f'], instagram: ['ig', 'IG'] };
@@ -561,13 +562,9 @@
   // =========================================================
   // LEAD & WALK-IN COMPANY: jumlah + pecahan Phone / Repair / Cash Converter
   // =========================================================
-  const CAT_NAME = { phone: 'Phone', repair: 'Repair', cc: 'Cash Converter' };
-  // Nota others: dah termasuk dalam total, tiada target sendiri (rekod mula 23/10/2026)
-  const othersNote = (LC, cls) => {
-    const l = LC.lead.others && LC.lead.others.actual, w = LC.walkin.others && LC.walkin.others.actual;
-    if (!l && !w) return '';
-    return `<div class="${cls}">Total termasuk <b>Others</b>: lead ${fmt(l || 0)} · walk-in ${fmt(w || 0)}. Others tiada target sendiri (rekod mula 23 Okt 2026).</div>`;
-  };
+  const CAT_NAME = { phone: 'Phone', repair: 'Repair', cc: 'Cash Converter', others: 'Others' };
+  const CAT_KEYS = ['phone', 'repair', 'cc', 'others'];
+  const OTHERS_NOTE = 'Tiada target. Rekod mula 23 Okt 2026, dikira dalam total.';
   function leadSection(key, prevLbl) {
     const [y, m] = parseKey(key);
     const LC = KD.leadCategories(state.ds, y, m);
@@ -590,7 +587,6 @@
       </div>`;
     };
     h += `<div class="kc-grid g2">${totCard(L, 'Total Leads', 'lead', true)}${totCard(W, 'Total Walk-in', 'walk', false)}</div>`;
-    if (LC.available) h += othersNote(LC, 'kc-note');
     if (!LC.available) {
       return h + `<div class="card empty">Pecahan Phone / Repair / Cash Converter belum disambung. Perlu sheet mirror lead/walk-in dari MASTER SHEET SALES OUTLET (tetapkan <b>sheets.leadDetail</b> dalam js/config.js).</div>`;
     }
@@ -604,11 +600,12 @@
       </div>`;
     };
     const pdgRep = LC.outlets.PDG && LC.outlets.PDG.lead.repair;
-    h += `<div class="kc-grid g3 cat-grid">${['phone', 'repair', 'cc'].map(c => `<div class="kc cat-kc">
-      <div class="kc-h">${icon(c)}<span class="kc-l">${CAT_NAME[c]}<small>${LC.noTarget ? 'Target belum ditetapkan' : `Harian: lead ${fmt(Math.round(LC.lead[c].daily))} · walk-in ${fmt(Math.round(LC.walkin[c].daily))}`}</small></span></div>
+    h += `<div class="kc-grid g2 cat-grid">${CAT_KEYS.map(c => `<div class="kc cat-kc">
+      <div class="kc-h">${icon(c)}<span class="kc-l">${CAT_NAME[c]}<small>${c === 'others' ? 'Tiada target' : LC.noTarget ? 'Target belum ditetapkan' : `Harian: lead ${fmt(Math.round(LC.lead[c].daily))} · walk-in ${fmt(Math.round(LC.walkin[c].daily))}`}</small></span></div>
       ${row('Lead', LC.lead[c])}${row('Walk-in', LC.walkin[c])}
       ${c === 'repair' && pdgRep ? `<div class="kc-note">Termasuk ${fmt(pdgRep)} lead repair Pendang (tiada servis).</div>` : ''}
       ${c === 'cc' ? '<div class="kc-note">CC = Trade-in + Buyback.</div>' : ''}
+      ${c === 'others' ? `<div class="kc-note">${OTHERS_NOTE}</div>` : ''}
     </div>`).join('')}</div>`;
     h += `<div class="chart-cap">Sumber: MASTER SHEET SALES OUTLET (diisi staf outlet), data sehingga ${LC.lastDay || 0}/${m}. Kulim & Kelang Lama dikira satu kedai. Jumlah dikira dari Phone + Repair + CC + Others (Others mula 23 Okt 2026), bukan blok OVERALL dalam sheet. ${LC.noTarget ? '' : `Harian & perlu sehari = hari biasa semua outlet buka; status ikut hari operasi (AOR, SP, PDG tutup Rabu). Purata kalendar ikut brief: lead ${fmt(Math.round(LC.lead.total.calDaily))}, walk-in ${fmt(Math.round(LC.walkin.total.calDaily))} sehari.`}</div>`;
     return h;
@@ -664,8 +661,8 @@
     h += secHead('Fokus utama · 4 outlet digabung', 'Lead & walk-in ikut kategori', LC.noTarget ? `Target ${monLabel(key)} belum ditetapkan. Sumber: MASTER SHEET (mirror).` : `Target ikut brief Okt–Dis 2026, status ikut hari operasi outlet (Rabu tutup kecuali Kulim/Kelang Lama). Sumber: MASTER SHEET (mirror), data sehingga ${LC.lastDay || 0}/${m}.`);
     if (!LC.available) h += `<div class="card empty">Pecahan Phone / Repair / Cash Converter belum disambung.</div>`;
     else {
-      const CI = { phone: '<rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/>', repair: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>', cc: '<path d="M4 8h13l-3-3M20 16H7l3 3"/>' };
-      const CG = { phone: ['#1565FF', '#0A2E8A'], repair: ['#0EA5A4', '#0B4F6C'], cc: ['#7B5CF5', '#35188F'] };
+      const CI = { phone: '<rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/>', repair: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>', cc: '<path d="M4 8h13l-3-3M20 16H7l3 3"/>', others: '<circle cx="6" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="18" cy="12" r="1.6"/>' };
+      const CG = { phone: ['#1565FF', '#0A2E8A'], repair: ['#0EA5A4', '#0B4F6C'], cc: ['#7B5CF5', '#35188F'], others: ['#64748B', '#334155'] };
       const gauge = (lab, k) => {
         const p = pctN(k.actual, k.target);
         return `<div class="oc-g"><div class="op-ringw oc-ring">${ringS(k.target ? (k.actual || 0) / k.target : 0, 'inv', 76)}<span class="ct-pc">${p == null ? '—' : p + '%'}</span></div>
@@ -673,12 +670,11 @@
       };
       const foot = (lab, k) => `<li><span class="op-dot ${k.status.level}">${k.status.level === 'na' ? '–' : iconOf(k.status)}</span><span class="oc-fl">${lab}</span><span class="oc-fd">${k.target == null ? 'tiada target' : `harian ${fmt(Math.round(k.daily))}${k.need != null ? ` · perlu <b>${fmt(Math.ceil(k.need))}</b>` : ''}`}</span>${momPill(k.mom) || '<span class="tp na">—</span>'}</li>`;
       const pdgRep = LC.outlets.PDG && LC.outlets.PDG.lead.repair;
-      h += `<div class="ov-cats">${['phone', 'repair', 'cc'].map(k2 => `<div class="oc-card">
+      h += `<div class="ov-cats">${CAT_KEYS.map(k2 => `<div class="oc-card">
         <div class="oc-top" style="--g1:${CG[k2][0]};--g2:${CG[k2][1]}"><div class="oc-h"><span class="oc-ic"><svg viewBox="0 0 24 24">${CI[k2]}</svg></span><b>${CAT_NAME[k2]}</b></div>
           <div class="oc-gs">${gauge('Lead', LC.lead[k2])}${gauge('Walk-in', LC.walkin[k2])}</div></div>
         <ul class="oc-foot">${foot('Lead', LC.lead[k2])}${foot('Walk-in', LC.walkin[k2])}</ul>
-        ${k2 === 'repair' && pdgRep ? `<div class="oc-n">Termasuk ${fmt(pdgRep)} lead repair Pendang (tiada servis).</div>` : k2 === 'cc' ? '<div class="oc-n">CC = Trade-in + Buyback.</div>' : ''}</div>`).join('')}</div>`;
-      h += othersNote(LC, 'oc-n');
+        ${k2 === 'repair' && pdgRep ? `<div class="oc-n">Termasuk ${fmt(pdgRep)} lead repair Pendang (tiada servis).</div>` : k2 === 'cc' ? '<div class="oc-n">CC = Trade-in + Buyback.</div>' : k2 === 'others' ? `<div class="oc-n">${OTHERS_NOTE}</div>` : ''}</div>`).join('')}</div>`;
     }
 
     // ---- 3. Content output ----
