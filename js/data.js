@@ -242,15 +242,18 @@
   }
 
   // Pecahan lead/walk-in dari mirror masterFRONT: baris 1 = header, kolum A = tarikh.
-  // Hasil: [{ date, KUL: { lead: {phone, repair, cc}, walkin: {...} }, ... }]. Sel kosong = null (bukan 0).
-  const CATS = ['phone', 'repair', 'cc'];
+  // Hasil: [{ date, KUL: { lead: {phone, repair, cc, others}, walkin: {...} }, ... }]. Sel kosong = null (bukan 0).
+  // others: dari Outlet Tracker mulai 23/10/2026, dikira dalam jumlah tapi tiada target sendiri.
+  const CATS = ['phone', 'repair', 'cc', 'others'];
   function parseLeadDetail(rows) {
     const norm = h => String(h || '').trim().replace(/\s+/g, ' ').toLowerCase();
     const head = (rows[0] || []).map(norm);
     const col = name => { const i = head.indexOf(norm(name)); if (i < 0) throw new Error(`Kolum "${name}" tiada dalam masterFRONT`); return i; };
+    const optCol = name => head.indexOf(norm(name)); // kolum others: tiada = kosong, bukan ralat
+    const oth = sp => sp.others ? sp.others.map(optCol) : [-1, -1];
     const plan = Object.entries(CFG.leadDetail.outlets).map(([o, spans]) => [o, spans.map(sp => ({
       from: sp.from || '0000-00-00', until: sp.until || '9999-99-99',
-      lead: sp.lead.map(col), walkin: sp.walkin.map(col),
+      lead: [...sp.lead.map(col), oth(sp)[0]], walkin: [...sp.walkin.map(col), oth(sp)[1]],
     }))]);
     const out = [];
     for (const r of rows.slice(1)) {
@@ -260,7 +263,8 @@
       for (const [o, spans] of plan) {
         const sp = spans.find(x => iso >= x.from && iso <= x.until); if (!sp) continue;
         const v = { lead: {}, walkin: {} };
-        CATS.forEach((c, i) => { v.lead[c] = num(r[sp.lead[i]]); v.walkin[c] = num(r[sp.walkin[i]]); if (v.lead[c] != null || v.walkin[c] != null) any = true; });
+        const at = i => (i < 0 ? null : num(r[i]));
+        CATS.forEach((c, i) => { v.lead[c] = at(sp.lead[i]); v.walkin[c] = at(sp.walkin[i]); if (v.lead[c] != null || v.walkin[c] != null) any = true; });
         rec[o] = v;
       }
       if (any) out.push(rec);
@@ -762,6 +766,8 @@
         out[kind][c] = { actual: a, target, pace, partial: pace < 1, status: st, mom: change(nowN, prevN), prev: prevN,
           daily: leadDaily(y, m, kind, c), calDaily: target != null ? target / dim : null, need };
       }
+      // Others: sudah termasuk dalam total di atas, tiada target sendiri
+      out[kind].others = { actual: cur[kind].others };
     }
     return out;
   }
