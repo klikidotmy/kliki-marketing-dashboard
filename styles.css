@@ -1160,11 +1160,9 @@ a.ct-item:hover, a.ct-first:hover { transform: translateY(-2px); }
 .oc-g-plain .oc-gl { margin-top: 0; }
 .oc-g-plain b { font-size: 34px; }
 
-/* Strip "semua termasuk others" di hero Overview: nombor sahaja, tiada target */
-.ov-all { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; margin-top: 12px; padding: 8px 12px; border-radius: 12px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); font-size: 12px; }
-.ov-all-l { opacity: .75; text-transform: uppercase; letter-spacing: .06em; font-size: 10.5px; font-weight: 700; }
-.ov-all-i { display: inline-flex; align-items: baseline; gap: 6px; }
-.ov-all-i em { font-style: normal; opacity: .8; }
-.ov-all-i b { font-size: 15px; font-weight: 800; }
-.ov-all-o { margin-left: auto; padding: 2px 8px; border-radius: 999px; background: rgba(255,255,255,.16); font-size: 11px; font-weight: 600; }
-@media (max-width: 560px) { .ov-all-o { margin-left: 0; } }
+/* Total semua (incl. others) di hero Overview: nombor sahaja, tiada target */
+.ov-all { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
+.ov-all-i { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding: 10px 14px; border-radius: 14px; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.14); }
+.ov-all-i span { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; opacity: .8; }
+.ov-all-i b { font-size: 26px; font-weight: 800; letter-spacing: -.02em; line-height: 1.1; }
+@media (max-width: 560px) { .ov-all-i { flex-direction: column; align-items: flex-start; gap: 2px; } .ov-all-i b { font-size: 22px; } }

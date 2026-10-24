@@ -644,14 +644,9 @@
     };
     // Strip nipis: semua lead/walk-in termasuk Others, tanpa target (rujukan volume marketing).
     // Cincin di bawah kekal Phone + Repair + CC sahaja sebab itu yang dinilai.
-    const othShare = kind => { const o = LC[kind].others.actual, a = LC[kind].all.actual; return o && a ? Math.round(100 * o / a) : null; };
-    const allStrip = !LC.available ? '' : (() => {
-      const oL = othShare('lead'), oW = othShare('walkin');
-      return `<div class="ov-all"><span class="ov-all-l">Semua (incl. others)</span>
-        <span class="ov-all-i"><em>Lead</em><b>${fullN(LC.lead.all.actual)}</b></span>
-        <span class="ov-all-i"><em>Walk-in</em><b>${fullN(LC.walkin.all.actual)}</b></span>
-        ${oL != null || oW != null ? `<span class="ov-all-o" title="Bahagian Others daripada semua. Kalau naik, semak staf outlet salah kategori.">Others ${oL != null ? `${oL}% lead` : ''}${oL != null && oW != null ? ' · ' : ''}${oW != null ? `${oW}% walk-in` : ''}</span>` : ''}</div>`;
-    })();
+    const allStrip = !LC.available ? '' : `<div class="ov-all">
+        <div class="ov-all-i"><span>Total lead</span><b>${fullN(LC.lead.all.actual)}</b></div>
+        <div class="ov-all-i"><span>Total walk-in</span><b>${fullN(LC.walkin.all.actual)}</b></div></div>`;
     let h = `<section class="ov-hero">
       <div class="ov-hero-top"><div><span class="ov-eb">Company marketing · ${monLabel(key)}</span><h2>Prestasi bulan ini</h2></div>
         <span class="ov-badge"><span class="live-dot"></span>${live ? `Hari ${today}/${dim}` : 'Bulan lengkap'}</span></div>
