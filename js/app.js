@@ -564,7 +564,7 @@
   // =========================================================
   const CAT_NAME = { phone: 'Phone', repair: 'Repair', cc: 'Cash Converter', others: 'Others' };
   const CAT_KEYS = ['phone', 'repair', 'cc', 'others'];
-  const OTHERS_NOTE = 'Tiada target. Rekod mula 23 Okt 2026, dikira dalam total.';
+  const OTHERS_NOTE = 'Tiada target. Rekod mula 23 Okt 2026, tak masuk jumlah ikut target.';
   function leadSection(key, prevLbl) {
     const [y, m] = parseKey(key);
     const LC = KD.leadCategories(state.ds, y, m);
@@ -586,7 +586,7 @@
         <div class="tk-f">${momD(k.mom) || '<span></span>'}<span>${k.target == null ? 'Target belum ditetapkan' : `Harian ${fmt(Math.round(k.daily))}${k.need != null ? ` · perlu <b>${fmt(Math.ceil(k.need))}</b>/hari` : ''}`}</span></div>
       </div>`;
     };
-    h += `<div class="kc-grid g2">${totCard(L, 'Total Leads', 'lead', true)}${totCard(W, 'Total Walk-in', 'walk', false)}</div>`;
+    h += `<div class="kc-grid g2">${totCard(L, 'Lead ikut target', 'lead', true)}${totCard(W, 'Walk-in ikut target', 'walk', false)}</div>`;
     if (!LC.available) {
       return h + `<div class="card empty">Pecahan Phone / Repair / Cash Converter belum disambung. Perlu sheet mirror lead/walk-in dari MASTER SHEET SALES OUTLET (tetapkan <b>sheets.leadDetail</b> dalam js/config.js).</div>`;
     }
@@ -607,7 +607,7 @@
       ${c === 'cc' ? '<div class="kc-note">CC = Trade-in + Buyback.</div>' : ''}
       ${c === 'others' ? `<div class="kc-note">${OTHERS_NOTE}</div>` : ''}
     </div>`).join('')}</div>`;
-    h += `<div class="chart-cap">Sumber: MASTER SHEET SALES OUTLET (diisi staf outlet), data sehingga ${LC.lastDay || 0}/${m}. Kulim & Kelang Lama dikira satu kedai. Jumlah dikira dari Phone + Repair + CC + Others (Others mula 23 Okt 2026), bukan blok OVERALL dalam sheet. ${LC.noTarget ? '' : `Harian & perlu sehari = hari biasa semua outlet buka; status ikut hari operasi (AOR, SP, PDG tutup Rabu). Purata kalendar ikut brief: lead ${fmt(Math.round(LC.lead.total.calDaily))}, walk-in ${fmt(Math.round(LC.walkin.total.calDaily))} sehari.`}</div>`;
+    h += `<div class="chart-cap">Sumber: MASTER SHEET SALES OUTLET (diisi staf outlet), data sehingga ${LC.lastDay || 0}/${m}. Kulim & Kelang Lama dikira satu kedai. Jumlah ikut target = Phone + Repair + CC; Others (mula 23 Okt 2026) dipapar berasingan tanpa target. Bukan dari blok OVERALL dalam sheet. ${LC.noTarget ? '' : `Harian & perlu sehari = hari biasa semua outlet buka; status ikut hari operasi (AOR, SP, PDG tutup Rabu). Purata kalendar ikut brief: lead ${fmt(Math.round(LC.lead.total.calDaily))}, walk-in ${fmt(Math.round(LC.walkin.total.calDaily))} sehari.`}</div>`;
     return h;
   }
 
@@ -642,19 +642,30 @@
       const lv = k.status ? k.status.level : 'na';
       return `<li><span class="op-dot ${lv}">${lv === 'na' ? '–' : iconOf(k.status)}</span><span class="oc-fl">${lab}</span><span class="oc-fd">${k.target == null ? 'tiada target' : `harian ${fmt(Math.round(k.daily))}${k.need != null ? ` · perlu <b>${fmt(Math.ceil(k.need))}</b>` : ''}`}</span>${momPill(k.mom) || '<span class="tp na">—</span>'}</li>`;
     };
+    // Strip nipis: semua lead/walk-in termasuk Others, tanpa target (rujukan volume marketing).
+    // Cincin di bawah kekal Phone + Repair + CC sahaja sebab itu yang dinilai.
+    const othShare = kind => { const o = LC[kind].others.actual, a = LC[kind].all.actual; return o && a ? Math.round(100 * o / a) : null; };
+    const allStrip = !LC.available ? '' : (() => {
+      const oL = othShare('lead'), oW = othShare('walkin');
+      return `<div class="ov-all"><span class="ov-all-l">Semua (incl. others)</span>
+        <span class="ov-all-i"><em>Lead</em><b>${fullN(LC.lead.all.actual)}</b></span>
+        <span class="ov-all-i"><em>Walk-in</em><b>${fullN(LC.walkin.all.actual)}</b></span>
+        ${oL != null || oW != null ? `<span class="ov-all-o" title="Bahagian Others daripada semua. Kalau naik, semak staf outlet salah kategori.">Others ${oL != null ? `${oL}% lead` : ''}${oL != null && oW != null ? ' · ' : ''}${oW != null ? `${oW}% walk-in` : ''}</span>` : ''}</div>`;
+    })();
     let h = `<section class="ov-hero">
       <div class="ov-hero-top"><div><span class="ov-eb">Company marketing · ${monLabel(key)}</span><h2>Prestasi bulan ini</h2></div>
         <span class="ov-badge"><span class="live-dot"></span>${live ? `Hari ${today}/${dim}` : 'Bulan lengkap'}</span></div>
+      ${allStrip}
       <div class="ov-hg">
-        ${heroG('Total lead', L)}
-        ${heroG('Total walk-in', Wk)}
+        ${heroG('Lead ikut target', L)}
+        ${heroG('Walk-in ikut target', Wk)}
         <div class="ov-mt"><span class="oc-gl">View content</span><b>${fmt(co.views)}</b><small>TikTok + IG + FB</small><div class="ov-mf">${momPill(cc.ch('views')) || ''}<em>TT ${fmt(P('tiktok').views)}/${fmt(T.tiktokViews)}</em></div></div>
         <div class="ov-mt"><span class="oc-gl">Status KPI</span><b>${nH}<small class="ov-of">/${n}</small></b><small>${live ? 'on track' : 'capai target'}</small>
           <div class="ov-seg">${nH ? `<i class="good" style="flex:${nH}"></i>` : ''}${nM ? `<i class="bad" style="flex:${nM}"></i>` : ''}${nN ? `<i class="na" style="flex:${nN}"></i>` : ''}</div>
           <div class="ov-segl"><span><i class="good"></i>${nH}</span><span><i class="bad"></i>${nM}</span>${nN ? `<span><i class="na"></i>${nN}</span>` : ''}</div></div>
       </div>
       <ul class="oc-foot ov-foot">${heroF('Lead', L)}${heroF('Walk-in', Wk)}</ul>
-      <p class="ov-hn">Semua outlet & platform digabung${live ? ', status ikut kadar hari' : ''}</p>
+      <p class="ov-hn">Semua outlet & platform digabung. Lead & walk-in ikut target = Phone + Repair + CC${live ? ', status ikut kadar hari' : ''}</p>
     </section>`;
 
     // ---- 2. Lead & walk-in ikut kategori ----

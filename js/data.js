@@ -245,6 +245,7 @@
   // Hasil: [{ date, KUL: { lead: {phone, repair, cc, others}, walkin: {...} }, ... }]. Sel kosong = null (bukan 0).
   // others: dari Outlet Tracker mulai 23/10/2026, dikira dalam jumlah tapi tiada target sendiri.
   const CATS = ['phone', 'repair', 'cc', 'others'];
+  const CATS_TGT = ['phone', 'repair', 'cc']; // kategori bertarget; Others tiada target, tak masuk jumlah bertarget
   function parseLeadDetail(rows) {
     const norm = h => String(h || '').trim().replace(/\s+/g, ' ').toLowerCase();
     const head = (rows[0] || []).map(norm);
@@ -271,13 +272,14 @@
     }
     return out;
   }
-  // Jumlah harian setiap outlet (format sama dengan tab Leads / Walk-in CONTENT SUBMIT)
+  // Jumlah harian setiap outlet (format sama dengan tab Leads / Walk-in CONTENT SUBMIT).
+  // Phone + Repair + CC sahaja, sebab jumlah ini dibanding dengan target (scorecard, outlet, trend, funnel).
   function totalsFromDetail(detail, kind) {
     return detail.map(r => {
       const o = { date: r.date };
       for (const x of KEYS.outlet4) {
         const v = r[x] && r[x][kind];
-        o[x] = !v || CATS.every(c => v[c] == null) ? null : CATS.reduce((a, c) => a + (v[c] || 0), 0);
+        o[x] = !v || CATS_TGT.every(c => v[c] == null) ? null : CATS_TGT.reduce((a, c) => a + (v[c] || 0), 0);
       }
       return o;
     }).filter(o => KEYS.outlet4.some(x => o[x] != null));
@@ -742,14 +744,17 @@
     };
     const outletActual = (x, kind, c) => {
       const v = cur.outlets[x] && cur.outlets[x][kind]; if (!v) return 0;
-      return c === 'total' ? CATS.reduce((s2, k) => s2 + (v[k] || 0), 0) : (v[c] || 0);
+      return c === 'total' ? CATS_TGT.reduce((s2, k) => s2 + (v[k] || 0), 0) : (v[c] || 0);
     };
+    // total = Phone + Repair + CC (dibanding target). all = semua termasuk Others (tiada target, untuk rujukan marketing).
+    const sumOf = (src, keys) => keys.every(k => src[k] == null) ? null : keys.reduce((s2, k) => s2 + (src[k] || 0), 0);
     for (const kind of ['lead', 'walkin']) {
       out[kind] = {};
-      for (const c of [...CATS_T, 'others']) {
-        const noT = c === 'others'; // others: tiada target, tiada pace/perlu sehari
-        const a = c === 'total' ? (CATS.every(k => cur[kind][k] == null) ? null : CATS.reduce((s2, k) => s2 + (cur[kind][k] || 0), 0)) : cur[kind][c];
-        const pa = c === 'total' ? (CATS.every(k => prev[kind][k] == null) ? null : CATS.reduce((s2, k) => s2 + (prev[kind][k] || 0), 0)) : prev[kind][c];
+      for (const c of [...CATS_T, 'others', 'all']) {
+        const noT = c === 'others' || c === 'all'; // tiada target, tiada pace/perlu sehari
+        const keys = c === 'total' ? CATS_TGT : c === 'all' ? CATS : null;
+        const a = keys ? sumOf(cur[kind], keys) : cur[kind][c];
+        const pa = keys ? sumOf(prev[kind], keys) : prev[kind][c];
         const target = plan && !noT ? plan.company[kind][c] : null;
         const pace = plan && !noT ? companyPace(plan, prog, kind, c) : calPace;
         const nowN = a == null || !cur.days ? null : a * dim / cur.days;
