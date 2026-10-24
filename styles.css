@@ -1156,3 +1156,6 @@ a.ct-item:hover, a.ct-first:hover { transform: translateY(-2px); }
 /* Kategori lead/walk-in: 4 kad (Phone, Repair, CC, Others) */
 @media (min-width: 901px) and (max-width: 1279.98px) { .ov-cats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (min-width: 1280px) { .ov-cats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.oc-g-plain { justify-content: center; gap: 4px; }
+.oc-g-plain .oc-gl { margin-top: 0; }
+.oc-g-plain b { font-size: 34px; }
