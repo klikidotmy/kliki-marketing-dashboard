@@ -331,9 +331,9 @@
     const LBL = Object.fromEntries(OUTLET_ROWS.map(([l, k]) => [k, l]));
     const catChips = (x, kind) => {
       const v = lc.available && lc.outlets[x] ? lc.outlets[x][kind] : null;
-      if (!v || ['phone', 'repair', 'cc'].every(k => v[k] == null)) return '';
+      if (!v || ['phone', 'repair', 'cc', 'others'].every(k => v[k] == null)) return '';
       const tg = lc.plan ? lc.plan.outlets[x][kind] : { phone: null, repair: null, cc: null };
-      return `<div class="op-cats">${[['phone', 'Phone'], ['repair', 'Repair'], ['cc', 'CC']].filter(([k]) => tg[k] || v[k]).map(([k, n]) =>
+      return `<div class="op-cats">${[['phone', 'Phone'], ['repair', 'Repair'], ['cc', 'CC'], ['others', 'Others']].filter(([k]) => tg[k] || v[k]).map(([k, n]) =>
         `<span><em>${n}</em><b>${fullN(v[k])}</b>${tg[k] ? `<small>/${fmt(tg[k])}</small>` : '<small>tiada target</small>'}</span>`).join('')}</div>`;
     };
     const kRow = (x, k, vals) => {
@@ -562,6 +562,12 @@
   // LEAD & WALK-IN COMPANY: jumlah + pecahan Phone / Repair / Cash Converter
   // =========================================================
   const CAT_NAME = { phone: 'Phone', repair: 'Repair', cc: 'Cash Converter' };
+  // Nota others: dah termasuk dalam total, tiada target sendiri (rekod mula 23/10/2026)
+  const othersNote = (LC, cls) => {
+    const l = LC.lead.others && LC.lead.others.actual, w = LC.walkin.others && LC.walkin.others.actual;
+    if (!l && !w) return '';
+    return `<div class="${cls}">Total termasuk <b>Others</b>: lead ${fmt(l || 0)} · walk-in ${fmt(w || 0)}. Others tiada target sendiri (rekod mula 23 Okt 2026).</div>`;
+  };
   function leadSection(key, prevLbl) {
     const [y, m] = parseKey(key);
     const LC = KD.leadCategories(state.ds, y, m);
@@ -584,6 +590,7 @@
       </div>`;
     };
     h += `<div class="kc-grid g2">${totCard(L, 'Total Leads', 'lead', true)}${totCard(W, 'Total Walk-in', 'walk', false)}</div>`;
+    if (LC.available) h += othersNote(LC, 'kc-note');
     if (!LC.available) {
       return h + `<div class="card empty">Pecahan Phone / Repair / Cash Converter belum disambung. Perlu sheet mirror lead/walk-in dari MASTER SHEET SALES OUTLET (tetapkan <b>sheets.leadDetail</b> dalam js/config.js).</div>`;
     }
@@ -603,7 +610,7 @@
       ${c === 'repair' && pdgRep ? `<div class="kc-note">Termasuk ${fmt(pdgRep)} lead repair Pendang (tiada servis).</div>` : ''}
       ${c === 'cc' ? '<div class="kc-note">CC = Trade-in + Buyback.</div>' : ''}
     </div>`).join('')}</div>`;
-    h += `<div class="chart-cap">Sumber: MASTER SHEET SALES OUTLET (diisi staf outlet), data sehingga ${LC.lastDay || 0}/${m}. Kulim & Kelang Lama dikira satu kedai. Jumlah dikira dari Phone + Repair + CC, bukan blok OVERALL dalam sheet. ${LC.noTarget ? '' : `Harian & perlu sehari = hari biasa semua outlet buka; status ikut hari operasi (AOR, SP, PDG tutup Rabu). Purata kalendar ikut brief: lead ${fmt(Math.round(LC.lead.total.calDaily))}, walk-in ${fmt(Math.round(LC.walkin.total.calDaily))} sehari.`}</div>`;
+    h += `<div class="chart-cap">Sumber: MASTER SHEET SALES OUTLET (diisi staf outlet), data sehingga ${LC.lastDay || 0}/${m}. Kulim & Kelang Lama dikira satu kedai. Jumlah dikira dari Phone + Repair + CC + Others (Others mula 23 Okt 2026), bukan blok OVERALL dalam sheet. ${LC.noTarget ? '' : `Harian & perlu sehari = hari biasa semua outlet buka; status ikut hari operasi (AOR, SP, PDG tutup Rabu). Purata kalendar ikut brief: lead ${fmt(Math.round(LC.lead.total.calDaily))}, walk-in ${fmt(Math.round(LC.walkin.total.calDaily))} sehari.`}</div>`;
     return h;
   }
 
@@ -671,6 +678,7 @@
           <div class="oc-gs">${gauge('Lead', LC.lead[k2])}${gauge('Walk-in', LC.walkin[k2])}</div></div>
         <ul class="oc-foot">${foot('Lead', LC.lead[k2])}${foot('Walk-in', LC.walkin[k2])}</ul>
         ${k2 === 'repair' && pdgRep ? `<div class="oc-n">Termasuk ${fmt(pdgRep)} lead repair Pendang (tiada servis).</div>` : k2 === 'cc' ? '<div class="oc-n">CC = Trade-in + Buyback.</div>' : ''}</div>`).join('')}</div>`;
+      h += othersNote(LC, 'oc-n');
     }
 
     // ---- 3. Content output ----
