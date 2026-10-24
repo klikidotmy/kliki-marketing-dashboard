@@ -663,7 +663,9 @@
     else {
       const CI = { phone: '<rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/>', repair: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>', cc: '<path d="M4 8h13l-3-3M20 16H7l3 3"/>', others: '<circle cx="6" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="18" cy="12" r="1.6"/>' };
       const CG = { phone: ['#1565FF', '#0A2E8A'], repair: ['#0EA5A4', '#0B4F6C'], cc: ['#7B5CF5', '#35188F'], others: ['#64748B', '#334155'] };
-      const gauge = (lab, k) => {
+      const gauge = (lab, k, plain) => {
+        // plain: nombor sahaja, tanpa cincin (untuk Others yang tiada target)
+        if (plain) return `<div class="oc-g oc-g-plain"><span class="oc-gl">${lab}</span><b>${fullN(k.actual)}</b><small>tiada target</small></div>`;
         const p = pctN(k.actual, k.target);
         return `<div class="oc-g"><div class="op-ringw oc-ring">${ringS(k.target ? (k.actual || 0) / k.target : 0, 'inv', 76)}<span class="ct-pc">${p == null ? '—' : p + '%'}</span></div>
           <span class="oc-gl">${lab}</span><b>${fullN(k.actual)}</b><small>${k.target == null ? 'tiada target' : `/ ${fullN(k.target)}`}</small></div>`;
@@ -672,7 +674,7 @@
       const pdgRep = LC.outlets.PDG && LC.outlets.PDG.lead.repair;
       h += `<div class="ov-cats">${CAT_KEYS.map(k2 => `<div class="oc-card">
         <div class="oc-top" style="--g1:${CG[k2][0]};--g2:${CG[k2][1]}"><div class="oc-h"><span class="oc-ic"><svg viewBox="0 0 24 24">${CI[k2]}</svg></span><b>${CAT_NAME[k2]}</b></div>
-          <div class="oc-gs">${gauge('Lead', LC.lead[k2])}${gauge('Walk-in', LC.walkin[k2])}</div></div>
+          <div class="oc-gs">${gauge('Lead', LC.lead[k2], k2 === 'others')}${gauge('Walk-in', LC.walkin[k2], k2 === 'others')}</div></div>
         <ul class="oc-foot">${foot('Lead', LC.lead[k2])}${foot('Walk-in', LC.walkin[k2])}</ul>
         ${k2 === 'repair' && pdgRep ? `<div class="oc-n">Termasuk ${fmt(pdgRep)} lead repair Pendang (tiada servis).</div>` : k2 === 'cc' ? '<div class="oc-n">CC = Trade-in + Buyback.</div>' : k2 === 'others' ? `<div class="oc-n">${OTHERS_NOTE}</div>` : ''}</div>`).join('')}</div>`;
     }
