@@ -6,7 +6,7 @@ Web app (PWA) untuk pantau prestasi marketing media sosial KLIKI. Data dibaca **
 
 | Sheet | Tab | Digunakan untuk |
 |---|---|---|
-| CONTENT SUBMIT | Tiktok Insight, Facebook Insight, Instagram Insight | Views, engagement, followers harian |
+| CONTENT SUBMIT | Tiktok Insight, Facebook Insight, Instagram Insight, Youtube Insight | Views, engagement, followers / subscribers harian |
 | CONTENT SUBMIT | Supply Video V2, Customer, Before/After, Leads, Walk-in | KPI outlet |
 | REPORT CONTENT DATA | Tab bulanan (JAN'26 … OKT'26) | Data per-post: content, bucket, outlet, tier |
 | REPORT CONTENT DATA | LINKTREE | Klik WhatsApp, lokasi, Telegram, CTR (tahun 2026) |
@@ -42,11 +42,13 @@ Semua formula KPI ada dalam `js/data.js`. `js/app.js` hanya paparan.
 
 ## Struktur tab (mesyuarat bulanan)
 
-- **Overview: Company Marketing** (halaman utama): content output (Total / POV Customer / Strategic), Total Views, Total Engagement, Follower Growth merentas TikTok, Facebook, Instagram, WhatsApp Clicks & Leads, status KPI dan highlights. Tiada jadual outlet.
+- **Overview: Company Marketing** (halaman utama): content output (Total / POV Customer / Strategic), Total Views, Total Engagement, Follower Growth merentas TikTok, Facebook, Instagram, YouTube, WhatsApp Clicks & Leads, status KPI dan highlights. Tiada jadual outlet.
 - **Content Performance**: output vs target, prestasi platform, trend views bulanan, top content, prestasi ikut TYPE / kategori / bucket, funnel TOFU-MOFU-BOFU (muncul automatik bila tab per-post ada lajur bernilai TOFU/MOFU/BOFU).
 - **Marketing Analysis**: KPI capai / gagal / tiada data, perubahan vs bulan lepas, insights.
 - **Funnel** ("Dari content ke kedai"): View content & Profile visit (TikTok + IG + FB) → Buka Linktree (unique) → Klik WhatsApp 4 outlet → Lead → Walk-in, dengan ratio setiap peringkat dan kotak Channel HQ (WA Online Postage, WA Buyback). Lebar bar tetap mengecil untuk visual, bukan ikut skala.
 - **Outlet, Trend**: drill-down.
+
+YouTube (tab `Youtube Insight`, mula 24/10/2025): View, Watch Time (hrs), Impressions, CTR (%), New / Lost / Net Subscribers, diisi dari export YouTube Studio → Advanced mode, breakdown **Date**. Views YouTube masuk jumlah View content; CTR bulanan = purata berpemberat ikut impressions; YouTube tiada reach & engagement dalam export jadi tak masuk jumlah engagement; follower baru YouTube = subscriber baru.
 
 Peraturan data: sel kosong = tiada data (bukan 0). Views per-post (tab bulanan) tidak dicampur dengan views Insight akaun. Engagement FB/IG = lajur Interactions (tiada pecahan like/comment/share). Net follower hanya untuk TikTok (FB/IG tiada data unfollow).
 

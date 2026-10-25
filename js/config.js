@@ -17,6 +17,8 @@
       tiktok:      { gid: 1028511161, range: 'A1:N2000' },
       facebook:    { gid: 720744037,  range: 'A1:G2000' },
       instagram:   { gid: 1521425497, range: 'A1:G2000' },
+      // Date, View, Watch Time (hrs), Impressions, CTR (%), New / Lost / Net Subscribers (export YouTube Studio ikut tarikh)
+      youtube:     { gid: 905511001,  range: 'A1:H2000' },
       supply:      { gid: 1718034587, range: 'A1:M2000' },
       beforeAfter: { gid: 492157388,  range: 'A1:D2000' },
       customer:    { gid: 1092329235, range: 'A1:E2000' },

@@ -90,6 +90,7 @@
   const KEYS = {
     tiktok: ['views', 'reach', 'profileViews', 'likes', 'shares', 'comments', 'websiteClicks', 'phoneClicks', 'leads', 'appDownload', 'netGrowth', 'newFollowers', 'lostFollowers'],
     meta: ['views', 'reach', 'visit', 'linkClick', 'interactions', 'follow'],
+    youtube: ['views', 'watchHours', 'impressions', 'ctr', 'newSubs', 'lostSubs', 'netSubs'],
     supply: ['KUL_P', 'KUL_R', 'AOR_P', 'AOR_R', 'SP_P', 'SP_R', 'PDG_P', 'PDG_R', 'HQ_P', 'HQ_T', 'HQ_R', 'Others'],
     beforeAfter: ['KUL', 'AOR', 'SP'],
     outlet4: ['KUL', 'AOR', 'SP', 'PDG'],
@@ -182,6 +183,7 @@
       ['tiktok', S.contentSubmit, T.tiktok, r => parseDaily(r, KEYS.tiktok)],
       ['facebook', S.contentSubmit, T.facebook, r => parseDaily(r, KEYS.meta)],
       ['instagram', S.contentSubmit, T.instagram, r => parseDaily(r, KEYS.meta)],
+      ...(T.youtube ? [['youtube', S.contentSubmit, T.youtube, r => parseDaily(r, KEYS.youtube)]] : []),
       ['supply', S.contentSubmit, T.supply, r => parseDaily(r, KEYS.supply)],
       ['beforeAfter', S.contentSubmit, T.beforeAfter, r => parseDaily(r, KEYS.beforeAfter)],
       ['customer', S.contentSubmit, T.customer, r => parseDaily(r, KEYS.outlet4)],
@@ -299,6 +301,7 @@
     const tt = (ds.tiktok || []).filter(f).filter(r => r.views != null);
     const fb = (ds.facebook || []).filter(f).filter(r => r.views != null);
     const ig = (ds.instagram || []).filter(f).filter(r => r.views != null);
+    const yt = (ds.youtube || []).filter(f).filter(r => r.views != null);
     // Sel kosong = tiada data, bukan sifar: kunci yang langsung tiada nilai jadi null
     const agg = (rows, keys) => {
       const o = { daysOf: {} };
@@ -314,7 +317,11 @@
     tiktok.daily = tt.map(r => ({ d: r.date.d, views: r.views, net: r.netGrowth }));
     const facebook = agg(fb, KEYS.meta); facebook.days = fb.length;
     const instagram = agg(ig, KEYS.meta); instagram.days = ig.length;
-    return { tiktok, facebook, instagram, daysInMonth: daysIn(y, m) };
+    // YouTube: CTR tak boleh dijumlahkan, jadi purata berpemberat ikut impressions (sama cara YouTube Studio kira)
+    const youtube = agg(yt, KEYS.youtube); youtube.days = yt.length;
+    const ytC = yt.filter(r => r.ctr != null && r.impressions);
+    youtube.ctr = ytC.length ? sum(ytC, r => r.ctr * r.impressions) / sum(ytC, r => r.impressions) : null;
+    return { tiktok, facebook, instagram, youtube, daysInMonth: daysIn(y, m) };
   }
 
   function contentStats(posts) {
@@ -405,6 +412,7 @@
     add('tiktok', ['views', 'likes', 'shares', 'comments', 'profileViews', 'newFollowers', 'lostFollowers', 'netGrowth'], 'tt_');
     add('facebook', ['views', 'reach', 'interactions', 'follow'], 'fb_');
     add('instagram', ['views', 'reach', 'interactions', 'follow'], 'ig_');
+    add('youtube', ['views', 'watchHours', 'impressions', 'newSubs', 'lostSubs', 'netSubs'], 'yt_');
     add('leads', KEYS.outlet4, 'lead_');
     add('walkin', KEYS.outlet4, 'walk_');
     return Object.keys(by).sort().map(k => ({ key: k, ...by[k] }));
@@ -444,8 +452,8 @@
       wa: lt && CFG.outlets.some(x => lt['wa_' + x] != null) ? CFG.outlets.reduce((a, x) => a + (lt['wa_' + x] || 0), 0) : null,
       waOnline: lt ? lt.wa_Online ?? null : null, waBuyback: lt ? lt.wa_Buyback ?? null : null,
       leads: leadDays ? sumO('leads') : null, walkin: walkDays ? sumO('walkin') : null,
-      // Gabungan 3 platform untuk funnel "Dari content ke kedai" (FB/IG: views & visit dari Insight)
-      allViews: tt.days ? tt.views + (s.facebook.views || 0) + (s.instagram.views || 0) : null,
+      // Gabungan platform untuk funnel "Dari content ke kedai" (FB/IG/YT: views dari Insight; YouTube tiada profile visit)
+      allViews: tt.days ? tt.views + (s.facebook.views || 0) + (s.instagram.views || 0) + (s.youtube.views || 0) : null,
       allVisits: tt.days && tt.profileViews != null ? tt.profileViews + (s.facebook.visit || 0) + (s.instagram.visit || 0) : null,
       location: lt && CFG.outlets.some(x => lt['loc_' + x] != null) ? CFG.outlets.reduce((a, x) => a + (lt['loc_' + x] || 0), 0) : null,
     };
@@ -504,7 +512,7 @@
 
   // Funnel: Views → Profile → Linktree → WhatsApp → Leads → Walk-in
   const FUNNEL = [
-    { id: 'allViews', label: 'View content', sub: 'TikTok + IG + FB' },
+    { id: 'allViews', label: 'View content', sub: 'TikTok + IG + FB + YT' },
     { id: 'allVisits', label: 'Profile visit', sub: 'TikTok + IG + FB' },
     { id: 'uniqueClicks', label: 'Buka Linktree', sub: 'Unique view' },
     { id: 'wa', label: 'Klik WhatsApp', sub: '4 outlet' },
@@ -591,29 +599,32 @@
   // Views/engagement/followers dari Insight akaun setiap platform (bukan jumlah view per-post, elak double count).
   // TikTok: Likes + Comments + Shares. FB/IG: lajur Interactions (sheet tak pecahkan like/comment/share Meta).
   // Followers: TikTok ada new/lost/net; FB/IG hanya follow baru (tiada data unfollow).
-  const PLATFORMS = [['tiktok', 'TikTok'], ['facebook', 'Facebook'], ['instagram', 'Instagram']];
+  // YouTube: subscriber new/lost/net, watch time, impressions & CTR. Tiada reach & engagement dalam export.
+  const PLATFORMS = [['tiktok', 'TikTok'], ['facebook', 'Facebook'], ['instagram', 'Instagram'], ['youtube', 'YouTube']];
   // kunci sumber untuk kiraan hari data setiap metrik
   const SRC_KEY = {
     tiktok: { views: 'views', reach: 'reach', engagement: 'likes', newFollowers: 'newFollowers', netFollowers: 'netGrowth', lostFollowers: 'lostFollowers', profileViews: 'profileViews' },
     meta: { views: 'views', reach: 'reach', engagement: 'interactions', newFollowers: 'follow' },
+    youtube: { views: 'views', newFollowers: 'newSubs', lostFollowers: 'lostSubs', netFollowers: 'netSubs', watchHours: 'watchHours', impressions: 'impressions' },
   };
   function company(ds, y, m) {
     const s = social(ds, y, m), dim = daysIn(y, m);
     const plats = PLATFORMS.map(([id, name]) => {
-      const c = s[id], has = c.days > 0, tt = id === 'tiktok';
-      const eng = !has ? null : tt
+      const c = s[id], has = c.days > 0, tt = id === 'tiktok', yt = id === 'youtube';
+      const eng = !has || yt ? null : tt
         ? ([c.likes, c.comments, c.shares].every(v => v == null) ? null : (c.likes || 0) + (c.comments || 0) + (c.shares || 0))
         : c.interactions;
-      const sk = SRC_KEY[tt ? 'tiktok' : 'meta'];
+      const sk = SRC_KEY[tt ? 'tiktok' : yt ? 'youtube' : 'meta'];
       return {
         id, name, days: c.days,
         daysOf: Object.fromEntries(Object.entries(sk).map(([k, src]) => [k, has ? c.daysOf[src] : 0])),
-        views: has ? c.views : null, reach: has ? c.reach : null, engagement: eng,
+        views: has ? c.views : null, reach: has && !yt ? c.reach : null, engagement: eng,
         likes: tt && has ? c.likes : null, comments: tt && has ? c.comments : null, shares: tt && has ? c.shares : null,
-        newFollowers: !has ? null : tt ? c.newFollowers : c.follow,
-        lostFollowers: tt && has ? c.lostFollowers : null,
-        netFollowers: tt && has ? c.netGrowth : null,
+        newFollowers: !has ? null : tt ? c.newFollowers : yt ? c.newSubs : c.follow,
+        lostFollowers: !has ? null : tt ? c.lostFollowers : yt ? c.lostSubs : null,
+        netFollowers: !has ? null : tt ? c.netGrowth : yt ? c.netSubs : null,
         profileViews: tt && has ? c.profileViews : null,
+        watchHours: yt && has ? c.watchHours : null, impressions: yt && has ? c.impressions : null, ctr: yt && has ? c.ctr : null,
       };
     });
     const tot = k => { const v = plats.filter(p => p[k] != null); return v.length ? sum(v, p => p[k]) : null; };
