@@ -646,7 +646,7 @@
     // Strip nipis: semua lead/walk-in termasuk Others, tanpa target (rujukan volume marketing).
     // Cincin di bawah kekal Phone + Repair + CC sahaja sebab itu yang dinilai.
     const allStrip = !LC.available ? '' : `<div class="ov-all">
-        <div class="ov-all-i"><span>Total lead (termasuk HQ)</span><b>${fullN(LC.leadWithHq.actual)}</b><small>HQ ${fullN(LC.hq.total)}</small></div>
+        <div class="ov-all-i"><span>Total lead</span><b>${fullN(LC.leadWithHq.actual)}</b></div>
         <div class="ov-all-i"><span>Total walk-in</span><b>${fullN(LC.walkin.all.actual)}</b></div></div>`;
     let h = `<section class="ov-hero">
       <div class="ov-hero-top"><div><span class="ov-eb">Company marketing · ${monLabel(key)}</span><h2>Prestasi bulan ini</h2></div>
