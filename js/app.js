@@ -243,11 +243,12 @@
     });
     h += `</ol><div class="cf-legend"><span><i class="pl"></i>Data platform & Linktree</span><span><i class="ou"></i>Direkod staff outlet</span></div>
       <p class="cf-note">Klik WhatsApp tak sama dengan mesej dihantar, dan lead outlet datang dari semua source. Ratio ni sebagai petunjuk je, bukan conversion sebenar.</p>`;
-    if (ex.waOnline != null || ex.waBuyback != null) {
-      h += `<div class="cf-hq"><div class="cf-hq-h"><b>Channel HQ</b><span>Takde rekod lead</span></div>
-        <div class="cf-hq-t"><span>WA Online Postage</span><b>${fmt(ex.waOnline)}</b></div>
-        <div class="cf-hq-t"><span>WA Buyback</span><b>${fmt(ex.waBuyback)}</b></div>
-        <div class="cf-hq-t tot"><span>Total klik</span><b>${fmt((ex.waOnline || 0) + (ex.waBuyback || 0))}</b></div></div>`;
+    const hqL = KD.leadCategories(state.ds, y, m).hq;
+    if (hqL.total != null) {
+      h += `<div class="cf-hq"><div class="cf-hq-h"><b>Lead WA HQ</b><span>Online Postage + Buyback</span></div>
+        <div class="cf-hq-t"><span>Online Postage</span><b>${fmt(hqL.online)}</b></div>
+        <div class="cf-hq-t"><span>Buyback</span><b>${fmt(hqL.buyback)}</b></div>
+        <div class="cf-hq-t tot"><span>Total lead HQ</span><b>${fmt(hqL.total)}</b></div></div>`;
     }
     h += `</div>`;
     const act = f.weakest && ACT[f.weakest.id] ? `<div class="card action"><b>Cadangan fokus</b><p>${ACT[f.weakest.id]}</p></div>` : '';
@@ -645,7 +646,7 @@
     // Strip nipis: semua lead/walk-in termasuk Others, tanpa target (rujukan volume marketing).
     // Cincin di bawah kekal Phone + Repair + CC sahaja sebab itu yang dinilai.
     const allStrip = !LC.available ? '' : `<div class="ov-all">
-        <div class="ov-all-i"><span>Total lead</span><b>${fullN(LC.lead.all.actual)}</b></div>
+        <div class="ov-all-i"><span>Total lead (termasuk HQ)</span><b>${fullN(LC.leadWithHq.actual)}</b><small>HQ ${fullN(LC.hq.total)}</small></div>
         <div class="ov-all-i"><span>Total walk-in</span><b>${fullN(LC.walkin.all.actual)}</b></div></div>`;
     let h = `<section class="ov-hero">
       <div class="ov-hero-top"><div><span class="ov-eb">Company marketing · ${monLabel(key)}</span><h2>Prestasi bulan ini</h2></div>

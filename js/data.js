@@ -254,6 +254,7 @@
     const col = name => { const i = head.indexOf(norm(name)); if (i < 0) throw new Error(`Kolum "${name}" tiada dalam masterFRONT`); return i; };
     const optCol = name => head.indexOf(norm(name)); // kolum others: tiada = kosong, bukan ralat
     const oth = sp => sp.others ? sp.others.map(optCol) : [-1, -1];
+    const hqCols = ((CFG.leadDetail.hq || {}).lead || []).map(optCol); // [online, buyback]; tiada = null
     const plan = Object.entries(CFG.leadDetail.outlets).map(([o, spans]) => [o, spans.map(sp => ({
       from: sp.from || '0000-00-00', until: sp.until || '9999-99-99',
       lead: [...sp.lead.map(col), oth(sp)[0]], walkin: [...sp.walkin.map(col), oth(sp)[1]],
@@ -263,6 +264,8 @@
       const d = parseDate(r[0]); if (!d) continue;
       const iso = `${ym(d.y, d.m)}-${String(d.d).padStart(2, '0')}`;
       const rec = { date: d }; let any = false;
+      rec.HQ = { lead: hqCols.map(i => (i < 0 ? null : num(r[i]))) };
+      if (rec.HQ.lead.some(v => v != null)) any = true;
       for (const [o, spans] of plan) {
         const sp = spans.find(x => iso >= x.from && iso <= x.until); if (!sp) continue;
         const v = { lead: {}, walkin: {} };
@@ -740,6 +743,10 @@
         const has = rows.some(r => KEYS.outlet4.some(x => r[x] && r[x][kind][c] != null));
         res[kind][c] = has ? sum(rows, r => KEYS.outlet4.reduce((a, x) => a + ((r[x] && r[x][kind][c]) || 0), 0)) : null;
       }
+      // HQ (WA Online Postage & Buyback): jumlah lead bulan ini, sumber mingguan. null = tiada data.
+      const hqSum = i => (rows.some(r => r.HQ && r.HQ.lead[i] != null) ? rows.reduce((a, r) => a + ((r.HQ && r.HQ.lead[i]) || 0), 0) : null);
+      res.hq = { online: hqSum(0), buyback: hqSum(1), total: null };
+      res.hq.total = res.hq.online == null && res.hq.buyback == null ? null : (res.hq.online || 0) + (res.hq.buyback || 0);
       for (const x of KEYS.outlet4) {
         res.outlets[x] = { lead: {}, walkin: {} };
         for (const kind of ['lead', 'walkin']) for (const c of CATS) res.outlets[x][kind][c] = rows.some(r => r[x] && r[x][kind][c] != null) ? sum(rows, r => r[x] && r[x][kind][c]) : null;
@@ -752,6 +759,7 @@
       available: !!(ds.leadDetail && ds.leadDetail.length), days: cur.days, lastDay: prog.day,
       pace: plan ? companyPace(plan, prog, 'lead', 'total') : calPace,
       outlets: cur.outlets, plan, progress: prog, noTarget: !plan,
+      hq: cur.hq,
     };
     const outletActual = (x, kind, c) => {
       const v = cur.outlets[x] && cur.outlets[x][kind]; if (!v) return 0;
@@ -784,6 +792,9 @@
           daily: noT ? null : leadDaily(y, m, kind, c), calDaily: target != null ? target / dim : null, need };
       }
     }
+    // Total lead untuk paparan: semua kategori 4 outlet (termasuk Others) + HQ. Tiada target, rujukan volume sahaja.
+    const hqT = cur.hq.total, allA = out.lead.all.actual;
+    out.leadWithHq = { actual: allA == null && hqT == null ? null : (allA || 0) + (hqT || 0) };
     return out;
   }
 

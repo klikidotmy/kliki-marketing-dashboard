@@ -59,6 +59,9 @@
         SP: [{ lead: ['sgp LEAD PHONE', 'sgp LEAD REPAIR', 'sgp LEAD CC'], walkin: ['sgp WALK IN PHONE', 'sgp WALK IN REPAIR', 'sgp WALK IN CC'], others: ['sgp LEAD OTHERS', 'sgp WALK IN OTHERS'] }],
         PDG: [{ lead: ['pdg LEAD PHONE', 'pdg LEAD REPAIR', 'pdg LEAD CC'], walkin: ['pdg WALK IN PHONE', 'pdg WALK IN REPAIR', 'pdg WALK IN CC'], others: ['pdg LEAD OTHERS', 'pdg WALK IN OTHERS'] }],
       },
+      // HQ: lead WhatsApp Online Postage & Buyback (sumber REPORT MINGGUAN CCS). Nilai mingguan diletak pada hari akhir minggu.
+      // Tak masuk perbandingan target 4 outlet; hanya dipaparkan sebagai tambahan dalam total lead.
+      hq: { lead: ['hq ONLINE POSTAGE LEAD', 'hq BUYBACK LEAD'] },
     },
 
     outlets: ['KUL', 'AOR', 'SP', 'PDG'],
