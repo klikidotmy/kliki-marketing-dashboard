@@ -49,7 +49,7 @@
     // others = [lead, walk-in]: kolum AF:AM, diisi auto dari Outlet Tracker mulai 23/10/2026 (tiada target).
     // Kulim tutup sementara, staf pindah ke Kelang Lama mulai 20/08/2026: dikira satu kedai (kunci KUL).
     leadDetail: {
-      gid: 0, range: 'A1:AM2100',
+      gid: 0, range: 'A1:AO2100',
       outlets: {
         KUL: [
           { until: '2026-08-19', lead: ['kul LEAD PHONE', 'kul LEAD REPAIR', 'kul LEAD CC'], walkin: ['kul WALK IN PHONE', 'kul WALK IN REPAIR', 'kul WALK IN CC'] },
