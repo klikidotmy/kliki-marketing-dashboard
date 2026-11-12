@@ -5,7 +5,7 @@
   const MON = ['Jan', 'Feb', 'Mac', 'Apr', 'Mei', 'Jun', 'Jul', 'Ogo', 'Sep', 'Okt', 'Nov', 'Dis'];
   const CACHE_KEY = 'kliki-mkt-v1';
   const TABS = ['overview', 'content', 'analisis', 'funnel', 'outlet', 'trend'];
-  const TITLES = { overview: 'Overview: Company Marketing', content: 'Content Performance', analisis: 'Marketing Analysis', funnel: 'Aliran Pelanggan', outlet: 'Prestasi Outlet', trend: 'Trend Bulanan' };
+  const TITLES = { overview: 'Overview: Level Company', content: 'Content Performance', analisis: 'Marketing Analysis', funnel: 'Aliran Pelanggan', outlet: 'Prestasi Outlet', trend: 'Trend Bulanan' };
 
   const savedTab = localGet('kliki-mkt-tab');
   const state = { ds: null, month: null, picked: false, tab: TABS.includes(savedTab) ? savedTab : 'overview', loading: false };
@@ -224,7 +224,7 @@
     const ex = f.extra || {};
     const top = f.stages[0].value, end = f.stages[f.stages.length - 1].value;
     const every = top && end ? Math.round(top / end) : null;
-    let h = `<h2>Aliran pelanggan</h2><p class="h2-note">${monLabel(key)}${live ? ' (bulan semasa)' : ''}</p>
+    let h = `<h2>Aliran pelanggan</h2><p class="h2-note">Level Company, ${monLabel(key)}${live ? ' (bulan semasa)' : ''}</p>
       <div class="card cfun"><div class="cf-head"><div><span class="cf-eyebrow">Customer journey</span><h3>Dari content ke kedai</h3></div>
       ${every ? `<div class="cf-kpi"><b>1 : ${every.toLocaleString('en-MY')}</b><span>1 walk-in setiap ${every.toLocaleString('en-MY')} view</span></div>` : ''}</div><ol class="cf-list">`;
     f.stages.forEach((s, i) => {
@@ -314,7 +314,8 @@
     const STW = { good: live ? 'On track' : 'Capai', warn: '80–99% / naik', bad: 'Belum capai', na: 'Tiada data' };
 
     // ---- 1. Ranking strip ----
-    let h = `<div class="op-head"><div><span class="cf-eyebrow">Ranking outlet, ${monLabel(key)}</span><h2 class="op-h">Skor outlet</h2><p class="op-sub">KPI capai daripada jumlah KPI${live ? `, dinilai ikut kadar ${o.days.leads} hari data` : ''}</p></div>
+    pendingNote = `KPI capai daripada jumlah KPI${live ? `, dinilai ikut kadar ${o.days.leads} hari data` : ''}`;
+    let h = `<div class="op-head"><div><span class="cf-eyebrow">Ranking outlet, ${monLabel(key)}</span><h2 class="op-h">Skor outlet</h2></div>
       <div class="op-legend"><span><i class="good"></i>${live ? 'On track' : 'Capai'}</span><span><i class="warn"></i>80–99% / naik</span><span><i class="bad"></i>Belum</span></div></div>`;
     h += `<div class="op-strip">${cards.map((cd, i) => `
       <a class="op-tile${i === 0 ? ' op-lead' : ''}" href="#o-${cd.x}">
@@ -350,6 +351,7 @@
         ${k === 'leads' ? catChips(x, 'lead') : k === 'walkin' ? catChips(x, 'walkin') : ''}</li>`;
     };
     const wide = innerWidth >= 1024;
+    h += flushNote();
     h += `<div class="op-grid">` + cards.map((cd, i) => `<details class="op-card" id="o-${cd.x}" ${wide || i === cards.length - 1 ? 'open' : ''}>
       <summary class="op-ch">
         <span class="op-ci" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="${OI[cd.x] || OI.SP}"/></svg></span>
@@ -472,9 +474,11 @@
     const legend = list => `<div class="tlg">${list.map(([n, c]) => `<span><i style="background:${c}"></i>${n}</span>`).join('')}</div>`;
     const BL = { c1: '#6E9BFF', c2: '#046AD8' }, NV = { c1: '#2C4FC4', c2: '#132E85' };
 
-    let h = `<div class="op-head"><div><span class="cf-eyebrow">12 bulan terakhir, sehingga ${monLabel(key)}</span><h2 class="op-h">Trend bulanan</h2><p class="op-sub">Perbandingan ${monLabel(key)} dengan ${prev ? prev._full : 'bulan lepas'}. Bulan pudar = data harian tak lengkap.</p></div></div>`;
+    let h = `<div class="op-head"><div><span class="cf-eyebrow">Level Company, 12 bulan terakhir sehingga ${monLabel(key)}</span><h2 class="op-h">Trend bulanan</h2></div></div>`;
+    pendingNote = `Perbandingan ${monLabel(key)} dengan ${prev ? prev._full : 'bulan lepas'}. Bulan pudar = data harian tak lengkap.`;
     h += `<div class="tk-strip">${tile('View content', 'TikTok + IG + FB + YT', 'allV', { top: true })}${tile('TikTok views', 'Target ' + tl(T.tiktokViews), 'tt_views')}${tile('Lead', tgLead == null ? '4 outlet, target belum ditetapkan' : '4 outlet, target ' + fmt(tgLead), 'lead_all')}${tile('Walk-in', tgWalk == null ? '4 outlet, target belum ditetapkan' : '4 outlet, target ' + fmt(tgWalk), 'walk_all')}</div>`;
 
+    h += flushNote();
     h += card('Semua platform', 'View content ikut platform', meta('allV'),
       legend([['TikTok', '#046AD8'], ['Instagram', '#7B5CF5'], ['Facebook', '#1FB6C9'], ['YouTube', '#E0262B']]) +
       tChart(rows, [{ k: 'tt_views', n: 'TikTok', ...BL }, { k: 'ig_views', n: 'IG', c1: '#9C84FF', c2: '#6A47EE' }, { k: 'fb_views', n: 'FB', c1: '#4FD3E0', c2: '#15A2B8' }, { k: 'yt_views', n: 'YT', c1: '#FF6B6B', c2: '#E0262B' }], { w: full, hl: true, aria: 'View content bulanan ikut platform' }));
@@ -571,7 +575,7 @@
     const LC = KD.leadCategories(state.ds, y, m);
     const K = KD.kpis(state.ds, y, m);
     const momD = v => delta(v, 'vs ' + prevLbl);
-    let h = `<h2 class="sec">Lead & Walk-in company</h2><p class="h2-note">4 outlet digabung${LC.noTarget ? ', target belum ditetapkan' : ', target ikut brief Okt–Dis 2026'}</p>`;
+    let h = `<h2 class="sec">Lead & Walk-in company</h2><p class="h2-note">Level Company${LC.noTarget ? ', target belum ditetapkan' : ', target ikut brief Okt–Dis 2026'}</p>`;
     // Kad jumlah: guna pecahan mirror jika ada, jika tidak jumlah dari tab Leads / Walk-in
     const tot = kind => LC.available ? LC[kind].total : { ...K[kind === 'lead' ? 'leads' : 'walkin'], daily: KD.leadDaily(y, m, kind), calDaily: null, need: null };
     const L = tot('lead'), W = tot('walkin');
@@ -649,8 +653,8 @@
         <div class="ov-all-i"><span>Total lead</span><b>${fullN(LC.leadWithHq.actual)}</b></div>
         <div class="ov-all-i"><span>Total walk-in</span><b>${fullN(LC.walkin.all.actual)}</b></div></div>`;
     let h = `<section class="ov-hero">
-      <div class="ov-hero-top"><div><span class="ov-eb">Company marketing, ${monLabel(key)}</span><h2>Prestasi bulan ini</h2></div>
-        <span class="ov-badge">${live ? `Hari ${today}/${dim}` : 'Bulan lengkap'}</span></div>
+      <div class="ov-hero-top"><div><span class="ov-eb">Level Company, ${monLabel(key)}</span><h2>Prestasi bulan ini</h2></div>
+        <span class="ov-badge"><span class="live-dot" aria-hidden="true"></span>${live ? `Hari ${today}/${dim}` : 'Bulan lengkap'}</span></div>
       ${allStrip}
       <div class="ov-hg">
         ${heroG('Lead ikut target', L)}
@@ -665,7 +669,7 @@
     </section>`;
 
     // ---- 2. Lead & walk-in ikut kategori ----
-    h += secHead('Fokus utama, 4 outlet digabung', 'Lead & walk-in ikut kategori', LC.noTarget ? `Target ${monLabel(key)} belum ditetapkan. Sumber: MASTER SHEET (mirror).` : `Target ikut brief Okt–Dis 2026, status ikut hari operasi outlet (Rabu tutup kecuali Kulim/Kelang Lama). Sumber: MASTER SHEET (mirror), data sehingga ${LC.lastDay || 0}/${m}.`);
+    h += secHead('Level Company, fokus utama', 'Lead & walk-in ikut kategori', LC.noTarget ? `Target ${monLabel(key)} belum ditetapkan. Sumber: MASTER SHEET (mirror).` : `Target ikut brief Okt–Dis 2026, status ikut hari operasi outlet (Rabu tutup kecuali Kulim/Kelang Lama). Sumber: MASTER SHEET (mirror), data sehingga ${LC.lastDay || 0}/${m}.`);
     if (!LC.available) h += `<div class="card empty">Pecahan Phone / Repair / Cash Converter belum disambung.</div>`;
     else {
       const CI = { phone: '<rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/>', repair: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>', cc: '<path d="M4 8h13l-3-3M20 16H7l3 3"/>', others: '<circle cx="6" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="18" cy="12" r="1.6"/>' };
@@ -687,7 +691,7 @@
     }
 
     // ---- 3. Content output ----
-    h += secHead('Tab per-post, REPORT CONTENT DATA', 'Content output');
+    h += secHead('Level Company, dari REPORT CONTENT DATA', 'Content output');
     if (!c) h += `<div class="card empty">${res.error ? `Tak dapat baca tab per-post: ${esc(res.error)}` : `Belum ada post direkod untuk ${monLabel(key)}.`}</div>`;
     else {
       const LB = { totalContent: ['Total post', `Purata ${fmt(c.avg)} view/post`], pov: ['POV Customer', 'Content dari sudut pelanggan'], strategic: ['Strategic', c.noType ? `${c.noType} post tiada TYPE` : 'Educational, Trend, Review, Promo'] };
@@ -722,7 +726,7 @@
     const tt = P('tiktok');
     const waAll = [mc.v.wa, mc.v.waOnline, mc.v.waBuyback].some(v => v != null) ? (mc.v.wa || 0) + (mc.v.waOnline || 0) + (mc.v.waBuyback || 0) : null;
     const yt = P('youtube');
-    h += secHead('Insight akaun, TikTok, Instagram, Facebook, YouTube', 'Audience & hasil', `▲▼ vs ${prevLbl}, dinormalkan ikut hari data, garis = 6 bulan terakhir`);
+    h += secHead('Level Company, TikTok, Instagram, Facebook, YouTube', 'Audience & hasil', `▲▼ vs ${prevLbl}, dinormalkan ikut hari data, garis = 6 bulan terakhir`);
     h += `<div class="ov-aud">`;
     h += aCard('views', 'Total views', fmt(co.views), momPill(cc.ch('views')), split('views') + `<ul class="ov-pl">${co.plats.map(p => prow(p.id, fmt(p.views), p.id === 'tiktok' && p.views != null ? `${pctN(p.views, T.tiktokViews)}% target 4M` : '')).join('')}</ul>`, '', 'views');
     h += aCard('eng', 'Total engagement', fmt(co.engagement), momPill(cc.ch('engagement')), split('engagement') + `<ul class="ov-pl">${co.plats.map(p => prow(p.id, fmt(p.engagement), p.id === 'tiktok' && tt.engagement != null ? `${pctN(tt.engagement, T.likes + T.comments + T.shares)}% target` : '')).join('')}</ul>`, '', 'engagement');
@@ -736,7 +740,7 @@
     const ins = KD.insights(state.ds, y, m);
     const hl = ins.map(i => ({ ...i }));
     if (c && c.top[0]) { const p = c.top[0]; hl.push({ kind: 'good', title: 'Post terbaik bulan ini', chip: fmt(p.views), text: `${p.kategori}${p.sub ? ', ' + p.sub : ''}${p.type ? ', ' + p.type : ''}${p.date ? `, ${p.date.d}/${p.date.m}` : ''}.` }); }
-    h += secHead('Ringkasan', 'Status & highlights');
+    h += secHead('Level Company, ringkasan', 'Status & highlights');
     h += `<div class="pair tpair">
       <div class="card tcard"><div class="tc-h"><div><span class="cf-eyebrow">${n} KPI bertarget</span><h3>Paling jauh dari target</h3></div><button class="link-btn" data-goto="analisis">Analisis penuh →</button></div>
         ${nM ? `<ul class="ct-mix">${sc.miss.slice(0, 5).map(k => { const p = Math.round(k.status.pct ?? 0); return `<li class="op-k"><div class="op-kt"><span class="op-dot bad">✕</span><span class="op-kl">${esc(k.label)}</span><span class="op-kv"><b>${p}%</b></span></div><div class="op-bar"><i class="bad" style="width:${Math.min(100, p)}%"></i></div></li>`; }).join('')}</ul>` : '<div class="ct-emp">Semua KPI capai target. 🎉</div>'}</div>
@@ -781,14 +785,17 @@
     return `<svg class="oring ${lvl}" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" aria-hidden="true"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" class="tr"/><circle cx="${size / 2}" cy="${size / 2}" r="${r}" class="fg" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 ${size / 2} ${size / 2})"/></svg>`;
   }
   const momPill = (v, inv) => v == null || !Number.isFinite(v) ? '' : `<span class="tp ${v >= 0 ? 'up' : 'dn'}">${v >= 0 ? '▲' : '▼'} ${Math.abs(v) >= 999 ? '>999' : Math.abs(v).toFixed(0)}%</span>`;
-  const secHead = (eb, title, sub = '', cls = 'sm') => `<div class="op-head ${cls}"><div><span class="cf-eyebrow">${eb}</span><h2 class="op-h">${title}</h2>${sub ? `<p class="op-sub">${sub}</p>` : ''}</div></div>`;
+  // Penerangan seksyen dipapar di bawah seksyen: disimpan, kemudian dikeluarkan sebelum seksyen seterusnya atau di hujung paparan.
+  let pendingNote = '';
+  const flushNote = () => { const n = pendingNote; pendingNote = ''; return n ? `<p class="sec-note">${n}</p>` : ''; };
+  const secHead = (eb, title, sub = '', cls = 'sm') => { const prev = flushNote(); pendingNote = sub; return prev + `<div class="op-head ${cls}"><div><span class="cf-eyebrow">${eb}</span><h2 class="op-h">${title}</h2></div></div>`; };
 
   async function viewContent(key) {
     const [y, m] = parseKey(key);
     const { res, c, pc, cPace, live } = await monthContent(key);
     const [py, pm] = KD.prevYM(y, m), prevLbl = monShort(py, pm);
     const fullN = n => n == null ? '—' : Math.round(n).toLocaleString('en-MY');
-    let h = secHead(`Content, ${monLabel(key)}`, 'Content performance', `Output, prestasi platform dan content terbaik. ▲▼ vs ${prevLbl}${live ? ', bulan semasa dinilai ikut kadar hari' : ''}.`, '');
+    let h = secHead(`Level Company, ${monLabel(key)}`, 'Content performance', `Output, prestasi platform dan content terbaik. ▲▼ vs ${prevLbl}${live ? ', bulan semasa dinilai ikut kadar hari' : ''}.`, '');
 
     // ---- 1. Output vs target ----
     if (!c) h += `<div class="card empty">${res.error ? `Tak dapat baca tab per-post untuk ${monLabel(key)}: ${esc(res.error)}` : `Belum ada post direkod untuk ${monLabel(key)}.`}</div>`;
@@ -815,7 +822,7 @@
             return `<li class="op-k"><div class="op-kt"><span class="op-dot ${st.level}">${iconOf(st)}</span><span class="op-kl">${esc(k2)}</span><span class="op-kv"><b>${counts[k2]}</b><small>/ ${tg[k2]}</small></span></div><div class="op-bar"><i class="${st.level}" style="width:${pct.toFixed(1)}%"></i></div></li>`;
           }).join('')}</ul></div>`;
         };
-        h += secHead('Strategic mix', 'Pecahan post strategic');
+        h += secHead('Level Company, strategic mix', 'Pecahan post strategic');
         h += `<div class="pair tpair">` + mix('Ikut jenis', 'Content type', c.typeCount, T.strategicType) + mix('Ikut subjek', 'Subjek', c.subjCount, T.strategicSubject) + `</div>`;
       } else h += `<div class="chart-cap" style="margin-top:8px">Lajur TYPE (POV Customer / Strategic) bermula dari tab SEPT'26.</div>`;
     }
@@ -823,7 +830,7 @@
     // ---- 2. Prestasi platform ----
     const cc = KD.companyCompare(state.ds, y, m), co = cc.cur, dim = daysIn(y, m);
     const PC = { tiktok: ['#0B1530', '#046AD8', 'TT'], instagram: ['#6A47EE', '#E0457B', 'IG'], facebook: ['#1877F2', '#4FA3FF', 'FB'], youtube: ['#B3131B', '#FF3B3B', 'YT'] };
-    h += secHead('Insight akaun', 'Prestasi platform', `Views, reach, engagement dan follower baru, dinormalkan ikut hari data untuk ▲▼`);
+    h += secHead('Level Company, insight akaun', 'Prestasi platform', `Views, reach, engagement dan follower baru, dinormalkan ikut hari data untuk ▲▼`);
     h += `<div class="ct-plats">${co.plats.map(p => {
       const [c1, c2, ab] = PC[p.id] || ['#046AD8', '#6E9BFF', '?'];
       const share = co.views && p.views != null ? Math.round(100 * p.views / co.views) : null;
@@ -852,7 +859,7 @@
     // ---- 4. Top content ----
     const topV = c.top.length ? c.top[0].views || 1 : 1;
     const tierB = t => `<span class="ct-tier ${t}">${t}</span>`;
-    h += secHead('Top 5, views TikTok per post', 'Content terbaik', `${c.total} post, purata ${fmt(c.avg)} view/post${c.top.some(p => p.url) ? ', ketik untuk buka video' : ''}`);
+    h += secHead('Level Company, top 5 views TikTok per post', 'Content terbaik', `${c.total} post, purata ${fmt(c.avg)} view/post${c.top.some(p => p.url) ? ', ketik untuk buka video' : ''}`);
     h += `<div class="ct-top">${c.top.map((p, i) => {
       const tier = KD.tierOf(p.views);
       const ttl = `${p.kategori}${p.sub ? ', ' + p.sub : ''}`;
@@ -875,7 +882,7 @@
           <div class="ct-sbar"><i style="width:${pc2.toFixed(1)}%"></i></div><div class="ct-savg">Purata <b>${fmt(av)}</b>/post${av === maxAvg && keys.length > 1 ? ' <span class="ct-best">Purata tertinggi</span>' : ''}</div></li>`;
       }).join('')}</ul></div>`;
     };
-    h += secHead('Prestasi ikut kumpulan', 'Type, funnel & kategori', 'Bar = bahagian daripada jumlah views. Purata/post tunjuk jenis content yang paling berbaloi.');
+    h += secHead('Level Company, ikut kumpulan', 'Type, funnel & kategori', 'Bar = bahagian daripada jumlah views. Purata/post tunjuk jenis content yang paling berbaloi.');
     h += `<div class="pair tpair">`;
     h += c.hasType ? shareCard('Lajur TYPE', 'Content type', c.byType) : `<div class="card tcard"><h3>Content type</h3><div class="empty">Lajur TYPE tiada dalam tab bulan ini.</div></div>`;
     h += c.hasFunnel ? shareCard('TOFU, MOFU, BOFU', 'Funnel', c.byFunnel, ['TOFU', 'MOFU', 'BOFU'])
@@ -899,7 +906,7 @@
     const [py, pm] = KD.prevYM(y, m), prevLbl = monShort(py, pm);
     const sc = KD.scorecard(state.ds, y, m, c, pc, cPace);
     const n = sc.list.length, nH = sc.hit.length, nM = sc.miss.length, nN = sc.na.length;
-    let h = secHead(`Analisis KPI, ${monLabel(key)}`, 'Marketing analysis', `Semua KPI bertarget berbanding target rasmi dan ${monLabel(KD.ym(py, pm))}${live ? ', bulan semasa dinilai ikut kadar hari' : ''}.`, '');
+    let h = secHead(`Level Company, ${monLabel(key)}`, 'Marketing analysis', `Semua KPI bertarget berbanding target rasmi dan ${monLabel(KD.ym(py, pm))}${live ? ', bulan semasa dinilai ikut kadar hari' : ''}.`, '');
 
     // ---- 1. Skor ----
     const tileA = (cls, num, lab, sub) => `<div class="an-t ${cls}"><b>${num}</b><span>${lab}</span><small>${sub}</small></div>`;
@@ -975,6 +982,7 @@
     const key = state.month, view = $('#view');
     view.className = 'v-' + state.tab;
     let html;
+    pendingNote = '';
     try {
       if (['overview', 'content', 'analisis', 'outlet'].includes(state.tab) && !state.ds.posts[key]) {
         view.innerHTML = `<div class="loading"><div class="spinner"></div><p>Memuatkan post ${monLabel(key)}…</p></div>`;
@@ -990,7 +998,7 @@
       html = `<div class="card empty">Ralat paparan: ${esc(e.message)}</div>`;
     }
     if (seq !== renderSeq) return;
-    view.innerHTML = html;
+    view.innerHTML = html + flushNote();
     fillInfo();
   }
 

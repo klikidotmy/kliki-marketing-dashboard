@@ -3,8 +3,8 @@
  * nav: kept · signature: kept · states: hover, focus, active, disabled, loading, empty, error
  * axes: light/grotesk-sans/chromatic-blue · posture: kept · contrast: pass · v2.0.0 */
 /* Hallmark · pre-emit critique: P3 H3 E3 S3 R3 V3 · weakest: R, the category bands stay coloured so the meeting finds Phone, Repair and CC at a glance */
-@import url("./tokens.css?v=44");
-@import url("./base.css?v=44");
+@import url("./tokens.css?v=45");
+@import url("./base.css?v=45");
 /* KLIKI Marketing Dashboard — v11 (restyle: brand KLIKI, Inter, permukaan rata) */
 :root {
   color-scheme: light;
@@ -1308,4 +1308,29 @@ dialog::backdrop { background: var(--night-a50); }
 
 @media (max-width: 767.98px) {
   .top { background: var(--grad-brand); }
+}
+
+/* =========================================================
+   NOTA SEKSYEN, DOT LIVE, RING LEBIH BESAR
+   ========================================================= */
+.sec-note { margin: var(--space-sm) var(--space-3xs) 0; font-size: 13px; line-height: 1.5; color: var(--muted); }
+.op-head + .sec-note, .sec-note:first-child { margin-top: 0; }
+
+/* dot hijau: data terus dari Google Sheet */
+.live-dot { position: relative; width: 8px; height: 8px; border-radius: 50%; background: var(--st-good-hi); flex: none; display: inline-block; }
+.live-dot::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: var(--st-good-hi); animation: live-pulse 2s ease-out infinite; }
+@keyframes live-pulse { from { transform: scale(1); opacity: .6; } to { transform: scale(2.6); opacity: 0; } }
+
+/* ring lebih besar, isi ruang dalam sel */
+.op-ringw { width: 72px; height: 72px; }
+.oc-ring { width: 96px; height: 96px; } .oc-ring .ct-pc { font-size: 18px; }
+.ct-ring { width: 72px; height: 72px; } .ct-ring .ct-pc { font-size: 14px; }
+.co-ring { width: 104px; height: 104px; } .co-ring .ct-pc { font-size: 19px; }
+@media (max-width: 1300px) and (min-width: 901px) { .co-ring, .co-ring svg { width: 88px; height: 88px; } }
+.op-ringw > svg, .ct-ring > svg, .co-ring > svg, .oc-ring > svg { width: 100%; height: 100%; }
+@media (max-width: 767.98px) {
+  .oc-ring { width: 112px; height: 112px; } .oc-ring .ct-pc { font-size: 20px; }
+  .ct-ring, .ct-ring svg { width: 72px; height: 72px; }
+  .co-ring, .co-ring svg { width: 96px; height: 96px; }
+  .op-tile .op-ringw { width: 64px; height: 64px; }
 }
