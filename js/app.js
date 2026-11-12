@@ -669,7 +669,7 @@
     if (!LC.available) h += `<div class="card empty">Pecahan Phone / Repair / Cash Converter belum disambung.</div>`;
     else {
       const CI = { phone: '<rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/>', repair: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>', cc: '<path d="M4 8h13l-3-3M20 16H7l3 3"/>', others: '<circle cx="6" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="18" cy="12" r="1.6"/>' };
-      const CG = { phone: ['#046AD8', '#046AD8'], repair: ['#0EA5A4', '#0B4F6C'], cc: ['#7B5CF5', '#35188F'], others: ['#64748B', '#334155'] };
+      const CG = { phone: ['#2B8BF2', '#023E8A'], repair: ['#0EA5A4', '#0B4F6C'], cc: ['#7B5CF5', '#35188F'], others: ['#64748B', '#334155'] };
       const gauge = (lab, k, plain) => {
         // plain: nombor sahaja, tanpa cincin (untuk Others yang tiada target)
         if (plain) return `<div class="oc-g oc-g-plain"><span class="oc-gl">${lab}</span><b>${fullN(k.actual)}</b><small>tiada target</small></div>`;
