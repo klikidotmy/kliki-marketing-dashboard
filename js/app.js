@@ -315,8 +315,7 @@
 
     // ---- 1. Ranking strip ----
     pendingNote = `KPI capai daripada jumlah KPI${live ? `, dinilai ikut kadar ${o.days.leads} hari data` : ''}`;
-    let h = `<div class="op-head"><div><span class="cf-eyebrow">Ranking outlet, ${monLabel(key)}</span><h2 class="op-h">Skor outlet</h2></div>
-      <div class="op-legend"><span><i class="good"></i>${live ? 'On track' : 'Capai'}</span><span><i class="warn"></i>80–99% / naik</span><span><i class="bad"></i>Belum</span></div></div>`;
+    let h = `<div class="op-head"><div><span class="cf-eyebrow">Ranking outlet, ${monLabel(key)}</span><h2 class="op-h">Skor outlet</h2></div></div>`;
     h += `<div class="op-strip">${cards.map((cd, i) => `
       <a class="op-tile${i === 0 ? ' op-lead' : ''}" href="#o-${cd.x}">
         <span class="op-rank">#${i + 1}</span>

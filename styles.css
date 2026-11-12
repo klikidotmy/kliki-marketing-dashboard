@@ -3,8 +3,8 @@
  * nav: kept · signature: kept · states: hover, focus, active, disabled, loading, empty, error
  * axes: light/grotesk-sans/chromatic-blue · posture: kept · contrast: pass · v2.0.0 */
 /* Hallmark · pre-emit critique: P3 H3 E3 S3 R3 V3 · weakest: R, the category bands stay coloured so the meeting finds Phone, Repair and CC at a glance */
-@import url("./tokens.css?v=45");
-@import url("./base.css?v=45");
+@import url("./tokens.css?v=46");
+@import url("./base.css?v=46");
 /* KLIKI Marketing Dashboard — v11 (restyle: brand KLIKI, Inter, permukaan rata) */
 :root {
   color-scheme: light;
@@ -1333,4 +1333,21 @@ dialog::backdrop { background: var(--night-a50); }
   .ct-ring, .ct-ring svg { width: 72px; height: 72px; }
   .co-ring, .co-ring svg { width: 96px; height: 96px; }
   .op-tile .op-ringw { width: 64px; height: 64px; }
+}
+
+/* =========================================================
+   OUTLET: kemas, skor di tengah ring
+   ========================================================= */
+.op-tile { padding: var(--space-md) 20px; gap: 20px; min-height: 112px; }
+.op-tile .op-ringw { width: 80px; height: 80px; }
+.op-sc { inset: 0; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+.op-sc b { font-size: 24px; line-height: 1; }
+.op-tn { padding-right: var(--space-lg); }
+.op-tn b { font-size: 16px; }
+.op-tn span { font-size: 13px; margin-top: var(--space-3xs); }
+.op-rank { top: var(--space-sm); right: var(--space-md); font-size: 12px; }
+@media (max-width: 767.98px) {
+  .op-tile { flex-direction: column; align-items: flex-start; gap: var(--space-sm); padding: var(--space-md); min-height: 0; }
+  .op-tile .op-ringw { width: 88px; height: 88px; }
+  .op-sc b { font-size: 26px; }
 }
