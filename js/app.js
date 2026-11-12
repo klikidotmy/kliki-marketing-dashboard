@@ -39,7 +39,7 @@
   function bar(actual, target, st, pace) {
     const w = target && actual != null ? Math.max(0, Math.min(100, 100 * actual / target)) : 0;
     const pm = pace < 1 ? `<span class="pace" style="left:${(pace * 100).toFixed(1)}%"></span>` : '';
-    return `<div class="prog ${st.level}" role="progressbar" aria-valuenow="${Math.round(w)}" aria-valuemin="0" aria-valuemax="100"><i style="width:${w}%"></i>${pm}</div>`;
+    return `<div class="prog ${st.level}" role="progressbar" aria-valuenow="${Math.round(w)}" aria-valuemin="0" aria-valuemax="100"><i style="transform:scaleX(${(w / 100).toFixed(4)})"></i>${pm}</div>`;
   }
   function delta(v, label) {
     if (v == null || !Number.isFinite(v)) return '';
@@ -224,7 +224,7 @@
     const ex = f.extra || {};
     const top = f.stages[0].value, end = f.stages[f.stages.length - 1].value;
     const every = top && end ? Math.round(top / end) : null;
-    let h = `<h2>Aliran pelanggan <span class="note">· ${monLabel(key)}${live ? ' (bulan semasa)' : ''}</span></h2>
+    let h = `<h2>Aliran pelanggan</h2><p class="h2-note">${monLabel(key)}${live ? ' (bulan semasa)' : ''}</p>
       <div class="card cfun"><div class="cf-head"><div><span class="cf-eyebrow">Customer journey</span><h3>Dari content ke kedai</h3></div>
       ${every ? `<div class="cf-kpi"><b>1 : ${every.toLocaleString('en-MY')}</b><span>1 walk-in setiap ${every.toLocaleString('en-MY')} view</span></div>` : ''}</div><ol class="cf-list">`;
     f.stages.forEach((s, i) => {
@@ -233,7 +233,7 @@
       const sub = s.id === 'walkin' ? `Klik lokasi: ${fmt(ex.location)}` : s.sub;
       const a = (100 - W[i]) / 2, b = (100 - (W[i + 1] || W[i] - 6)) / 2;
       const clip = `polygon(${a}% 0, ${100 - a}% 0, ${100 - b}% 100%, ${b}% 100%)`;
-      const tip = i && s.rate != null ? `${s.note}: ${fmtPct(s.rate)}${s.avg3 != null ? ' · purata 3 bln ' + fmtPct(s.avg3) : ''}` : `${s.label}: ${s.value == null ? '—' : Math.round(s.value).toLocaleString('en-MY')}`;
+      const tip = i && s.rate != null ? `${s.note}: ${fmtPct(s.rate)}${s.avg3 != null ? ', purata 3 bln ' + fmtPct(s.avg3) : ''}` : `${s.label}: ${s.value == null ? '—' : Math.round(s.value).toLocaleString('en-MY')}`;
       const pill = rt ? `<div class="cf-pill${isW ? ' weak' : isS ? ' strong' : ''}"><b>${rt.v}</b><span>${esc(rt.u)}</span></div>${isW || isS ? `<small class="cf-vs ${isW ? 'weak' : 'strong'}">${isW ? '▼ bawah' : '▲ atas'} purata 3 bln</small>` : ''}` : '';
       h += `<li class="cf-row${s.outlet ? ' out' : ''}">
         <div class="cf-lbl">${ico(s.id)}<div><b>${esc(s.label)}</b><span>${esc(sub)}</span></div></div>
@@ -314,7 +314,7 @@
     const STW = { good: live ? 'On track' : 'Capai', warn: '80–99% / naik', bad: 'Belum capai', na: 'Tiada data' };
 
     // ---- 1. Ranking strip ----
-    let h = `<div class="op-head"><div><span class="cf-eyebrow">Ranking outlet · ${monLabel(key)}</span><h2 class="op-h">Skor outlet</h2><p class="op-sub">KPI capai daripada jumlah KPI${live ? ` · dinilai ikut kadar ${o.days.leads} hari data` : ''}</p></div>
+    let h = `<div class="op-head"><div><span class="cf-eyebrow">Ranking outlet, ${monLabel(key)}</span><h2 class="op-h">Skor outlet</h2><p class="op-sub">KPI capai daripada jumlah KPI${live ? `, dinilai ikut kadar ${o.days.leads} hari data` : ''}</p></div>
       <div class="op-legend"><span><i class="good"></i>${live ? 'On track' : 'Capai'}</span><span><i class="warn"></i>80–99% / naik</span><span><i class="bad"></i>Belum</span></div></div>`;
     h += `<div class="op-strip">${cards.map((cd, i) => `
       <a class="op-tile${i === 0 ? ' op-lead' : ''}" href="#o-${cd.x}">
@@ -422,7 +422,7 @@
           s += `<text class="tv" x="${cx}" y="${ly}" text-anchor="middle">${tl(tv)}</text>`;
         }
       }
-      const tip = !hasAny[i] ? `${r._full}: tiada data` : `${r._full}: ${series.length > 1 ? series.map(sr => `${sr.n} ${fmt(r[sr.k])}`).join(' · ') + ' · Total ' + fmt(tot[i]) : fmt(tot[i])}${r._dim ? ' (data separa)' : ''}`;
+      const tip = !hasAny[i] ? `${r._full}: tiada data` : `${r._full}: ${series.length > 1 ? series.map(sr => `${sr.n} ${fmt(r[sr.k])}`).join(', ') + ', Total ' + fmt(tot[i]) : fmt(tot[i])}${r._dim ? ' (data separa)' : ''}`;
       s += `<rect class="hit" x="${pl + i * bw}" y="${pt - 10}" width="${bw}" height="${H - pt - pb + 10}" data-tip="${esc(tip)}"/>`;
     });
     if (opts.target) {
@@ -468,12 +468,12 @@
     const best = (k) => rows.filter(r => r[k] != null).reduce((a, b) => (b[k] > (a ? a[k] : -Infinity) ? b : a), null);
     const avg = k => { const v = rows.map(r => r[k]).filter(x => x != null && !rows.find(q => q[k] === x)._dim); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
     const card = (eb, title, meta, body, cap = '') => `<div class="card tcard"><div class="tc-h"><div><span class="cf-eyebrow">${eb}</span><h3>${title}</h3></div>${meta ? `<div class="tc-m">${meta}</div>` : ''}</div>${body}${cap ? `<div class="chart-cap">${cap}</div>` : ''}</div>`;
-    const meta = k => { const b = best(k), a = avg(k); return `${b ? `<span>Terbaik <b>${b._lab}</b> · ${fmt(b[k])}</span>` : ''}${a != null ? `<span>Purata <b>${fmt(a)}</b></span>` : ''}`; };
+    const meta = k => { const b = best(k), a = avg(k); return `${b ? `<span>Terbaik <b>${b._lab}</b>, ${fmt(b[k])}</span>` : ''}${a != null ? `<span>Purata <b>${fmt(a)}</b></span>` : ''}`; };
     const legend = list => `<div class="tlg">${list.map(([n, c]) => `<span><i style="background:${c}"></i>${n}</span>`).join('')}</div>`;
     const BL = { c1: '#6E9BFF', c2: '#2F63EE' }, NV = { c1: '#2C4FC4', c2: '#132E85' };
 
-    let h = `<div class="op-head"><div><span class="cf-eyebrow">12 bulan terakhir · sehingga ${monLabel(key)}</span><h2 class="op-h">Trend bulanan</h2><p class="op-sub">Perbandingan ${monLabel(key)} dengan ${prev ? prev._full : 'bulan lepas'}. Bulan pudar = data harian tak lengkap.</p></div></div>`;
-    h += `<div class="tk-strip">${tile('View content', 'TikTok + IG + FB + YT', 'allV', { top: true })}${tile('TikTok views', 'Target ' + tl(T.tiktokViews), 'tt_views')}${tile('Lead', tgLead == null ? '4 outlet · target belum ditetapkan' : '4 outlet · target ' + fmt(tgLead), 'lead_all')}${tile('Walk-in', tgWalk == null ? '4 outlet · target belum ditetapkan' : '4 outlet · target ' + fmt(tgWalk), 'walk_all')}</div>`;
+    let h = `<div class="op-head"><div><span class="cf-eyebrow">12 bulan terakhir, sehingga ${monLabel(key)}</span><h2 class="op-h">Trend bulanan</h2><p class="op-sub">Perbandingan ${monLabel(key)} dengan ${prev ? prev._full : 'bulan lepas'}. Bulan pudar = data harian tak lengkap.</p></div></div>`;
+    h += `<div class="tk-strip">${tile('View content', 'TikTok + IG + FB + YT', 'allV', { top: true })}${tile('TikTok views', 'Target ' + tl(T.tiktokViews), 'tt_views')}${tile('Lead', tgLead == null ? '4 outlet, target belum ditetapkan' : '4 outlet, target ' + fmt(tgLead), 'lead_all')}${tile('Walk-in', tgWalk == null ? '4 outlet, target belum ditetapkan' : '4 outlet, target ' + fmt(tgWalk), 'walk_all')}</div>`;
 
     h += card('Semua platform', 'View content ikut platform', meta('allV'),
       legend([['TikTok', '#2F63EE'], ['Instagram', '#7B5CF5'], ['Facebook', '#1FB6C9'], ['YouTube', '#E0262B']]) +
@@ -541,7 +541,7 @@
       <div class="kc-v">${k.actual == null ? '—' : fmtVal(k.actual, k.unit)}</div>
       <div class="kc-tg">Target <b>${fmtVal(k.target, k.unit)}</b></div>
       <div class="kc-ach"><span>Achievement</span><b>${pct == null ? '—' : Math.round(pct) + '%'}</b></div>
-      ${k.actual == null ? '<div class="prog"><i style="width:0"></i></div>' : bar(k.actual, k.target, st, k.pace)}
+      ${k.actual == null ? '<div class="prog"><i style="transform:scaleX(0)"></i></div>' : bar(k.actual, k.target, st, k.pace)}
       <div class="kc-f"><span class="chip ${st.level}">${iconOf(st)} ${statusWord(st, live)}</span>${opts.d || ''}</div>
       ${opts.note ? `<div class="kc-note">${esc(opts.note)}</div>` : ''}
     </div>`;
@@ -571,7 +571,7 @@
     const LC = KD.leadCategories(state.ds, y, m);
     const K = KD.kpis(state.ds, y, m);
     const momD = v => delta(v, 'vs ' + prevLbl);
-    let h = `<h2 class="sec">Lead & Walk-in company <span class="note">· 4 outlet digabung${LC.noTarget ? ', target belum ditetapkan' : ', target ikut brief Okt–Dis 2026'}</span></h2>`;
+    let h = `<h2 class="sec">Lead & Walk-in company</h2><p class="h2-note">4 outlet digabung${LC.noTarget ? ', target belum ditetapkan' : ', target ikut brief Okt–Dis 2026'}</p>`;
     // Kad jumlah: guna pecahan mirror jika ada, jika tidak jumlah dari tab Leads / Walk-in
     const tot = kind => LC.available ? LC[kind].total : { ...K[kind === 'lead' ? 'leads' : 'walkin'], daily: KD.leadDaily(y, m, kind), calDaily: null, need: null };
     const L = tot('lead'), W = tot('walkin');
@@ -583,8 +583,8 @@
       return `<div class="kc tot-kc${hero ? ' hero-kc' : ''}">
         <div class="tk-top">${icon(ic)}<span class="kc-l">${label}</span><span class="chip ${lvl(k)}">${iconOf(k.status)} ${statusWord(k.status, k.partial)}</span></div>
         <div class="tk-mid"><span class="tk-v">${fmt(k.actual)}</span><span class="tk-t">/ ${fmt(k.target)}</span><span class="tk-p">${p == null ? '—' : p + '%'}</span></div>
-        ${k.actual == null ? '<div class="prog"><i style="width:0"></i></div>' : bar(k.actual, k.target, k.status, k.pace)}
-        <div class="tk-f">${momD(k.mom) || '<span></span>'}<span>${k.target == null ? 'Target belum ditetapkan' : `Harian ${fmt(Math.round(k.daily))}${k.need != null ? ` · perlu <b>${fmt(Math.ceil(k.need))}</b>/hari` : ''}`}</span></div>
+        ${k.actual == null ? '<div class="prog"><i style="transform:scaleX(0)"></i></div>' : bar(k.actual, k.target, k.status, k.pace)}
+        <div class="tk-f">${momD(k.mom) || '<span></span>'}<span>${k.target == null ? 'Target belum ditetapkan' : `Harian ${fmt(Math.round(k.daily))}${k.need != null ? `, perlu <b>${fmt(Math.ceil(k.need))}</b>/hari` : ''}`}</span></div>
       </div>`;
     };
     h += `<div class="kc-grid g2">${totCard(L, 'Lead ikut target', 'lead', true)}${totCard(W, 'Walk-in ikut target', 'walk', false)}</div>`;
@@ -596,13 +596,13 @@
       const p = pctOf2(k);
       return `<div class="cr">
         <div class="cr-top"><span class="cr-l">${label}</span><span class="cr-v"><b>${fmt(k.actual)}</b> / ${fmt(k.target)}</span><span class="cr-p ${lvl(k)}">${p == null ? '—' : p + '%'}</span></div>
-        ${k.actual == null ? '<div class="prog"><i style="width:0"></i></div>' : bar(k.actual, k.target, k.status, k.pace)}
+        ${k.actual == null ? '<div class="prog"><i style="transform:scaleX(0)"></i></div>' : bar(k.actual, k.target, k.status, k.pace)}
         <div class="cr-d"><span class="cr-s ${lvl(k)}">${iconOf(k.status)} ${statusWord(k.status, k.partial)}</span>${momD(k.mom)}</div>
       </div>`;
     };
     const pdgRep = LC.outlets.PDG && LC.outlets.PDG.lead.repair;
     h += `<div class="kc-grid g2 cat-grid">${CAT_KEYS.map(c => `<div class="kc cat-kc">
-      <div class="kc-h">${icon(c)}<span class="kc-l">${CAT_NAME[c]}<small>${c === 'others' ? 'Tiada target' : LC.noTarget ? 'Target belum ditetapkan' : `Harian: lead ${fmt(Math.round(LC.lead[c].daily))} · walk-in ${fmt(Math.round(LC.walkin[c].daily))}`}</small></span></div>
+      <div class="kc-h">${icon(c)}<span class="kc-l">${CAT_NAME[c]}<small>${c === 'others' ? 'Tiada target' : LC.noTarget ? 'Target belum ditetapkan' : `Harian: lead ${fmt(Math.round(LC.lead[c].daily))}, walk-in ${fmt(Math.round(LC.walkin[c].daily))}`}</small></span></div>
       ${row('Lead', LC.lead[c])}${row('Walk-in', LC.walkin[c])}
       ${c === 'repair' && pdgRep ? `<div class="kc-note">Termasuk ${fmt(pdgRep)} lead repair Pendang (tiada servis).</div>` : ''}
       ${c === 'cc' ? '<div class="kc-note">CC = Trade-in + Buyback.</div>' : ''}
@@ -641,7 +641,7 @@
     };
     const heroF = (lab, k) => {
       const lv = k.status ? k.status.level : 'na';
-      return `<li><span class="op-dot ${lv}">${lv === 'na' ? '–' : iconOf(k.status)}</span><span class="oc-fl">${lab}</span><span class="oc-fd">${k.target == null ? 'tiada target' : `harian ${fmt(Math.round(k.daily))}${k.need != null ? ` · perlu <b>${fmt(Math.ceil(k.need))}</b>` : ''}`}</span>${momPill(k.mom) || '<span class="tp na">—</span>'}</li>`;
+      return `<li><span class="op-dot ${lv}">${lv === 'na' ? '–' : iconOf(k.status)}</span><span class="oc-fl">${lab}</span><span class="oc-fd">${k.target == null ? 'tiada target' : `harian ${fmt(Math.round(k.daily))}${k.need != null ? `, perlu <b>${fmt(Math.ceil(k.need))}</b>` : ''}`}</span>${momPill(k.mom) || '<span class="tp na">—</span>'}</li>`;
     };
     // Strip nipis: semua lead/walk-in termasuk Others, tanpa target (rujukan volume marketing).
     // Cincin di bawah kekal Phone + Repair + CC sahaja sebab itu yang dinilai.
@@ -649,8 +649,8 @@
         <div class="ov-all-i"><span>Total lead</span><b>${fullN(LC.leadWithHq.actual)}</b></div>
         <div class="ov-all-i"><span>Total walk-in</span><b>${fullN(LC.walkin.all.actual)}</b></div></div>`;
     let h = `<section class="ov-hero">
-      <div class="ov-hero-top"><div><span class="ov-eb">Company marketing · ${monLabel(key)}</span><h2>Prestasi bulan ini</h2></div>
-        <span class="ov-badge"><span class="live-dot"></span>${live ? `Hari ${today}/${dim}` : 'Bulan lengkap'}</span></div>
+      <div class="ov-hero-top"><div><span class="ov-eb">Company marketing, ${monLabel(key)}</span><h2>Prestasi bulan ini</h2></div>
+        <span class="ov-badge">${live ? `Hari ${today}/${dim}` : 'Bulan lengkap'}</span></div>
       ${allStrip}
       <div class="ov-hg">
         ${heroG('Lead ikut target', L)}
@@ -665,7 +665,7 @@
     </section>`;
 
     // ---- 2. Lead & walk-in ikut kategori ----
-    h += secHead('Fokus utama · 4 outlet digabung', 'Lead & walk-in ikut kategori', LC.noTarget ? `Target ${monLabel(key)} belum ditetapkan. Sumber: MASTER SHEET (mirror).` : `Target ikut brief Okt–Dis 2026, status ikut hari operasi outlet (Rabu tutup kecuali Kulim/Kelang Lama). Sumber: MASTER SHEET (mirror), data sehingga ${LC.lastDay || 0}/${m}.`);
+    h += secHead('Fokus utama, 4 outlet digabung', 'Lead & walk-in ikut kategori', LC.noTarget ? `Target ${monLabel(key)} belum ditetapkan. Sumber: MASTER SHEET (mirror).` : `Target ikut brief Okt–Dis 2026, status ikut hari operasi outlet (Rabu tutup kecuali Kulim/Kelang Lama). Sumber: MASTER SHEET (mirror), data sehingga ${LC.lastDay || 0}/${m}.`);
     if (!LC.available) h += `<div class="card empty">Pecahan Phone / Repair / Cash Converter belum disambung.</div>`;
     else {
       const CI = { phone: '<rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/>', repair: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>', cc: '<path d="M4 8h13l-3-3M20 16H7l3 3"/>', others: '<circle cx="6" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="18" cy="12" r="1.6"/>' };
@@ -677,7 +677,7 @@
         return `<div class="oc-g"><div class="op-ringw oc-ring">${ringS(k.target ? (k.actual || 0) / k.target : 0, 'inv', 76)}<span class="ct-pc">${p == null ? '—' : p + '%'}</span></div>
           <span class="oc-gl">${lab}</span><b>${fullN(k.actual)}</b><small>${k.target == null ? 'tiada target' : `/ ${fullN(k.target)}`}</small></div>`;
       };
-      const foot = (lab, k) => `<li><span class="op-dot ${k.status.level}">${k.status.level === 'na' ? '–' : iconOf(k.status)}</span><span class="oc-fl">${lab}</span><span class="oc-fd">${k.target == null ? 'tiada target' : `harian ${fmt(Math.round(k.daily))}${k.need != null ? ` · perlu <b>${fmt(Math.ceil(k.need))}</b>` : ''}`}</span>${momPill(k.mom) || '<span class="tp na">—</span>'}</li>`;
+      const foot = (lab, k) => `<li><span class="op-dot ${k.status.level}">${k.status.level === 'na' ? '–' : iconOf(k.status)}</span><span class="oc-fl">${lab}</span><span class="oc-fd">${k.target == null ? 'tiada target' : `harian ${fmt(Math.round(k.daily))}${k.need != null ? `, perlu <b>${fmt(Math.ceil(k.need))}</b>` : ''}`}</span>${momPill(k.mom) || '<span class="tp na">—</span>'}</li>`;
       const pdgRep = LC.outlets.PDG && LC.outlets.PDG.lead.repair;
       h += `<div class="ov-cats">${CAT_KEYS.map(k2 => `<div class="oc-card">
         <div class="oc-top" style="--g1:${CG[k2][0]};--g2:${CG[k2][1]}"><div class="oc-h"><span class="oc-ic"><svg viewBox="0 0 24 24">${CI[k2]}</svg></span><b>${CAT_NAME[k2]}</b></div>
@@ -687,10 +687,10 @@
     }
 
     // ---- 3. Content output ----
-    h += secHead('Tab per-post · REPORT CONTENT DATA', 'Content output');
+    h += secHead('Tab per-post, REPORT CONTENT DATA', 'Content output');
     if (!c) h += `<div class="card empty">${res.error ? `Tak dapat baca tab per-post: ${esc(res.error)}` : `Belum ada post direkod untuk ${monLabel(key)}.`}</div>`;
     else {
-      const LB = { totalContent: ['Total post', `Purata ${fmt(c.avg)} view/post`], pov: ['POV Customer', 'Content dari sudut pelanggan'], strategic: ['Strategic', c.noType ? `${c.noType} post tiada TYPE` : 'Educational · Trend · Review · Promo'] };
+      const LB = { totalContent: ['Total post', `Purata ${fmt(c.avg)} view/post`], pov: ['POV Customer', 'Content dari sudut pelanggan'], strategic: ['Strategic', c.noType ? `${c.noType} post tiada TYPE` : 'Educational, Trend, Review, Promo'] };
       const top = c.top[0];
       h += `<div class="co-panel"><div class="co-items">${['totalContent', 'pov', 'strategic'].map(id => {
         const k = S(id);
@@ -699,7 +699,7 @@
         return `<div class="co-i"><div class="op-ringw co-ring">${ringS((k.actual || 0) / k.target, k.status.level, 92)}<span class="ct-pc">${p == null ? '—' : p + '%'}</span></div>
           <div class="co-t"><span class="co-l">${LB[id][0]} ${momPill(k.mom)}</span><b class="co-v">${fullN(k.actual)}<small>/ ${fullN(k.target)}</small></b><small>${LB[id][1]}</small></div></div>`;
       }).join('')}</div>
-      ${top ? `<div class="co-best"><span class="co-bl">★ Post terbaik</span><b>${esc(top.kategori)}${top.sub ? ' · ' + esc(top.sub) : ''}</b><span>${[top.type, CFG.outletNames[top.outlet] || top.outlet, top.date ? `${top.date.d}/${top.date.m}` : ''].filter(Boolean).map(esc).join(' · ')}</span><em>${fullN(top.views)} views</em></div>` : ''}</div>`;
+      ${top ? `<div class="co-best"><span class="co-bl">★ Post terbaik</span><b>${esc(top.kategori)}${top.sub ? ', ' + esc(top.sub) : ''}</b><span>${[top.type, CFG.outletNames[top.outlet] || top.outlet, top.date ? `${top.date.d}/${top.date.m}` : ''].filter(Boolean).map(esc).join(', ')}</span><em>${fullN(top.views)} views</em></div>` : ''}</div>`;
       if (res.warning) h += `<div class="warn-box">⚠ ${esc(res.warning)}</div>`;
     }
 
@@ -722,20 +722,20 @@
     const tt = P('tiktok');
     const waAll = [mc.v.wa, mc.v.waOnline, mc.v.waBuyback].some(v => v != null) ? (mc.v.wa || 0) + (mc.v.waOnline || 0) + (mc.v.waBuyback || 0) : null;
     const yt = P('youtube');
-    h += secHead('Insight akaun · TikTok, Instagram, Facebook, YouTube', 'Audience & hasil', `▲▼ vs ${prevLbl}, dinormalkan ikut hari data · garis = 6 bulan terakhir`);
+    h += secHead('Insight akaun, TikTok, Instagram, Facebook, YouTube', 'Audience & hasil', `▲▼ vs ${prevLbl}, dinormalkan ikut hari data, garis = 6 bulan terakhir`);
     h += `<div class="ov-aud">`;
     h += aCard('views', 'Total views', fmt(co.views), momPill(cc.ch('views')), split('views') + `<ul class="ov-pl">${co.plats.map(p => prow(p.id, fmt(p.views), p.id === 'tiktok' && p.views != null ? `${pctN(p.views, T.tiktokViews)}% target 4M` : '')).join('')}</ul>`, '', 'views');
     h += aCard('eng', 'Total engagement', fmt(co.engagement), momPill(cc.ch('engagement')), split('engagement') + `<ul class="ov-pl">${co.plats.map(p => prow(p.id, fmt(p.engagement), p.id === 'tiktok' && tt.engagement != null ? `${pctN(tt.engagement, T.likes + T.comments + T.shares)}% target` : '')).join('')}</ul>`, '', 'engagement');
     h += aCard('fol', 'Follower baru', fmt(co.newFollowers), momPill(cc.ch('newFollowers')), split('newFollowers') + `<ul class="ov-pl">${co.plats.map(p => prow(p.id, fmt(p.newFollowers))).join('')}</ul>`,
-      `TikTok net <b class="${(tt.netFollowers || 0) < T.netFollowersFloor ? 'neg' : ''}">${tt.netFollowers == null ? '—' : (tt.netFollowers > 0 ? '+' : '') + fmt(tt.netFollowers)}</b> · had ${fmt(T.netFollowersFloor)}${yt && yt.netFollowers != null ? ` · YT net <b class="${yt.netFollowers < 0 ? 'neg' : ''}">${(yt.netFollowers > 0 ? '+' : '') + fmt(yt.netFollowers)}</b>` : ''}`, 'newFollowers');
+      `TikTok net <b class="${(tt.netFollowers || 0) < T.netFollowersFloor ? 'neg' : ''}">${tt.netFollowers == null ? '—' : (tt.netFollowers > 0 ? '+' : '') + fmt(tt.netFollowers)}</b>, had ${fmt(T.netFollowersFloor)}${yt && yt.netFollowers != null ? `, YT net <b class="${yt.netFollowers < 0 ? 'neg' : ''}">${(yt.netFollowers > 0 ? '+' : '') + fmt(yt.netFollowers)}</b>` : ''}`, 'newFollowers');
     h += aCard('wa', 'Klik WhatsApp', fmt(waAll), K.wa.actual == null ? '' : momPill(K.wa.mom),
-      `<ul class="ov-wl"><li><span>4 outlet</span><b>${fmt(K.wa.actual)}</b><small>${K.wa.actual == null ? 'belum diisi' : pctN(K.wa.actual, K.wa.target) + '% target'}</small></li><li><span>Online Postage · HQ</span><b>${fmt(mc.v.waOnline)}</b></li><li><span>Buyback · HQ</span><b>${fmt(mc.v.waBuyback)}</b></li><li><span>Lead / klik outlet</span><b>${K.wa.actual ? (L.actual / K.wa.actual).toFixed(1) : '—'}</b></li></ul>`, '', 'wa');
+      `<ul class="ov-wl"><li><span>4 outlet</span><b>${fmt(K.wa.actual)}</b><small>${K.wa.actual == null ? 'belum diisi' : pctN(K.wa.actual, K.wa.target) + '% target'}</small></li><li><span>Online Postage, HQ</span><b>${fmt(mc.v.waOnline)}</b></li><li><span>Buyback, HQ</span><b>${fmt(mc.v.waBuyback)}</b></li><li><span>Lead / klik outlet</span><b>${K.wa.actual ? (L.actual / K.wa.actual).toFixed(1) : '—'}</b></li></ul>`, '', 'wa');
     h += `</div>`;
 
     // ---- 5. KPI paling jauh + highlights ----
     const ins = KD.insights(state.ds, y, m);
     const hl = ins.map(i => ({ ...i }));
-    if (c && c.top[0]) { const p = c.top[0]; hl.push({ kind: 'good', title: 'Post terbaik bulan ini', chip: fmt(p.views), text: `${p.kategori}${p.sub ? ' · ' + p.sub : ''}${p.type ? ' · ' + p.type : ''}${p.date ? `, ${p.date.d}/${p.date.m}` : ''}.` }); }
+    if (c && c.top[0]) { const p = c.top[0]; hl.push({ kind: 'good', title: 'Post terbaik bulan ini', chip: fmt(p.views), text: `${p.kategori}${p.sub ? ', ' + p.sub : ''}${p.type ? ', ' + p.type : ''}${p.date ? `, ${p.date.d}/${p.date.m}` : ''}.` }); }
     h += secHead('Ringkasan', 'Status & highlights');
     h += `<div class="pair tpair">
       <div class="card tcard"><div class="tc-h"><div><span class="cf-eyebrow">${n} KPI bertarget</span><h3>Paling jauh dari target</h3></div><button class="link-btn" data-goto="analisis">Analisis penuh →</button></div>
@@ -788,7 +788,7 @@
     const { res, c, pc, cPace, live } = await monthContent(key);
     const [py, pm] = KD.prevYM(y, m), prevLbl = monShort(py, pm);
     const fullN = n => n == null ? '—' : Math.round(n).toLocaleString('en-MY');
-    let h = secHead(`Content · ${monLabel(key)}`, 'Content performance', `Output, prestasi platform dan content terbaik. ▲▼ vs ${prevLbl}${live ? ' · bulan semasa dinilai ikut kadar hari' : ''}.`, '');
+    let h = secHead(`Content, ${monLabel(key)}`, 'Content performance', `Output, prestasi platform dan content terbaik. ▲▼ vs ${prevLbl}${live ? ', bulan semasa dinilai ikut kadar hari' : ''}.`, '');
 
     // ---- 1. Output vs target ----
     if (!c) h += `<div class="card empty">${res.error ? `Tak dapat baca tab per-post untuk ${monLabel(key)}: ${esc(res.error)}` : `Belum ada post direkod untuk ${monLabel(key)}.`}</div>`;
@@ -823,7 +823,7 @@
     // ---- 2. Prestasi platform ----
     const cc = KD.companyCompare(state.ds, y, m), co = cc.cur, dim = daysIn(y, m);
     const PC = { tiktok: ['#0B1530', '#2F63EE', 'TT'], instagram: ['#6A47EE', '#E0457B', 'IG'], facebook: ['#1877F2', '#4FA3FF', 'FB'], youtube: ['#B3131B', '#FF3B3B', 'YT'] };
-    h += secHead('Insight akaun', 'Prestasi platform', `Views, reach, engagement dan follower baru · dinormalkan ikut hari data untuk ▲▼`);
+    h += secHead('Insight akaun', 'Prestasi platform', `Views, reach, engagement dan follower baru, dinormalkan ikut hari data untuk ▲▼`);
     h += `<div class="ct-plats">${co.plats.map(p => {
       const [c1, c2, ab] = PC[p.id] || ['#2F63EE', '#6E9BFF', '?'];
       const share = co.views && p.views != null ? Math.round(100 * p.views / co.views) : null;
@@ -852,14 +852,14 @@
     // ---- 4. Top content ----
     const topV = c.top.length ? c.top[0].views || 1 : 1;
     const tierB = t => `<span class="ct-tier ${t}">${t}</span>`;
-    h += secHead('Top 5 · views TikTok per post', 'Content terbaik', `${c.total} post · purata ${fmt(c.avg)} view/post${c.top.some(p => p.url) ? ' · ketik untuk buka video' : ''}`);
+    h += secHead('Top 5, views TikTok per post', 'Content terbaik', `${c.total} post, purata ${fmt(c.avg)} view/post${c.top.some(p => p.url) ? ', ketik untuk buka video' : ''}`);
     h += `<div class="ct-top">${c.top.map((p, i) => {
       const tier = KD.tierOf(p.views);
-      const ttl = `${p.kategori}${p.sub ? ' · ' + p.sub : ''}`;
+      const ttl = `${p.kategori}${p.sub ? ', ' + p.sub : ''}`;
       const meta = [p.date ? `${p.date.d}/${p.date.m}` : '', p.type, CFG.outletNames[p.outlet] || p.outlet].filter(Boolean);
       const inner = i === 0
-        ? `<span class="ct-r1">#1</span><div class="ct-t1"><span class="ct-tl">${esc(ttl)}</span><span class="ct-tm">${meta.map(esc).join(' · ')}</span></div><div class="ct-tv1"><b>${fullN(p.views)}</b><span>views</span>${tierB(tier)}</div>${p.url ? '<span class="ct-play" aria-hidden="true">▶</span>' : ''}`
-        : `<span class="ct-rk">${i + 1}</span><div class="ct-tx"><span class="ct-tl">${esc(ttl)}</span><span class="ct-tm">${meta.map(esc).join(' · ')}</span><span class="ct-tb"><i style="width:${(100 * (p.views || 0) / topV).toFixed(1)}%"></i></span></div><div class="ct-tv"><b>${fmt(p.views)}</b>${tierB(tier)}</div>`;
+        ? `<span class="ct-r1">#1</span><div class="ct-t1"><span class="ct-tl">${esc(ttl)}</span><span class="ct-tm">${meta.map(esc).join(', ')}</span></div><div class="ct-tv1"><b>${fullN(p.views)}</b><span>views</span>${tierB(tier)}</div>${p.url ? '<span class="ct-play" aria-hidden="true">▶</span>' : ''}`
+        : `<span class="ct-rk">${i + 1}</span><div class="ct-tx"><span class="ct-tl">${esc(ttl)}</span><span class="ct-tm">${meta.map(esc).join(', ')}</span><span class="ct-tb"><i style="width:${(100 * (p.views || 0) / topV).toFixed(1)}%"></i></span></div><div class="ct-tv"><b>${fmt(p.views)}</b>${tierB(tier)}</div>`;
       const cls = i === 0 ? 'ct-first' : 'ct-item';
       return p.url ? `<a class="${cls}" href="${esc(p.url)}" target="_blank" rel="noopener">${inner}</a>` : `<div class="${cls}">${inner}</div>`;
     }).join('')}</div>`;
@@ -878,14 +878,14 @@
     h += secHead('Prestasi ikut kumpulan', 'Type, funnel & kategori', 'Bar = bahagian daripada jumlah views. Purata/post tunjuk jenis content yang paling berbaloi.');
     h += `<div class="pair tpair">`;
     h += c.hasType ? shareCard('Lajur TYPE', 'Content type', c.byType) : `<div class="card tcard"><h3>Content type</h3><div class="empty">Lajur TYPE tiada dalam tab bulan ini.</div></div>`;
-    h += c.hasFunnel ? shareCard('TOFU · MOFU · BOFU', 'Funnel', c.byFunnel, ['TOFU', 'MOFU', 'BOFU'])
-      : `<div class="card tcard"><div class="tc-h"><div><span class="cf-eyebrow">TOFU · MOFU · BOFU</span><h3>Funnel</h3></div></div><div class="ct-emp">Tab per-post belum ada lajur TOFU/MOFU/BOFU. Tambah satu lajur dengan nilai TOFU, MOFU atau BOFU untuk setiap post dan bahagian ini akan keluar sendiri.</div></div>`;
+    h += c.hasFunnel ? shareCard('TOFU, MOFU, BOFU', 'Funnel', c.byFunnel, ['TOFU', 'MOFU', 'BOFU'])
+      : `<div class="card tcard"><div class="tc-h"><div><span class="cf-eyebrow">TOFU, MOFU, BOFU</span><h3>Funnel</h3></div></div><div class="ct-emp">Tab per-post belum ada lajur TOFU/MOFU/BOFU. Tambah satu lajur dengan nilai TOFU, MOFU atau BOFU untuk setiap post dan bahagian ini akan keluar sendiri.</div></div>`;
     h += shareCard('Lajur KATEGORI', 'Kategori', c.kategori);
     h += `<div class="card tcard"><div class="tc-h"><div><span class="cf-eyebrow">Target views</span><h3>Views ikut bucket</h3></div><div class="tc-m"><span>Bebas, tak dijumlahkan</span></div></div><ul class="ct-mix">${Object.entries(c.bucketStats).map(([k2, b2]) => {
       const st = KD.status(b2.views, b2.target, cPace), pct = Math.min(100, 100 * b2.views / b2.target);
       return `<li class="op-k"><div class="op-kt"><span class="op-dot ${st.level}">${iconOf(st)}</span><span class="op-kl">${esc(k2)}<small class="ct-pp">${b2.posts} post</small></span><span class="op-kv"><b>${fmt(b2.views)}</b><small>/ ${fmt(b2.target)}</small></span></div><div class="op-bar"><i class="${st.level}" style="width:${pct.toFixed(1)}%"></i></div></li>`;
     }).join('')}</ul></div>`;
-    h += `</div><div class="chart-cap">Tier: Diamond ≥ 1M · Gold ≥ 300K · Silver ≥ 100K · Bronze bawah 100K. ${live ? 'Bulan semasa: status dinilai ikut kadar hari.' : ''}</div>`;
+    h += `</div><div class="chart-cap">Tier: Diamond ≥ 1M, Gold ≥ 300K, Silver ≥ 100K, Bronze bawah 100K. ${live ? 'Bulan semasa: status dinilai ikut kadar hari.' : ''}</div>`;
     return h;
   }
 
@@ -899,13 +899,13 @@
     const [py, pm] = KD.prevYM(y, m), prevLbl = monShort(py, pm);
     const sc = KD.scorecard(state.ds, y, m, c, pc, cPace);
     const n = sc.list.length, nH = sc.hit.length, nM = sc.miss.length, nN = sc.na.length;
-    let h = secHead(`Analisis KPI · ${monLabel(key)}`, 'Marketing analysis', `Semua KPI bertarget berbanding target rasmi dan ${monLabel(KD.ym(py, pm))}${live ? ' · bulan semasa dinilai ikut kadar hari' : ''}.`, '');
+    let h = secHead(`Analisis KPI, ${monLabel(key)}`, 'Marketing analysis', `Semua KPI bertarget berbanding target rasmi dan ${monLabel(KD.ym(py, pm))}${live ? ', bulan semasa dinilai ikut kadar hari' : ''}.`, '');
 
     // ---- 1. Skor ----
     const tileA = (cls, num, lab, sub) => `<div class="an-t ${cls}"><b>${num}</b><span>${lab}</span><small>${sub}</small></div>`;
     h += `<div class="an-score"><div class="an-big"><span class="ov-eb">Skor bulan ini</span><div class="an-bn"><b>${nH}</b><span>/ ${n} KPI ${live ? 'on track' : 'capai'}</span></div>
         <div class="ov-seg">${nH ? `<i class="good" style="flex:${nH}"></i>` : ''}${nM ? `<i class="bad" style="flex:${nM}"></i>` : ''}${nN ? `<i class="na" style="flex:${nN}"></i>` : ''}</div>
-        <p>${n ? Math.round(100 * nH / n) : 0}% KPI ${live ? 'on track' : 'capai target'}${nM ? ` · ${nM} perlu tindakan` : ''}</p></div>
+        <p>${n ? Math.round(100 * nH / n) : 0}% KPI ${live ? 'on track' : 'capai target'}${nM ? `, ${nM} perlu tindakan` : ''}</p></div>
       ${tileA('good', nH, live ? 'On track' : 'Capai target', 'KPI hijau')}${tileA('bad', nM, live ? 'Ketinggalan' : 'Gagal capai', 'Jurang terbesar disenarai dulu')}${tileA('na', nN, 'Tiada data', 'Tak dikira sebagai 0')}</div>`;
 
     // ---- 2. Insights + perubahan ----
@@ -944,7 +944,7 @@
     }
     if (!c) h += `<div class="warn-box">⚠ KPI content tidak dinilai kerana tab per-post ${monLabel(key)} tiada data.</div>`;
     if (c && live) h += `<div class="chart-cap">Views content per-post bulan semasa masih bertambah (video baru belum cukup umur), jadi perbandingan views per-post dengan bulan lepas belum muktamad.</div>`;
-    h += `<div class="chart-cap">Status: ✓ capai/on track · ! 80–99% · ↗ bawah target tapi naik vs bulan lepas · ✕ bawah target & tak naik. Butiran aliran pelanggan di tab Funnel.</div>`;
+    h += `<div class="chart-cap">Status: ✓ capai/on track, ! 80–99%, ↗ bawah target tapi naik vs bulan lepas, ✕ bawah target & tak naik. Butiran aliran pelanggan di tab Funnel.</div>`;
     return h;
   }
 
@@ -958,7 +958,7 @@
       return `<li><span class="${s.ok ? 'ok' : 'no'}">${s.ok ? '●' : '✕'}</span> ${n}: ${s.ok ? s.rows + ' baris' : esc(s.error)}</li>`;
     }).join('');
     $('#info-body').innerHTML = `<ul class="health">${li}</ul><p class="health">Dimuat ${new Date(ds.loadedAt).toLocaleString('ms-MY')}. Data dibaca terus dari Google Sheet setiap kali app dibuka atau bila tekan muat semula.</p>
-      <p class="health">Status: ✓ capai/on track · ! 80–99% · ↗ bawah target tapi naik vs bulan lepas · ✕ bawah target & tak naik.</p>`;
+      <p class="health">Status: ✓ capai/on track, ! 80–99%, ↗ bawah target tapi naik vs bulan lepas, ✕ bawah target & tak naik.</p>`;
   }
 
   // ---------- render ----------
@@ -970,7 +970,7 @@
       if (b.dataset.tab === state.tab) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
     });
     $('#page-title').textContent = TITLES[state.tab];
-    document.title = `${TITLES[state.tab]} · KLIKI Marketing`;
+    document.title = `${TITLES[state.tab]} – KLIKI Marketing`;
     if (!state.ds) return;
     const key = state.month, view = $('#view');
     view.className = 'v-' + state.tab;
@@ -1019,12 +1019,12 @@
       const failed = Object.entries(ds.sources).filter(([, s]) => !s.ok);
       if (failed.length === Object.keys(ds.sources).length) throw new Error(failed[0][1].error);
       state.ds = ds; persist(); fillMonths();
-      line.textContent = `Dikemas kini ${new Date().toLocaleTimeString('ms-MY', { hour: '2-digit', minute: '2-digit' })}` + (failed.length ? ` · ${failed.length} sumber gagal (ketik ⓘ)` : '');
+      line.textContent = `Dikemas kini ${new Date().toLocaleTimeString('ms-MY', { hour: '2-digit', minute: '2-digit' })}` + (failed.length ? `, ${failed.length} sumber gagal (ketik ⓘ)` : '');
       if (failed.length) line.className = 'status-line err';
       await render();
     } catch (e) {
       line.className = 'status-line err';
-      line.textContent = state.ds ? `Offline · papar data simpanan ${new Date(state.ds.loadedAt).toLocaleString('ms-MY')}` : `Gagal muat data: ${e.message}`;
+      line.textContent = state.ds ? `Offline, papar data simpanan ${new Date(state.ds.loadedAt).toLocaleString('ms-MY')}` : `Gagal muat data: ${e.message}`;
       if (!state.ds) $('#view').innerHTML = `<div class="card empty">Tak dapat capai Google Sheet. Semak internet, atau pastikan sheet dikongsi "Anyone with the link".</div>`;
     } finally { state.loading = false; btn.classList.remove('spin'); }
   }
