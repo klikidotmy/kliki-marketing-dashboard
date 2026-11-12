@@ -3,8 +3,8 @@
  * nav: kept · signature: kept · states: hover, focus, active, disabled, loading, empty, error
  * axes: light/grotesk-sans/chromatic-blue · posture: kept · contrast: pass · v2.0.0 */
 /* Hallmark · pre-emit critique: P3 H3 E3 S3 R3 V3 · weakest: R, the category bands stay coloured so the meeting finds Phone, Repair and CC at a glance */
-@import url("./tokens.css?v=46");
-@import url("./base.css?v=46");
+@import url("./tokens.css?v=47");
+@import url("./base.css?v=47");
 /* KLIKI Marketing Dashboard — v11 (restyle: brand KLIKI, Inter, permukaan rata) */
 :root {
   color-scheme: light;
@@ -1351,3 +1351,8 @@ dialog::backdrop { background: var(--night-a50); }
   .op-tile .op-ringw { width: 88px; height: 88px; }
   .op-sc b { font-size: 26px; }
 }
+
+/* kad outlet yang dipilih dari ranking */
+.op-card { scroll-margin-top: 96px; }
+.op-card.picked { border-color: var(--brand); outline: 2px solid var(--brand); outline-offset: -1px; }
+@media (max-width: 767.98px) { .op-card { scroll-margin-top: 88px; } }

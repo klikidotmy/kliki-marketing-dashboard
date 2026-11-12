@@ -1043,10 +1043,15 @@
   document.addEventListener('click', e => {
     const g = e.target.closest('[data-goto]');
     if (g) { state.tab = g.dataset.goto; localSet('kliki-mkt-tab', state.tab); render(); scrollTo(0, 0); return; }
-    const t = e.target.closest('.otile'); if (!t) return;
+    // Tekan kad outlet (ranking): buka KPI outlet tu di bawah dan skrol ke situ.
+    const t = e.target.closest('.otile, .op-tile'); if (!t) return;
     e.preventDefault();
     const d = document.querySelector(t.getAttribute('href')); if (!d) return;
-    d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    d.open = true;
+    document.querySelectorAll('.op-card.picked').forEach(x => x.classList.remove('picked'));
+    d.classList.add('picked');
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    d.scrollIntoView({ behavior: still ? 'auto' : 'smooth', block: 'start' });
   });
   $('#info').addEventListener('click', () => { fillInfo(); $('#info-dlg').showModal(); });
   $('#info-close').addEventListener('click', () => $('#info-dlg').close());
