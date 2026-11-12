@@ -11,7 +11,7 @@
   --color-ink: #0A1636; --color-ink-2: #3C4A68; --color-muted: #5F6C87;
   --color-rule: #DCE3EE;
   --color-accent: #046AD8; --color-accent-ink: #FFFFFF; --color-focus: #046AD8;
-  --font-display: "Geist", ui-sans-serif, system-ui, sans-serif; --font-body: "Geist", ui-sans-serif, system-ui, sans-serif; --font-outlier: var(--font-body);
+  --font-display: "Inter", ui-sans-serif, system-ui, sans-serif; --font-body: "Inter", ui-sans-serif, system-ui, sans-serif; --font-outlier: var(--font-body);
   --radius-card: 12px; --radius-pill: 999px; --rule-hair: 1px; --shadow-card: none;
   --tracking-display: -0.02em;
 }

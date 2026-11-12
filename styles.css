@@ -1,11 +1,11 @@
 /* Hallmark · shape: app screen · genre: modern-minimal · theme: brand · redesign: restyle
- * paper: #F5F7FB · accent: #046AD8 (KLIKI blue) · display: Geist · body: Geist
+ * paper: #F5F7FB · accent: #046AD8 (KLIKI blue) · display: Inter (by request) · body: Inter (by request)
  * nav: kept · signature: kept · states: hover, focus, active, disabled, loading, empty, error
  * axes: light/grotesk-sans/chromatic-blue · posture: kept · contrast: pass · v2.0.0 */
 /* Hallmark · pre-emit critique: P3 H3 E3 S3 R3 V3 · weakest: R, the category bands stay coloured so the meeting finds Phone, Repair and CC at a glance */
-@import url("./tokens.css?v=42");
-@import url("./base.css?v=42");
-/* KLIKI Marketing Dashboard — v11 (restyle: brand KLIKI, Geist, permukaan rata) */
+@import url("./tokens.css?v=43");
+@import url("./base.css?v=43");
+/* KLIKI Marketing Dashboard — v11 (restyle: brand KLIKI, Inter, permukaan rata) */
 :root {
   color-scheme: light;
   --brand: var(--color-accent); --brand-ink: #035BB9; --brand-deep: #002272; --brand-soft: #E3EEFC;
