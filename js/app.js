@@ -135,7 +135,7 @@
     const tl = v => Math.abs(v) >= 1e6 ? (v / 1e6).toFixed(1) + 'M' : Math.abs(v) >= 1e3 ? Math.round(v / 1e3) + 'K' : Math.round(v);
     const gid = 'lc-grad-' + (++lcId);
     let s = `<svg class="chart lc" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(opts.aria || '')}">
-      <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1565FF" stop-opacity=".28"/><stop offset="1" stop-color="#1565FF" stop-opacity="0"/></linearGradient></defs>`;
+      <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#046AD8" stop-opacity=".28"/><stop offset="1" stop-color="#046AD8" stop-opacity="0"/></linearGradient></defs>`;
     for (let k = 0; k <= 4; k++) {
       const t = min + (max - min) * k / 4;
       s += `<line class="grid-l" x1="${pl}" x2="${W - pr}" y1="${y(t)}" y2="${y(t)}"/><text x="${pl - 6}" y="${y(t) + 3.5}" text-anchor="end">${tl(t)}</text>`;
@@ -203,7 +203,7 @@
     if (!f.stages.some(s => s.value > 0)) return ib + `<div class="card empty">Belum ada data aliran pelanggan untuk ${monLabel(key)}.</div>`;
     // "Dari content ke kedai": corong bersambung. Lebar segmen tetap mengecil (visual), bukan ikut skala.
     const W = [100, 80, 64, 52, 42, 34, 28];
-    const COL = ['#5B8CFF', '#4479FB', '#2F63EE', '#2350D6', '#1A3DAA', '#132E85'];
+    const COL = ['#5B8CFF', '#4479FB', '#046AD8', '#2350D6', '#1A3DAA', '#132E85'];
     const ICO = {
       allViews: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
       allVisits: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
@@ -319,7 +319,7 @@
     h += `<div class="op-strip">${cards.map((cd, i) => `
       <a class="op-tile${i === 0 ? ' op-lead' : ''}" href="#o-${cd.x}">
         <span class="op-rank">#${i + 1}</span>
-        <div class="op-ringw">${ring(cd.ratio, i === 0 ? 'inv' : cd.lvl)}<span class="op-sc"><b>${cd.hit}</b>/${cd.total}</span></div>
+        <div class="op-ringw">${ring(cd.ratio, i === 0 ? cd.lvl + ' on-dark' : cd.lvl)}<span class="op-sc"><b>${cd.hit}</b>/${cd.total}</span></div>
         <div class="op-tn"><b>${esc(CFG.outletNames[cd.x])}</b><span>${cd.miss.length ? `${cd.miss.length} KPI merah` : 'Tiada KPI merah'}</span></div>
       </a>`).join('')}</div>`;
 
@@ -470,13 +470,13 @@
     const card = (eb, title, meta, body, cap = '') => `<div class="card tcard"><div class="tc-h"><div><span class="cf-eyebrow">${eb}</span><h3>${title}</h3></div>${meta ? `<div class="tc-m">${meta}</div>` : ''}</div>${body}${cap ? `<div class="chart-cap">${cap}</div>` : ''}</div>`;
     const meta = k => { const b = best(k), a = avg(k); return `${b ? `<span>Terbaik <b>${b._lab}</b>, ${fmt(b[k])}</span>` : ''}${a != null ? `<span>Purata <b>${fmt(a)}</b></span>` : ''}`; };
     const legend = list => `<div class="tlg">${list.map(([n, c]) => `<span><i style="background:${c}"></i>${n}</span>`).join('')}</div>`;
-    const BL = { c1: '#6E9BFF', c2: '#2F63EE' }, NV = { c1: '#2C4FC4', c2: '#132E85' };
+    const BL = { c1: '#6E9BFF', c2: '#046AD8' }, NV = { c1: '#2C4FC4', c2: '#132E85' };
 
     let h = `<div class="op-head"><div><span class="cf-eyebrow">12 bulan terakhir, sehingga ${monLabel(key)}</span><h2 class="op-h">Trend bulanan</h2><p class="op-sub">Perbandingan ${monLabel(key)} dengan ${prev ? prev._full : 'bulan lepas'}. Bulan pudar = data harian tak lengkap.</p></div></div>`;
     h += `<div class="tk-strip">${tile('View content', 'TikTok + IG + FB + YT', 'allV', { top: true })}${tile('TikTok views', 'Target ' + tl(T.tiktokViews), 'tt_views')}${tile('Lead', tgLead == null ? '4 outlet, target belum ditetapkan' : '4 outlet, target ' + fmt(tgLead), 'lead_all')}${tile('Walk-in', tgWalk == null ? '4 outlet, target belum ditetapkan' : '4 outlet, target ' + fmt(tgWalk), 'walk_all')}</div>`;
 
     h += card('Semua platform', 'View content ikut platform', meta('allV'),
-      legend([['TikTok', '#2F63EE'], ['Instagram', '#7B5CF5'], ['Facebook', '#1FB6C9'], ['YouTube', '#E0262B']]) +
+      legend([['TikTok', '#046AD8'], ['Instagram', '#7B5CF5'], ['Facebook', '#1FB6C9'], ['YouTube', '#E0262B']]) +
       tChart(rows, [{ k: 'tt_views', n: 'TikTok', ...BL }, { k: 'ig_views', n: 'IG', c1: '#9C84FF', c2: '#6A47EE' }, { k: 'fb_views', n: 'FB', c1: '#4FD3E0', c2: '#15A2B8' }, { k: 'yt_views', n: 'YT', c1: '#FF6B6B', c2: '#E0262B' }], { w: full, hl: true, aria: 'View content bulanan ikut platform' }));
     h += `<div class="pair tpair">`;
     h += card('TikTok', 'Views TikTok', meta('tt_views'), tChart(rows, [{ k: 'tt_views', n: 'Views', ...BL }], { w: half, hl: true, target: T.tiktokViews, aria: 'Views TikTok bulanan' }));
@@ -636,7 +636,7 @@
     // ---- 1. Hero (compact: 2 gauge + 2 tile mini + baris kadar harian) ----
     const heroG = (lab, k) => {
       const p = pctN(k.actual, k.target);
-      return `<div class="oc-g ov-g"><div class="op-ringw oc-ring">${ringS(k.target ? (k.actual || 0) / k.target : 0, 'inv', 76)}<span class="ct-pc">${p == null ? '—' : p + '%'}</span></div>
+      return `<div class="oc-g ov-g"><div class="op-ringw oc-ring">${ringS(k.target ? (k.actual || 0) / k.target : 0, ((k.status && k.status.level) || 'na') + ' on-dark', 76)}<span class="ct-pc">${p == null ? '—' : p + '%'}</span></div>
         <span class="oc-gl">${lab}</span><b>${fullN(k.actual)}</b><small>${k.target == null ? 'tiada target' : `/ ${fullN(k.target)}`}</small></div>`;
     };
     const heroF = (lab, k) => {
@@ -669,12 +669,12 @@
     if (!LC.available) h += `<div class="card empty">Pecahan Phone / Repair / Cash Converter belum disambung.</div>`;
     else {
       const CI = { phone: '<rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/>', repair: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>', cc: '<path d="M4 8h13l-3-3M20 16H7l3 3"/>', others: '<circle cx="6" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="18" cy="12" r="1.6"/>' };
-      const CG = { phone: ['#1565FF', '#0A2E8A'], repair: ['#0EA5A4', '#0B4F6C'], cc: ['#7B5CF5', '#35188F'], others: ['#64748B', '#334155'] };
+      const CG = { phone: ['#046AD8', '#046AD8'], repair: ['#0EA5A4', '#0B4F6C'], cc: ['#7B5CF5', '#35188F'], others: ['#64748B', '#334155'] };
       const gauge = (lab, k, plain) => {
         // plain: nombor sahaja, tanpa cincin (untuk Others yang tiada target)
         if (plain) return `<div class="oc-g oc-g-plain"><span class="oc-gl">${lab}</span><b>${fullN(k.actual)}</b><small>tiada target</small></div>`;
         const p = pctN(k.actual, k.target);
-        return `<div class="oc-g"><div class="op-ringw oc-ring">${ringS(k.target ? (k.actual || 0) / k.target : 0, 'inv', 76)}<span class="ct-pc">${p == null ? '—' : p + '%'}</span></div>
+        return `<div class="oc-g"><div class="op-ringw oc-ring">${ringS(k.target ? (k.actual || 0) / k.target : 0, ((k.status && k.status.level) || 'na') + ' on-dark', 76)}<span class="ct-pc">${p == null ? '—' : p + '%'}</span></div>
           <span class="oc-gl">${lab}</span><b>${fullN(k.actual)}</b><small>${k.target == null ? 'tiada target' : `/ ${fullN(k.target)}`}</small></div>`;
       };
       const foot = (lab, k) => `<li><span class="op-dot ${k.status.level}">${k.status.level === 'na' ? '–' : iconOf(k.status)}</span><span class="oc-fl">${lab}</span><span class="oc-fd">${k.target == null ? 'tiada target' : `harian ${fmt(Math.round(k.daily))}${k.need != null ? `, perlu <b>${fmt(Math.ceil(k.need))}</b>` : ''}`}</span>${momPill(k.mom) || '<span class="tp na">—</span>'}</li>`;
@@ -704,7 +704,7 @@
     }
 
     // ---- 4. Audience & hasil ----
-    const PCL = { tiktok: '#2F63EE', instagram: '#7B5CF5', facebook: '#1FB6C9', youtube: '#E0262B' };
+    const PCL = { tiktok: '#046AD8', instagram: '#7B5CF5', facebook: '#1FB6C9', youtube: '#E0262B' };
     const months = [];
     { let yy = y, mm = m; for (let i = 0; i < 6; i++) { months.unshift([yy, mm]); [yy, mm] = KD.prevYM(yy, mm); } }
     const hist = months.map(([yy, mm]) => { const cp = KD.company(state.ds, yy, mm), mcx = KD.monthCore(state.ds, yy, mm); return { views: cp.views, engagement: cp.engagement, newFollowers: cp.newFollowers, wa: mcx.v.wa }; });
@@ -751,7 +751,7 @@
   // CONTENT PERFORMANCE
   // =========================================================
   // Stacked bar: views bulanan ikut platform
-  const PCOL = { tt: '#1565FF', fb: '#7FA8FF', ig: '#F0702B' };
+  const PCOL = { tt: '#046AD8', fb: '#7FA8FF', ig: '#F0702B' };
   function stackChart(rows, opts = {}) {
     const W = opts.w || Math.min(chartW(), 1100), H = W > 500 ? 220 : 170, pl = 44, pr = 6, pt = 10, pb = 20;
     const tot = rows.map(r => r.parts.reduce((a, p) => a + (p.v || 0), 0));
@@ -803,7 +803,7 @@
         const pct = k.status.pct == null ? null : Math.round(k.status.pct);
         const v = k.id === 'postViews' ? fmt(k.actual) : fullN(k.actual), tg = k.id === 'postViews' ? fmt(k.target) : fullN(k.target);
         return `<div class="tk ct-k${lead ? ' tk-lead' : ''}"><div class="tk-h"><span>${LB[k.id]}</span>${momPill(k.mom)}</div>
-          <div class="ct-kb"><div class="op-ringw ct-ring">${ringS((k.actual || 0) / k.target, lead ? 'inv' : lvl)}<span class="ct-pc">${pct == null ? '—' : pct + '%'}</span></div>
+          <div class="ct-kb"><div class="op-ringw ct-ring">${ringS((k.actual || 0) / k.target, lead ? lvl + ' on-dark' : lvl)}<span class="ct-pc">${pct == null ? '—' : pct + '%'}</span></div>
           <div><b>${v}</b><small>/ ${tg} target</small></div></div><small class="ct-sub">${SUB[k.id]}</small></div>`;
       }).join('')}</div>`;
       if (c.noType) h += `<div class="warn-box">⚠ ${c.noType} post tiada TYPE dalam sheet, jadi tak dikira sebagai POV atau Strategic.</div>`;
@@ -822,10 +822,10 @@
 
     // ---- 2. Prestasi platform ----
     const cc = KD.companyCompare(state.ds, y, m), co = cc.cur, dim = daysIn(y, m);
-    const PC = { tiktok: ['#0B1530', '#2F63EE', 'TT'], instagram: ['#6A47EE', '#E0457B', 'IG'], facebook: ['#1877F2', '#4FA3FF', 'FB'], youtube: ['#B3131B', '#FF3B3B', 'YT'] };
+    const PC = { tiktok: ['#0B1530', '#046AD8', 'TT'], instagram: ['#6A47EE', '#E0457B', 'IG'], facebook: ['#1877F2', '#4FA3FF', 'FB'], youtube: ['#B3131B', '#FF3B3B', 'YT'] };
     h += secHead('Insight akaun', 'Prestasi platform', `Views, reach, engagement dan follower baru, dinormalkan ikut hari data untuk ▲▼`);
     h += `<div class="ct-plats">${co.plats.map(p => {
-      const [c1, c2, ab] = PC[p.id] || ['#2F63EE', '#6E9BFF', '?'];
+      const [c1, c2, ab] = PC[p.id] || ['#046AD8', '#6E9BFF', '?'];
       const share = co.views && p.views != null ? Math.round(100 * p.views / co.views) : null;
       return `<div class="ct-pc-card"><div class="ct-ph" style="--c1:${c1};--c2:${c2}"><span class="ct-pa">${ab}</span><span class="ct-pn"><b>${p.name}</b><span>${p.days}/${dim} hari data</span></span>${share != null ? `<span class="ct-sh">${share}%<small>views</small></span>` : ''}</div>
         <div class="ct-pb"><span class="ct-pl">Views</span><div class="ct-pv"><b>${fmt(p.views)}</b>${momPill(cc.ch('views', p.id))}</div>
@@ -843,8 +843,8 @@
       return { ...r, _lab: MON[mm - 1], _full: monLabel(r.key), _hl: r.key === key, _dim: ['tt', 'fb', 'ig', 'yt'].some(q => r[q + '_days'] && r[q + '_days'] < d * 0.9) };
     });
     h += `<div class="card tcard" style="margin-top:16px"><div class="tc-h"><div><span class="cf-eyebrow">12 bulan terakhir</span><h3>Views ikut platform</h3></div></div>
-      <div class="tlg"><span><i style="background:#2F63EE"></i>TikTok</span><span><i style="background:#7B5CF5"></i>Instagram</span><span><i style="background:#1FB6C9"></i>Facebook</span><span><i style="background:#E0262B"></i>YouTube</span></div>
-      ${tChart(series, [{ k: 'tt_views', n: 'TikTok', c1: '#6E9BFF', c2: '#2F63EE' }, { k: 'ig_views', n: 'IG', c1: '#9C84FF', c2: '#6A47EE' }, { k: 'fb_views', n: 'FB', c1: '#4FD3E0', c2: '#15A2B8' }, { k: 'yt_views', n: 'YT', c1: '#FF6B6B', c2: '#E0262B' }], { w: Math.min(chartW(), 1100), hl: true, aria: 'Views bulanan ikut platform' })}
+      <div class="tlg"><span><i style="background:#046AD8"></i>TikTok</span><span><i style="background:#7B5CF5"></i>Instagram</span><span><i style="background:#1FB6C9"></i>Facebook</span><span><i style="background:#E0262B"></i>YouTube</span></div>
+      ${tChart(series, [{ k: 'tt_views', n: 'TikTok', c1: '#6E9BFF', c2: '#046AD8' }, { k: 'ig_views', n: 'IG', c1: '#9C84FF', c2: '#6A47EE' }, { k: 'fb_views', n: 'FB', c1: '#4FD3E0', c2: '#15A2B8' }, { k: 'yt_views', n: 'YT', c1: '#FF6B6B', c2: '#E0262B' }], { w: Math.min(chartW(), 1100), hl: true, aria: 'Views bulanan ikut platform' })}
       <div class="chart-cap">Bar pudar = data harian bulan itu belum lengkap.</div></div>`;
 
     if (!c) return h;
