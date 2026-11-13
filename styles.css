@@ -3,8 +3,8 @@
  * nav: kept · signature: kept · states: hover, focus, active, disabled, loading, empty, error
  * axes: light/grotesk-sans/chromatic-blue · posture: kept · contrast: pass · v2.0.0 */
 /* Hallmark · pre-emit critique: P3 H3 E3 S3 R3 V3 · weakest: R, the category bands stay coloured so the meeting finds Phone, Repair and CC at a glance */
-@import url("./tokens.css?v=54");
-@import url("./base.css?v=54");
+@import url("./tokens.css?v=55");
+@import url("./base.css?v=55");
 /* KLIKI Marketing Dashboard — v11 (restyle: brand KLIKI, Inter, permukaan rata) */
 :root {
   color-scheme: light;
@@ -1381,3 +1381,24 @@ dialog::backdrop { background: var(--night-a50); }
   .ov-all-i { align-items: center; text-align: center; }
   .ov-all-i span { font-size: 12px; }
 }
+
+/* =========================================================
+   ANALISIS: kad KPI gaya C (bar + penanda kadar hari ini)
+   ========================================================= */
+.an-cards { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-sm); }
+@media (max-width: 899.98px) { .an-cards { grid-template-columns: minmax(0, 1fr); } }
+.an-c { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: var(--space-md); display: flex; flex-direction: column; gap: var(--space-xs); min-width: 0; }
+.an-ct { display: flex; align-items: center; gap: var(--space-sm); }
+.an-ct .an-kn { flex: 1; }
+.an-ct .chip { flex: none; }
+.an-cv { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-sm); margin-top: var(--space-2xs); }
+.an-cv .an-kv b { font-size: 22px; letter-spacing: -.02em; }
+.an-cv .an-kv small { flex: none; font-size: 12.5px; }
+.an-sh { font-size: 12px; color: var(--muted); white-space: nowrap; } .an-sh b { color: var(--text); font-weight: 700; }
+.an-tr { position: relative; height: 8px; border-radius: 999px; background: var(--surface-2); margin: var(--space-2xs) 0; }
+.an-tr i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; }
+.an-tr i.good { background: var(--st-good); } .an-tr i.warn { background: var(--st-warn); } .an-tr i.bad { background: var(--st-bad); }
+.an-mk { position: absolute; top: -4px; bottom: -4px; width: 2px; margin-left: -1px; border-radius: 1px; background: var(--text); }
+.an-cf { display: flex; align-items: center; gap: var(--space-sm); font-size: 12.5px; color: var(--text-2); }
+.an-cf .an-nt { flex: 1; min-width: 0; } .an-nt b { color: var(--text); }
+.an-cm { flex: none; }

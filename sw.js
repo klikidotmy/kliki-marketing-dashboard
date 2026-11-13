@@ -1,6 +1,6 @@
 // Service worker: simpan app shell untuk buka laju & offline. Data Google Sheet sentiasa dari network.
-const CACHE = 'kliki-mkt-shell-v58';
-const SHELL = ['./', 'index.html', 'styles.css?v=54', 'tokens.css?v=54', 'base.css?v=54', 'js/config.js?v=54', 'js/data.js?v=54', 'js/app.js?v=54', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/logo-white.png'];
+const CACHE = 'kliki-mkt-shell-v59';
+const SHELL = ['./', 'index.html', 'styles.css?v=55', 'tokens.css?v=55', 'base.css?v=55', 'js/config.js?v=55', 'js/data.js?v=55', 'js/app.js?v=55', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/logo-white.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith('kliki-mkt-') && k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
