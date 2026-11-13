@@ -3,8 +3,8 @@
  * nav: kept · signature: kept · states: hover, focus, active, disabled, loading, empty, error
  * axes: light/grotesk-sans/chromatic-blue · posture: kept · contrast: pass · v2.0.0 */
 /* Hallmark · pre-emit critique: P3 H3 E3 S3 R3 V3 · weakest: R, the category bands stay coloured so the meeting finds Phone, Repair and CC at a glance */
-@import url("./tokens.css?v=49");
-@import url("./base.css?v=49");
+@import url("./tokens.css?v=50");
+@import url("./base.css?v=50");
 /* KLIKI Marketing Dashboard — v11 (restyle: brand KLIKI, Inter, permukaan rata) */
 :root {
   color-scheme: light;
@@ -1251,9 +1251,10 @@ a.ct-item:hover, a.ct-first:hover { border-color: var(--bar-soft); }
 
 
 /* ==================================================
+/* titik hijau tanda data live (badge Hari x/y & kaki panel) */
+.live-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #34D399; box-shadow: 0 0 0 3px rgba(52,211,153,.2); flex: none; }
+
 /* ---------- sembunyi / tunjuk panel kiri (tablet & desktop) ---------- */
-.live-pill .live-dot { width: 8px; height: 8px; border-radius: 50%; background: #34D399; box-shadow: 0 0 0 3px rgba(52,211,153,.2); flex: none; }
-.live-pill { display: none; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border-radius: 999px; font-size: 13px; font-weight: 600; color: #34D399; background: rgba(52,211,153,.1); border: 1px solid rgba(52,211,153,.3); white-space: nowrap; }
 .side-toggle { display: none; }
 @media (min-width: 768px) {
   .side-toggle { display: grid; }
@@ -1261,7 +1262,6 @@ a.ct-item:hover, a.ct-first:hover { border-color: var(--bar-soft); }
   .main-col { transition: margin-left .25s ease; }
   .app.side-hidden .side { transform: translateX(-100%); visibility: hidden; }
   .app.side-hidden .main-col { margin-left: 0; }
-  .app.side-hidden .live-pill { display: inline-flex; }
-  .app.side-hidden .st-arrow { transform: scaleX(-1); transform-origin: 14.25px 12px; }
+  .app.side-hidden   .app.side-hidden .st-arrow { transform: scaleX(-1); transform-origin: 14.25px 12px; }
 }
 @media (prefers-reduced-motion: reduce) { .side, .main-col { transition: none !important; } }
