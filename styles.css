@@ -3,8 +3,8 @@
  * nav: kept · signature: kept · states: hover, focus, active, disabled, loading, empty, error
  * axes: light/grotesk-sans/chromatic-blue · posture: kept · contrast: pass · v2.0.0 */
 /* Hallmark · pre-emit critique: P3 H3 E3 S3 R3 V3 · weakest: R, the category bands stay coloured so the meeting finds Phone, Repair and CC at a glance */
-@import url("./tokens.css?v=50");
-@import url("./base.css?v=50");
+@import url("./tokens.css?v=51");
+@import url("./base.css?v=51");
 /* KLIKI Marketing Dashboard — v11 (restyle: brand KLIKI, Inter, permukaan rata) */
 :root {
   color-scheme: light;
@@ -1265,3 +1265,19 @@ a.ct-item:hover, a.ct-first:hover { border-color: var(--bar-soft); }
   .app.side-hidden   .app.side-hidden .st-arrow { transform: scaleX(-1); transform-origin: 14.25px 12px; }
 }
 @media (prefers-reduced-motion: reduce) { .side, .main-col { transition: none !important; } }
+
+/* ---------- label tajuk huruf besar (Overview & kad kategori) ---------- */
+.ov-eb { text-transform: uppercase; letter-spacing: .1em; }
+.oc-gl { font-size: 12px; letter-spacing: .07em; text-transform: uppercase; }
+.ov-all-i { align-items: center; }
+.ov-all-i span { font-size: 13px; letter-spacing: .07em; text-transform: uppercase; opacity: .85; }
+.ov-mt .oc-gl { font-size: 12px; }
+
+/* mobile: semua isi kad hero di tengah */
+@media (max-width: 560px) {
+  .ov-all-i { flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: var(--space-3xs); }
+  .ov-all-i span { font-size: 12px; }
+  .ov-mt { align-items: center; text-align: center; }
+  .ov-mt .ov-seg { align-self: stretch; }
+  .ov-mt .ov-mf, .ov-mt .ov-segl { justify-content: center; }
+}
