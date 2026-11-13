@@ -941,8 +941,8 @@
         <div class="an-km">${momTxt || '<span class="tp na">—</span>'}</div><div class="an-ks">${chipK(k)}</div></li>`;
     };
     const blk = (eb, title, list, sub) => list.length ? secHead(eb, `${title} <span class="an-n">${list.length}</span>`, sub) + `<div class="card an-list"><div class="an-hd"><span></span><span>KPI</span><span>Actual / target</span><span>vs ${prevLbl}</span><span>Status</span></div><ul>${list.map(krow).join('')}</ul></div>` : '';
-    h += blk('Perlu tindakan', live ? 'KPI ketinggalan' : 'KPI gagal capai', sc.miss, 'Disusun ikut jurang terbesar dulu.');
     h += blk('Prestasi baik', live ? 'KPI on track' : 'KPI capai target', sc.hit);
+    h += blk('Perlu tindakan', live ? 'KPI ketinggalan' : 'KPI gagal capai', sc.miss, 'Disusun ikut jurang terbesar dulu.');
     if (nN) {
       const byG = {};
       for (const k of sc.na) (byG[k.group] = byG[k.group] || []).push(k.label);
