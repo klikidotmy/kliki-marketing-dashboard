@@ -914,7 +914,25 @@
         <p>${n ? Math.round(100 * nH / n) : 0}% KPI ${live ? 'on track' : 'capai target'}${nM ? `, ${nM} perlu tindakan` : ''}</p></div>
       ${tileA('good', nH, live ? 'On track' : 'Capai target', 'KPI hijau')}${tileA('bad', nM, live ? 'Ketinggalan' : 'Gagal capai', 'Jurang terbesar disenarai dulu')}${tileA('na', nN, 'Tiada data', 'Tak dikira sebagai 0')}</div>`;
 
-    // ---- 2. Insights + perubahan ----
+    // ---- 2. Senarai KPI ----
+    const GI = { Content: 'C', TikTok: 'TT', 'Linktree & WhatsApp': 'LT', 'Leads & Walk-in': 'LW' };
+    const krow = k => {
+      const st = k.status, pct = k.floor ? null : st.pct, w = pct == null ? 0 : Math.min(100, pct);
+      const tg = k.floor ? `≥ ${fmt(k.target)}` : fmtVal(k.target, k.unit);
+      const momTxt = k.floor || (k.nowN != null && k.nowN < 0) ? cmp(k, k.prev, '') : momPill(k.mom);
+      return `<li class="an-k"><span class="an-g">${GI[k.group] || '•'}</span>
+        <div class="an-kn"><b>${esc(k.label)}</b><small>${esc(k.group || '')}</small></div>
+        <div class="an-kp"><div class="an-kv"><b>${fmtVal(k.actual, k.unit)}</b><small>/ ${tg}</small><span class="an-pc ${st.level}">${pct == null ? '—' : Math.round(pct) + '%'}</span></div><div class="op-bar"><i class="${st.level}" style="width:${w.toFixed(0)}%"></i></div></div>
+        <div class="an-km">${momTxt || '<span class="tp na">—</span>'}</div><div class="an-ks">${chipK(k)}</div></li>`;
+    };
+    const blk = (eb, title, list, sub) => list.length ? secHead(eb, `${title} <span class="an-n">${list.length}</span>`, sub) + `<div class="card an-list"><div class="an-hd"><span></span><span>KPI</span><span>Actual / target</span><span>vs ${prevLbl}</span><span>Status</span></div><ul>${list.map(krow).join('')}</ul></div>` : '';
+    // Ketinggalan dipecah ikut warna progress: kuning (80–99% / naik) dulu, merah (jauh) kemudian
+    const missW = sc.miss.filter(k => k.status.level === 'warn'), missB = sc.miss.filter(k => k.status.level !== 'warn');
+    h += blk('Prestasi baik', live ? 'KPI on track' : 'KPI capai target', sc.hit);
+    h += blk('Hampir atau sedang naik', live ? 'KPI perlu dikejar' : 'KPI hampir capai / naik', missW, '80–99% dari target' + (live ? ' ikut kadar hari' : '') + ', atau bawah target tapi naik vs ' + prevLbl + '. Jurang terbesar di atas.');
+    h += blk('Perlu tindakan', live ? 'KPI jauh ketinggalan' : 'KPI gagal capai', missB, 'Bawah 80% dan tak naik. Jurang terbesar di atas.');
+
+    // ---- 4. Insights + perubahan ----
     const ins = KD.insights(state.ds, y, m), f = KD.funnel(state.ds, y, m);
     const act = f.weakest && ACT[f.weakest.id] ? `<div class="an-act"><span class="an-ai">→</span><div><b>Cadangan fokus: ${esc(f.weakest.label)}</b><p>${ACT[f.weakest.id]}</p></div></div>` : '';
     const withMom = sc.list.filter(k => k.mom != null && Number.isFinite(k.mom) && !k.floor);
@@ -929,20 +947,6 @@
         <div class="an-cols"><div><div class="an-ch up">Naik paling banyak</div>${mv(up, 'up')}</div><div><div class="an-ch dn">Turun paling banyak</div>${mv(down, 'dn')}</div></div></div>
     </div>`;
 
-    // ---- 3. Senarai KPI ----
-    const GI = { Content: 'C', TikTok: 'TT', 'Linktree & WhatsApp': 'LT', 'Leads & Walk-in': 'LW' };
-    const krow = k => {
-      const st = k.status, pct = k.floor ? null : st.pct, w = pct == null ? 0 : Math.min(100, pct);
-      const tg = k.floor ? `≥ ${fmt(k.target)}` : fmtVal(k.target, k.unit);
-      const momTxt = k.floor || (k.nowN != null && k.nowN < 0) ? cmp(k, k.prev, '') : momPill(k.mom);
-      return `<li class="an-k"><span class="an-g">${GI[k.group] || '•'}</span>
-        <div class="an-kn"><b>${esc(k.label)}</b><small>${esc(k.group || '')}</small></div>
-        <div class="an-kp"><div class="an-kv"><b>${fmtVal(k.actual, k.unit)}</b><small>/ ${tg}</small><span class="an-pc ${st.level}">${pct == null ? '—' : Math.round(pct) + '%'}</span></div><div class="op-bar"><i class="${st.level}" style="width:${w.toFixed(0)}%"></i></div></div>
-        <div class="an-km">${momTxt || '<span class="tp na">—</span>'}</div><div class="an-ks">${chipK(k)}</div></li>`;
-    };
-    const blk = (eb, title, list, sub) => list.length ? secHead(eb, `${title} <span class="an-n">${list.length}</span>`, sub) + `<div class="card an-list"><div class="an-hd"><span></span><span>KPI</span><span>Actual / target</span><span>vs ${prevLbl}</span><span>Status</span></div><ul>${list.map(krow).join('')}</ul></div>` : '';
-    h += blk('Prestasi baik', live ? 'KPI on track' : 'KPI capai target', sc.hit);
-    h += blk('Perlu tindakan', live ? 'KPI ketinggalan' : 'KPI gagal capai', sc.miss, 'Disusun ikut jurang terbesar dulu.');
     if (nN) {
       const byG = {};
       for (const k of sc.na) (byG[k.group] = byG[k.group] || []).push(k.label);
