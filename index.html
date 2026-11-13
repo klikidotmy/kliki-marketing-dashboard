@@ -16,11 +16,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=47">
+  <link rel="stylesheet" href="styles.css?v=48">
 </head>
 <body>
   <div class="app">
-    <aside class="side" aria-label="Navigasi utama">
+  <script>try{if(localStorage.getItem('kliki-mkt-side')==='hidden')document.currentScript.parentNode.classList.add('side-hidden')}catch(e){}</script>
+    <aside class="side" id="side-nav" aria-label="Navigasi utama">
       <div class="side-brand">
         <img class="logo" src="icons/logo-white.png" alt="KLIKI" width="98" height="28">
         <span class="side-tag">Marketing</span>
@@ -62,6 +63,9 @@
     <div class="main-col">
       <header class="top">
         <div class="brand">
+          <button id="side-toggle" class="icon-btn side-toggle" aria-label="Sembunyi panel kiri" aria-expanded="true" aria-controls="side-nav" title="Sembunyi panel ( [ )">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M9.5 4.5v15" stroke="currentColor" stroke-width="1.8"/><path class="st-arrow" d="M15.5 9.5L13 12l2.5 2.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
           <img class="logo m-logo" src="icons/logo-white.png" alt="KLIKI" width="98" height="28">
           <div class="ttl">
             <h1 id="page-title">Overview: Company Marketing</h1>
@@ -93,8 +97,8 @@
 
   <div id="tip" class="tip" role="tooltip" hidden></div>
 
-  <script src="js/config.js?v=47"></script>
-  <script src="js/data.js?v=47"></script>
-  <script src="js/app.js?v=47"></script>
+  <script src="js/config.js?v=48"></script>
+  <script src="js/data.js?v=48"></script>
+  <script src="js/app.js?v=48"></script>
 </body>
 </html>

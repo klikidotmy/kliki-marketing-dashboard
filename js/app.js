@@ -1059,6 +1059,26 @@
   document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
     state.tab = b.dataset.tab; localSet('kliki-mkt-tab', state.tab); render(); scrollTo(0, 0);
   }));
+  // Sembunyi / tunjuk panel kiri; ingat pilihan dalam browser ni
+  const appEl = document.querySelector('.app'), sideBtn = $('#side-toggle');
+  function setSide(hidden, save) {
+    appEl.classList.toggle('side-hidden', hidden);
+    sideBtn.setAttribute('aria-expanded', String(!hidden));
+    const lbl = hidden ? 'Tunjuk panel kiri' : 'Sembunyi panel kiri';
+    sideBtn.setAttribute('aria-label', lbl); sideBtn.title = lbl + ' ( [ )';
+    if (save) localSet('kliki-mkt-side', hidden ? 'hidden' : 'shown');
+  }
+  setSide(appEl.classList.contains('side-hidden'), false);
+  sideBtn.addEventListener('click', () => setSide(!appEl.classList.contains('side-hidden'), true));
+  document.addEventListener('keydown', e => {
+    if (e.key !== '[' || e.metaKey || e.ctrlKey || e.altKey || innerWidth < 768) return;
+    if (e.target.closest('input, textarea, select, [contenteditable]')) return;
+    sideBtn.click();
+  });
+  // lebar kandungan berubah: lukis semula chart lepas animasi
+  document.querySelector('.main-col').addEventListener('transitionend', e => {
+    if (e.propertyName === 'margin-left' && e.target.classList.contains('main-col') && state.ds) render();
+  });
   // Lukis semula chart bila lebar berubah ketara (putar phone, ubah saiz tetingkap)
   let lastW = innerWidth, rT;
   addEventListener('resize', () => {
