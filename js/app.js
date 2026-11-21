@@ -484,6 +484,13 @@
     h += `<div class="pair tpair">`;
     h += card('TikTok', 'Views TikTok', meta('tt_views'), tChart(rows, [{ k: 'tt_views', n: 'Views', ...BL }], { w: half, hl: true, target: T.tiktokViews, aria: 'Views TikTok bulanan' }));
     h += card('TikTok', 'Net followers', meta('tt_netGrowth'), tChart(rows, [{ k: 'tt_netGrowth', n: 'Net', ...BL }], { w: half, hl: true, aria: 'Net followers bulanan' }), `Oren = followers berkurang. Had bawah ${fmt(T.netFollowersFloor)}.`);
+    if (rows.some(r => r.th_views != null || r.tg_views != null)) {
+      const TH = { c1: '#8A93A1', c2: '#3B424D' }, TG = { c1: '#6CC6F2', c2: '#1B7DB5' };
+      h += card('Threads', 'Views Threads', meta('th_views'), tChart(rows, [{ k: 'th_views', n: 'Views', ...TH }], { w: half, hl: true, aria: 'Views Threads bulanan' }), 'Data bermula Okt 2026.');
+      h += card('Telegram', 'Views Telegram', meta('tg_views'), tChart(rows, [{ k: 'tg_views', n: 'Views', ...TG }], { w: half, hl: true, aria: 'Views Telegram bulanan' }), 'Data bermula Okt 2026.');
+      h += card('Threads', 'Net followers Threads', meta('th_netFollowers'), tChart(rows, [{ k: 'th_netFollowers', n: 'Net', ...TH }], { w: half, hl: true, aria: 'Net followers Threads bulanan' }));
+      h += card('Telegram', 'Net growth Telegram', meta('tg_netGrowth'), tChart(rows, [{ k: 'tg_netGrowth', n: 'Net', ...TG }], { w: half, hl: true, aria: 'Net growth Telegram bulanan' }));
+    }
     h += card('Kedai', 'Lead (4 outlet)', meta('lead_all'), tChart(rows, [{ k: 'lead_all', n: 'Lead', ...NV }], { w: half, hl: true, target: tgLead, aria: 'Lead bulanan' }));
     h += card('Kedai', 'Walk-in (4 outlet)', meta('walk_all'), tChart(rows, [{ k: 'walk_all', n: 'Walk-in', ...NV }], { w: half, hl: true, target: tgWalk, aria: 'Walk-in bulanan' }));
     h += `</div>`;
@@ -493,11 +500,11 @@
       const v = r[k], p = i > 0 ? rows[i - 1][k] : null, d = mom(v, p);
       return `<td><b>${fmt(v)}</b>${d == null || k === 'tt_netGrowth' ? '' : `<span class="tdl ${d >= 0 ? 'up' : 'dn'}">${d >= 0 ? '▲' : '▼'}${Math.abs(d) >= 999 ? '>999' : Math.abs(d).toFixed(0)}%</span>`}</td>`;
     };
-    h += `<div class="op-head sm"><div><span class="cf-eyebrow">Butiran</span><h2 class="op-h">Jadual bulanan</h2></div></div><div class="card ttable"><div class="tbl-wrap"><table><thead><tr><th>Bulan</th><th>View content</th><th>TikTok</th><th>Net fol.</th><th>FB</th><th>IG</th><th>YT</th><th>Lead</th><th>Walk-in</th></tr></thead><tbody>`;
+    h += `<div class="op-head sm"><div><span class="cf-eyebrow">Butiran</span><h2 class="op-h">Jadual bulanan</h2></div></div><div class="card ttable"><div class="tbl-wrap"><table><thead><tr><th>Bulan</th><th>View content</th><th>TikTok</th><th>Net fol.</th><th>FB</th><th>IG</th><th>YT</th><th>Threads</th><th>Telegram</th><th>Lead</th><th>Walk-in</th></tr></thead><tbody>`;
     rows.map((r, i) => [r, i]).reverse().forEach(([r, i]) => {
-      h += `<tr class="${r._hl ? 'on' : ''}"><td class="tm">${r._full}${r._dim ? '<small>separa</small>' : ''}</td>${cell(r, 'allV', i)}${cell(r, 'tt_views', i)}${cell(r, 'tt_netGrowth', i)}${cell(r, 'fb_views', i)}${cell(r, 'ig_views', i)}${cell(r, 'yt_views', i)}${cell(r, 'lead_all', i)}${cell(r, 'walk_all', i)}</tr>`;
+      h += `<tr class="${r._hl ? 'on' : ''}"><td class="tm">${r._full}${r._dim ? '<small>separa</small>' : ''}</td>${cell(r, 'allV', i)}${cell(r, 'tt_views', i)}${cell(r, 'tt_netGrowth', i)}${cell(r, 'fb_views', i)}${cell(r, 'ig_views', i)}${cell(r, 'yt_views', i)}${cell(r, 'th_views', i)}${cell(r, 'tg_views', i)}${cell(r, 'lead_all', i)}${cell(r, 'walk_all', i)}</tr>`;
     });
-    h += `</tbody></table></div></div><div class="chart-cap">▲▼ = beza vs bulan sebelumnya. Lead & Walk-in dari MASTER SHEET (mirror). Views FB/IG/YouTube dari tab Insight. YouTube bermula 24 Okt 2025.</div>`;
+    h += `</tbody></table></div></div><div class="chart-cap">▲▼ = beza vs bulan sebelumnya. Lead & Walk-in dari MASTER SHEET (mirror). Views TikTok/FB/IG/YouTube dari tab TikTok, Facebook, Instagram, Youtube. YouTube bermula 24 Okt 2025. Threads & Telegram (mula Okt 2026) tidak masuk View content.</div>`;
     return h;
   }
 
@@ -627,7 +634,7 @@
     const S = id => sc.list.find(k => k.id === id);
     const K = KD.kpis(state.ds, y, m);
     const cc = KD.companyCompare(state.ds, y, m), co = cc.cur;
-    const P = id => co.plats.find(p => p.id === id);
+    const P = id => co.all.find(p => p.id === id);
     const LC = KD.leadCategories(state.ds, y, m);
     const mc = KD.monthCore(state.ds, y, m);
     const fullN = n => n == null ? '—' : Math.round(n).toLocaleString('en-MY');
@@ -707,12 +714,14 @@
     }
 
     // ---- 4. Audience & hasil ----
-    const PCL = { tiktok: '#046AD8', instagram: '#7B5CF5', facebook: '#1FB6C9', youtube: '#E0262B' };
+    const PCL = { tiktok: '#046AD8', instagram: '#7B5CF5', facebook: '#1FB6C9', youtube: '#E0262B', threads: '#5B6472', telegram: '#229ED9' };
     const months = [];
     { let yy = y, mm = m; for (let i = 0; i < 6; i++) { months.unshift([yy, mm]); [yy, mm] = KD.prevYM(yy, mm); } }
     const hist = months.map(([yy, mm]) => { const cp = KD.company(state.ds, yy, mm), mcx = KD.monthCore(state.ds, yy, mm); return { views: cp.views, engagement: cp.engagement, newFollowers: cp.newFollowers, wa: mcx.v.wa }; });
     const split = k => { const t = co.plats.reduce((a, p) => a + (p[k] || 0), 0); return t ? `<div class="ov-split">${co.plats.filter(p => p[k]).map(p => `<i style="flex:${p[k]};background:${PCL[p.id]}" data-tip="${esc(`${p.name}: ${fmt(p[k])} (${Math.round(100 * p[k] / t)}%)`)}"></i>`).join('')}</div>` : ''; };
-    const prow = (id, val, note = '') => `<li><span class="ov-pd" style="background:${PCL[id]}"></span><span class="ov-pn">${P(id).name}</span><span class="ov-pv">${val}</span>${note ? `<small>${note}</small>` : ''}</li>`;
+    const prow = (id, val, note = '') => `<li${P(id).extra ? ' class="ov-ex"' : ''}><span class="ov-pd" style="background:${PCL[id]}"></span><span class="ov-pn">${P(id).name}</span><span class="ov-pv">${val}</span>${note ? `<small>${note}</small>` : ''}</li>`;
+    // Threads & Telegram: baris tambahan di bawah, tidak masuk jumlah (CFG.extraInTotal)
+    const exRows = k => co.extra.filter(p => p.days).map(p => prow(p.id, fmt(p[k]), 'tak masuk jumlah')).join('');
     const AIC = {
       views: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
       eng: '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
@@ -727,9 +736,9 @@
     const yt = P('youtube');
     h += secHead('Level Company, TikTok, Instagram, Facebook, YouTube', 'Audience & hasil', `▲▼ vs ${prevLbl}, dinormalkan ikut hari data, garis = 6 bulan terakhir`);
     h += `<div class="ov-aud">`;
-    h += aCard('views', 'Total views', fmt(co.views), momPill(cc.ch('views')), split('views') + `<ul class="ov-pl">${co.plats.map(p => prow(p.id, fmt(p.views), p.id === 'tiktok' && p.views != null ? `${pctN(p.views, T.tiktokViews)}% target 4M` : '')).join('')}</ul>`, '', 'views');
-    h += aCard('eng', 'Total engagement', fmt(co.engagement), momPill(cc.ch('engagement')), split('engagement') + `<ul class="ov-pl">${co.plats.map(p => prow(p.id, fmt(p.engagement), p.id === 'tiktok' && tt.engagement != null ? `${pctN(tt.engagement, T.likes + T.comments + T.shares)}% target` : '')).join('')}</ul>`, '', 'engagement');
-    h += aCard('fol', 'Follower baru', fmt(co.newFollowers), momPill(cc.ch('newFollowers')), split('newFollowers') + `<ul class="ov-pl">${co.plats.map(p => prow(p.id, fmt(p.newFollowers))).join('')}</ul>`,
+    h += aCard('views', 'Total views', fmt(co.views), momPill(cc.ch('views')), split('views') + `<ul class="ov-pl">${co.plats.map(p => prow(p.id, fmt(p.views), p.id === 'tiktok' && p.views != null ? `${pctN(p.views, T.tiktokViews)}% target 4M` : '')).join('')}${exRows('views')}</ul>`, '', 'views');
+    h += aCard('eng', 'Total engagement', fmt(co.engagement), momPill(cc.ch('engagement')), split('engagement') + `<ul class="ov-pl">${co.plats.map(p => prow(p.id, fmt(p.engagement), p.id === 'tiktok' && tt.engagement != null ? `${pctN(tt.engagement, T.likes + T.comments + T.shares)}% target` : '')).join('')}${exRows('engagement')}</ul>`, '', 'engagement');
+    h += aCard('fol', 'Follower baru', fmt(co.newFollowers), momPill(cc.ch('newFollowers')), split('newFollowers') + `<ul class="ov-pl">${co.plats.map(p => prow(p.id, fmt(p.newFollowers))).join('')}${exRows('newFollowers')}</ul>`,
       `TikTok net <b class="${(tt.netFollowers || 0) < T.netFollowersFloor ? 'neg' : ''}">${tt.netFollowers == null ? '—' : (tt.netFollowers > 0 ? '+' : '') + fmt(tt.netFollowers)}</b>, had ${fmt(T.netFollowersFloor)}${yt && yt.netFollowers != null ? `, YT net <b class="${yt.netFollowers < 0 ? 'neg' : ''}">${(yt.netFollowers > 0 ? '+' : '') + fmt(yt.netFollowers)}</b>` : ''}`, 'newFollowers');
     h += aCard('wa', 'Klik WhatsApp', fmt(waAll), K.wa.actual == null ? '' : momPill(K.wa.mom),
       `<ul class="ov-wl"><li><span>4 outlet</span><b>${fmt(K.wa.actual)}</b><small>${K.wa.actual == null ? 'belum diisi' : pctN(K.wa.actual, K.wa.target) + '% target'}</small></li><li><span>Online Postage, HQ</span><b>${fmt(mc.v.waOnline)}</b></li><li><span>Buyback, HQ</span><b>${fmt(mc.v.waBuyback)}</b></li><li><span>Lead / klik outlet</span><b>${K.wa.actual ? (L.actual / K.wa.actual).toFixed(1) : '—'}</b></li></ul>`, '', 'wa');
@@ -828,7 +837,16 @@
 
     // ---- 2. Prestasi platform ----
     const cc = KD.companyCompare(state.ds, y, m), co = cc.cur, dim = daysIn(y, m);
-    const PC = { tiktok: ['#0B1530', '#046AD8', 'TT'], instagram: ['#6A47EE', '#E0457B', 'IG'], facebook: ['#1877F2', '#4FA3FF', 'FB'], youtube: ['#B3131B', '#FF3B3B', 'YT'] };
+    const PC = { tiktok: ['#0B1530', '#046AD8', 'TT'], instagram: ['#6A47EE', '#E0457B', 'IG'], facebook: ['#1877F2', '#4FA3FF', 'FB'], youtube: ['#B3131B', '#FF3B3B', 'YT'], threads: ['#101010', '#5B6472', '@'], telegram: ['#1B7DB5', '#2AABEE', 'TG'] };
+    const sgn = v => v == null ? '—' : (v > 0 ? '+' : '') + fmt(v);
+    const exCard = p => {
+      const [c1, c2, ab] = PC[p.id];
+      return `<div class="ct-pc-card ct-ex"><div class="ct-ph" style="--c1:${c1};--c2:${c2}"><span class="ct-pa">${ab}</span><span class="ct-pn"><b>${p.name}</b><span>${p.days}/${dim} hari data</span></span><span class="ct-sh">${p.followers == null ? '—' : fmt(p.followers)}<small>followers</small></span></div>
+        <div class="ct-pb"><span class="ct-pl">Views</span><div class="ct-pv"><b>${fmt(p.views)}</b>${momPill(cc.ch('views', p.id))}</div>
+        <div class="ct-ps">${p.id === 'telegram'
+          ? `<div><span>Joined</span><b>${fmt(p.newFollowers)}</b></div><div><span>Net growth</span><b>${sgn(p.netFollowers)}</b></div><div><span>Shares + reactions</span><b>${fmt(p.engagement)}</b>${momPill(cc.ch('engagement', p.id))}</div>`
+          : `<div><span>Follow baru</span><b>${fmt(p.newFollowers)}</b>${momPill(cc.ch('newFollowers', p.id))}</div><div><span>Unfollow</span><b>${fmt(p.lostFollowers)}</b></div><div><span>Net followers</span><b>${sgn(p.netFollowers)}</b></div>`}</div></div></div>`;
+    };
     h += secHead('Level Company, insight akaun', 'Prestasi platform', `Views, reach, engagement dan follower baru, dinormalkan ikut hari data untuk ▲▼`);
     h += `<div class="ct-plats">${co.plats.map(p => {
       const [c1, c2, ab] = PC[p.id] || ['#046AD8', '#6E9BFF', '?'];
@@ -839,9 +857,10 @@
           ? `<div><span>Watch time</span><b>${p.watchHours == null ? '—' : fmt(p.watchHours) + ' j'}</b>${momPill(cc.ch('watchHours', p.id))}</div><div><span>CTR thumbnail</span><b>${p.ctr == null ? '—' : p.ctr.toFixed(1) + '%'}</b></div><div><span>Subscriber baru</span><b>${fmt(p.newFollowers)}</b></div>`
           : `<div><span>Reach</span><b>${fmt(p.reach)}</b></div><div><span>Engagement</span><b>${fmt(p.engagement)}</b>${momPill(cc.ch('engagement', p.id))}</div><div><span>Follower baru</span><b>${fmt(p.newFollowers)}</b></div>`}</div></div></div>`;
     }).join('')}
+      ${co.extra.filter(p => p.days).map(exCard).join('')}
       <div class="ct-pc-card ct-tot"><div class="ct-pb"><span class="ct-pl">Jumlah ${co.plats.filter(p => p.views != null).length} platform</span><div class="ct-pv"><b>${fmt(co.views)}</b>${momPill(cc.ch('views'))}</div>
         <div class="ct-ps"><div><span>Engagement</span><b>${fmt(co.engagement)}</b>${momPill(cc.ch('engagement'))}</div><div><span>Follower baru</span><b>${fmt(co.newFollowers)}</b>${momPill(cc.ch('newFollowers'))}</div></div></div></div></div>
-      <div class="chart-cap">Engagement TikTok = Likes + Comments + Shares; Facebook & Instagram = Interactions; YouTube tiada data engagement (tak masuk jumlah engagement). Follower baru YouTube = subscriber baru. Reach tak dijumlahkan sebab orang sama boleh dikira di beberapa platform.</div>`;
+      <div class="chart-cap">Engagement TikTok = Likes + Comments + Shares; Facebook & Instagram = Interactions; YouTube tiada data engagement (tak masuk jumlah engagement). Follower baru YouTube = subscriber baru. Threads & Telegram (tab Threads / Telegram, mula Okt 2026) dipapar berasingan dan tidak masuk jumlah; engagement Telegram = shares + reactions, followers = jumlah hujung bulan. Reach tak dijumlahkan sebab orang sama boleh dikira di beberapa platform.</div>`;
 
     // ---- 3. Trend views bulanan ----
     const series = KD.monthlySeries(state.ds).filter(r => r.key <= key).slice(-12).map(r => {
@@ -898,7 +917,7 @@
   // =========================================================
   // MARKETING ANALYSIS
   // =========================================================
-  const NA_WHY = { 'Linktree & WhatsApp': 'LINKTREE belum diisi untuk bulan ini (dikemas kini sebulan sekali)', 'Leads & Walk-in': 'Tab Leads / Walk-in belum ada data bulan ini', TikTok: 'Tiada data TikTok Insight bulan ini', Content: 'Tab per-post tiada data' };
+  const NA_WHY = { 'Linktree & WhatsApp': 'LINKTREE belum diisi untuk bulan ini (dikemas kini sebulan sekali)', 'Leads & Walk-in': 'Tab Leads / Walk-in belum ada data bulan ini', TikTok: 'Tiada data tab Tiktok bulan ini', Content: 'Tab per-post tiada data' };
   async function viewAnalysis(key) {
     const [y, m] = parseKey(key);
     const { c, pc, cPace, live } = await monthContent(key);
@@ -975,7 +994,7 @@
   // Status data: dalam menu ⓘ, bukan di setiap page
   function fillInfo() {
     const ds = state.ds; if (!ds) return;
-    const names = { tiktok: 'TikTok Insight', facebook: 'Facebook Insight', instagram: 'Instagram Insight', youtube: 'Youtube Insight', supply: 'Supply Video V2', beforeAfter: 'Before/After', customer: 'Customer', leads: 'Leads', walkin: 'Walk-in', linktree: 'LINKTREE' };
+    const names = { tiktok: 'Tiktok', facebook: 'Facebook', instagram: 'Instagram', youtube: 'Youtube', threads: 'Threads', telegram: 'Telegram', supply: 'Supply Video V2', beforeAfter: 'Before/After', customer: 'Customer', leads: 'Leads', walkin: 'Walk-in', linktree: 'LINKTREE' };
     const li = Object.entries(names).map(([k, n]) => {
       const s = ds.sources[k]; if (!s) return '';
       return `<li><span class="${s.ok ? 'ok' : 'no'}">${s.ok ? '●' : '✕'}</span> ${n}: ${s.ok ? s.rows + ' baris' : esc(s.error)}</li>`;

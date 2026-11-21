@@ -6,7 +6,8 @@ Web app (PWA) untuk pantau prestasi marketing media sosial KLIKI. Data dibaca **
 
 | Sheet | Tab | Digunakan untuk |
 |---|---|---|
-| CONTENT SUBMIT | Tiktok Insight, Facebook Insight, Instagram Insight, Youtube Insight | Views, engagement, followers / subscribers harian |
+| CONTENT SUBMIT | Tiktok, Facebook, Instagram, Youtube (dulu "… Insight"; dibaca ikut gid, jadi tukar nama tab tak jejaskan) | Views, engagement, followers / subscribers harian |
+| CONTENT SUBMIT | Threads, Telegram (mula 01/10/2026; dibaca ikut nama tab, header disahkan) | Views, follow/unfollow, followers Threads; followers, joined/left, views, shares, reactions channel Telegram |
 | CONTENT SUBMIT | Supply Video V2, Customer, Before/After, Leads, Walk-in | KPI outlet |
 | REPORT CONTENT DATA | Tab bulanan (JAN'26 … OKT'26) | Data per-post: content, bucket, outlet, tier |
 | REPORT CONTENT DATA | LINKTREE | Klik WhatsApp, lokasi, Telegram, CTR (tahun 2026) |
@@ -48,9 +49,11 @@ Semua formula KPI ada dalam `js/data.js`. `js/app.js` hanya paparan.
 - **Funnel** ("Dari content ke kedai"): View content & Profile visit (TikTok + IG + FB) → Buka Linktree (unique) → Klik WhatsApp 4 outlet → Lead → Walk-in, dengan ratio setiap peringkat dan kotak Channel HQ (WA Online Postage, WA Buyback). Lebar bar tetap mengecil untuk visual, bukan ikut skala.
 - **Outlet, Trend**: drill-down.
 
-YouTube (tab `Youtube Insight`, mula 24/10/2025): View, Watch Time (hrs), Impressions, CTR (%), New / Lost / Net Subscribers, diisi dari export YouTube Studio → Advanced mode, breakdown **Date**. Views YouTube masuk jumlah View content; CTR bulanan = purata berpemberat ikut impressions; YouTube tiada reach & engagement dalam export jadi tak masuk jumlah engagement; follower baru YouTube = subscriber baru.
+YouTube (tab `Youtube`, mula 24/10/2025): View, Watch Time (hrs), Impressions, CTR (%), New / Lost / Net Subscribers, diisi dari export YouTube Studio → Advanced mode, breakdown **Date**. Views YouTube masuk jumlah View content; CTR bulanan = purata berpemberat ikut impressions; YouTube tiada reach & engagement dalam export jadi tak masuk jumlah engagement; follower baru YouTube = subscriber baru.
 
-Peraturan data: sel kosong = tiada data (bukan 0). Views per-post (tab bulanan) tidak dicampur dengan views Insight akaun. Engagement FB/IG = lajur Interactions (tiada pecahan like/comment/share). Net follower hanya untuk TikTok (FB/IG tiada data unfollow).
+Threads & Telegram (tab `Threads`, `Telegram`, mula 01/10/2026): dipapar sebagai platform tambahan (Overview, Content, Trend) tetapi **tidak masuk** jumlah views / engagement / follower baru semua platform, supaya jumlah kekal TikTok + FB + IG + YouTube (asas sasaran 6M). Tukar `extraInTotal: true` dalam `js/config.js` untuk campurkan. Followers = jumlah hujung bulan (nilai terakhir), bukan dijumlahkan. Engagement Telegram = Shares + Reactions; Threads tiada data engagement.
+
+Peraturan data: sel kosong = tiada data (bukan 0). Views per-post (tab bulanan) tidak dicampur dengan views akaun (tab platform). Engagement FB/IG = lajur Interactions (tiada pecahan like/comment/share). Net follower hanya untuk TikTok (FB/IG tiada data unfollow).
 
 ## Pasang di phone
 

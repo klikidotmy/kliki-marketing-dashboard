@@ -87,10 +87,36 @@
     return out;
   }
 
+  // Tab harian dibaca ikut NAMA header (bukan kedudukan kolum). Baris header = baris pertama yang kolum A = "Date".
+  // Header wajib tiada = ralat (contohnya gviz pulangkan tab pertama bila nama tab tak wujud).
+  const NAMED = {
+    threads: { views: 'views', follows: 'follows', unfollows: 'unfollows', netFollowers: 'net followers', followers: 'followers' },
+    telegram: { followers: 'followers', joined: 'joined', left: 'left', netGrowth: 'net growth', views: 'views', shares: 'shares', reactions: 'reactions' },
+  };
+  function parseNamed(rows, kind) {
+    const norm = h => String(h || '').trim().replace(/\s+/g, ' ').toLowerCase();
+    const hi = rows.findIndex(r => norm(r[0]) === 'date');
+    if (hi < 0) throw new Error('Header "Date" tiada (semak nama tab)');
+    const head = rows[hi].map(norm), map = NAMED[kind];
+    const col = Object.fromEntries(Object.entries(map).map(([k, h]) => [k, head.indexOf(h)]));
+    const miss = Object.entries(col).filter(([, i]) => i < 0).map(([k]) => map[k]);
+    if (miss.length) throw new Error(`Kolum tiada: ${miss.join(', ')}`);
+    const out = [];
+    for (const r of rows.slice(hi + 1)) {
+      const d = parseDate(r[0]); if (!d) continue;
+      const o = { date: d }; let any = false;
+      for (const [k, i] of Object.entries(col)) { const n = num(r[i]); o[k] = n; if (n !== null) any = true; }
+      if (any) out.push(o);
+    }
+    return out.sort((a, b) => (a.date.y - b.date.y) || (a.date.m - b.date.m) || (a.date.d - b.date.d));
+  }
+
   const KEYS = {
     tiktok: ['views', 'reach', 'profileViews', 'likes', 'shares', 'comments', 'websiteClicks', 'phoneClicks', 'leads', 'appDownload', 'netGrowth', 'newFollowers', 'lostFollowers'],
     meta: ['views', 'reach', 'visit', 'linkClick', 'interactions', 'follow'],
     youtube: ['views', 'watchHours', 'impressions', 'ctr', 'newSubs', 'lostSubs', 'netSubs'],
+    threads: ['views', 'follows', 'unfollows', 'netFollowers', 'followers'],
+    telegram: ['followers', 'joined', 'left', 'netGrowth', 'views', 'shares', 'reactions'],
     supply: ['KUL_P', 'KUL_R', 'AOR_P', 'AOR_R', 'SP_P', 'SP_R', 'PDG_P', 'PDG_R', 'HQ_P', 'HQ_T', 'HQ_R', 'Others'],
     beforeAfter: ['KUL', 'AOR', 'SP'],
     outlet4: ['KUL', 'AOR', 'SP', 'PDG'],
@@ -184,6 +210,8 @@
       ['facebook', S.contentSubmit, T.facebook, r => parseDaily(r, KEYS.meta)],
       ['instagram', S.contentSubmit, T.instagram, r => parseDaily(r, KEYS.meta)],
       ...(T.youtube ? [['youtube', S.contentSubmit, T.youtube, r => parseDaily(r, KEYS.youtube)]] : []),
+      ...(T.threads ? [['threads', S.contentSubmit, T.threads, r => parseNamed(r, 'threads')]] : []),
+      ...(T.telegram ? [['telegram', S.contentSubmit, T.telegram, r => parseNamed(r, 'telegram')]] : []),
       ['supply', S.contentSubmit, T.supply, r => parseDaily(r, KEYS.supply)],
       ['beforeAfter', S.contentSubmit, T.beforeAfter, r => parseDaily(r, KEYS.beforeAfter)],
       ['customer', S.contentSubmit, T.customer, r => parseDaily(r, KEYS.outlet4)],
@@ -324,7 +352,13 @@
     const youtube = agg(yt, KEYS.youtube); youtube.days = yt.length;
     const ytC = yt.filter(r => r.ctr != null && r.impressions);
     youtube.ctr = ytC.length ? sum(ytC, r => r.ctr * r.impressions) / sum(ytC, r => r.impressions) : null;
-    return { tiktok, facebook, instagram, youtube, daysInMonth: daysIn(y, m) };
+    // Threads & Telegram: Followers = jumlah follower hujung bulan (nilai terakhir), bukan dijumlahkan
+    const lastOf = (rows, k) => { for (let i = rows.length - 1; i >= 0; i--) if (rows[i][k] != null) return rows[i][k]; return null; };
+    const th = (ds.threads || []).filter(f).filter(r => r.views != null);
+    const threads = agg(th, KEYS.threads); threads.days = th.length; threads.followers = lastOf(th, 'followers');
+    const tg = (ds.telegram || []).filter(f).filter(r => r.views != null);
+    const telegram = agg(tg, KEYS.telegram); telegram.days = tg.length; telegram.followers = lastOf(tg, 'followers');
+    return { tiktok, facebook, instagram, youtube, threads, telegram, daysInMonth: daysIn(y, m) };
   }
 
   function contentStats(posts) {
@@ -416,6 +450,12 @@
     add('facebook', ['views', 'reach', 'interactions', 'follow'], 'fb_');
     add('instagram', ['views', 'reach', 'interactions', 'follow'], 'ig_');
     add('youtube', ['views', 'watchHours', 'impressions', 'newSubs', 'lostSubs', 'netSubs'], 'yt_');
+    add('threads', ['views', 'follows', 'unfollows', 'netFollowers'], 'th_');
+    add('telegram', ['views', 'joined', 'left', 'netGrowth', 'shares', 'reactions'], 'tg_');
+    // jumlah follower hujung bulan (nilai terakhir dalam bulan; data diisih ikut tarikh)
+    for (const [src, pre] of [['threads', 'th_'], ['telegram', 'tg_']]) for (const r of ds[src] || []) {
+      if (r.followers == null) continue; const o = by[ym(r.date.y, r.date.m)] || (by[ym(r.date.y, r.date.m)] = {}); o[pre + 'followers'] = r.followers;
+    }
     add('leads', KEYS.outlet4, 'lead_');
     add('walkin', KEYS.outlet4, 'walk_');
     return Object.keys(by).sort().map(k => ({ key: k, ...by[k] }));
@@ -630,8 +670,21 @@
         watchHours: yt && has ? c.watchHours : null, impressions: yt && has ? c.impressions : null, ctr: yt && has ? c.ctr : null,
       };
     });
-    const tot = k => { const v = plats.filter(p => p[k] != null); return v.length ? sum(v, p => p[k]) : null; };
-    return { plats, dim, views: tot('views'), engagement: tot('engagement'), newFollowers: tot('newFollowers'), reach: tot('reach') };
+    // Platform tambahan (Threads, Telegram): dipapar berasingan; masuk jumlah hanya jika CFG.extraInTotal = true
+    const ex = (id, name, c, map) => {
+      const has = c && c.days > 0, g = k => has && map[k] ? c[map[k]] : null;
+      const eng = !has || !map.eng ? null : map.eng.every(k => c[k] == null) ? null : sum(map.eng, k => c[k]);
+      return { id, name, extra: true, days: has ? c.days : 0, daysOf: Object.fromEntries(Object.entries(map).filter(([k]) => k !== 'eng').map(([k, src]) => [k, has ? c.daysOf[src] : 0]).concat([['engagement', has && map.eng ? c.daysOf[map.eng[0]] : 0]])),
+        views: g('views'), reach: null, engagement: eng, newFollowers: g('newFollowers'), lostFollowers: g('lostFollowers'), netFollowers: g('netFollowers'),
+        followers: has ? c.followers : null, shares: g('shares'), reactions: g('reactions') };
+    };
+    const extra = [
+      ex('threads', 'Threads', s.threads, { views: 'views', newFollowers: 'follows', lostFollowers: 'unfollows', netFollowers: 'netFollowers' }),
+      ex('telegram', 'Telegram', s.telegram, { views: 'views', newFollowers: 'joined', lostFollowers: 'left', netFollowers: 'netGrowth', shares: 'shares', reactions: 'reactions', eng: ['shares', 'reactions'] }),
+    ];
+    const inTot = CFG.extraInTotal ? plats.concat(extra) : plats;
+    const tot = k => { const v = inTot.filter(p => p[k] != null); return v.length ? sum(v, p => p[k]) : null; };
+    return { plats: CFG.extraInTotal ? inTot : plats, extra: CFG.extraInTotal ? [] : extra, all: plats.concat(extra), dim, views: tot('views'), engagement: tot('engagement'), newFollowers: tot('newFollowers'), reach: tot('reach') };
   }
 
   // Perubahan vs bulan lepas, dinormalkan ikut hari data (bulan separa boleh dibanding dengan bulan penuh)
@@ -639,7 +692,7 @@
     const cur = company(ds, y, m), [py, pm] = prevYM(y, m), prev = company(ds, py, pm);
     const nz = (p, k, dim) => { const d = p.daysOf[k]; return p[k] == null || !d ? null : p[k] * dim / d; };
     const ch = (k, id) => {
-      if (id) return change(nz(cur.plats.find(p => p.id === id), k, cur.dim), nz(prev.plats.find(p => p.id === id), k, prev.dim));
+      if (id) return change(nz(cur.all.find(p => p.id === id), k, cur.dim), nz(prev.all.find(p => p.id === id), k, prev.dim));
       // jumlah: hanya platform yang ada data di kedua-dua bulan
       let a = 0, b = 0, any = false;
       cur.plats.forEach((p, i) => { const x = nz(p, k, cur.dim), z = nz(prev.plats[i], k, prev.dim); if (x != null && z != null) { a += x; b += z; any = true; } });
@@ -798,7 +851,7 @@
     return out;
   }
 
-  const API = { leadCategories, leadPlan, leadProgress, leadDaily, opDays, parseLeadDetail, company, companyCompare, scorecard, kpis, funnel, insights, monthCore, prevYM, change, parseCSV, num, parseDate, parseDaily, parsePosts, parseLinktree, KEYS, loadAll, loadMonthPosts, monthsAvailable, social, contentStats, outletStats, monthlySeries, status, tierOf, ym, daysIn };
+  const API = { leadCategories, leadPlan, leadProgress, leadDaily, opDays, parseLeadDetail, company, companyCompare, scorecard, kpis, funnel, insights, monthCore, prevYM, change, parseCSV, num, parseDate, parseDaily, parsePosts, parseLinktree, parseNamed, KEYS, loadAll, loadMonthPosts, monthsAvailable, social, contentStats, outletStats, monthlySeries, status, tierOf, ym, daysIn };
   root.KD = API;
   if (typeof module !== 'undefined') module.exports = API;
 })(typeof window !== 'undefined' ? window : globalThis);
