@@ -24,12 +24,11 @@
       customer:    { gid: 1092329235, range: 'A1:E2000' },
       leads:       { gid: 1140900486, range: 'A1:E2000' },
       walkin:      { gid: 1368944537, range: 'A1:E2000' },
-      // Tab baru Nov 2026 (data mula 01/10/2026). Dibaca ikut NAMA tab; header disahkan (lihat KD.parseNamed),
-      // jadi jika nama tab bertukar, app beri amaran dan bukan tersalah baca tab lain. Tukar ke gid bila ada.
+      // Tab baru Nov 2026 (data mula 01/10/2026). Kolum dibaca ikut NAMA header (KD.parseNamed), bukan kedudukan.
       // Threads: Date, Views, Follows, Unfollows, Net Followers, Followers (jumlah follower hujung hari)
-      threads:     { sheet: 'Threads',  range: 'A1:F2000' },
+      threads:     { gid: 307219779, range: 'A1:F2000' },
       // Telegram (channel): Date, Followers, Joined, Left, Net Growth, Views, Shares, Reactions
-      telegram:    { sheet: 'Telegram', range: 'A1:H2000' },
+      telegram:    { gid: 54749228,  range: 'A1:H2000' },
     },
     // Threads & Telegram dipapar sebagai platform tambahan dan TIDAK masuk jumlah views/engagement/follower semua
     // platform (sasaran KPI 6M = TikTok + FB + IG + YouTube). Set true untuk campurkan dalam jumlah.

@@ -7,7 +7,7 @@ Web app (PWA) untuk pantau prestasi marketing media sosial KLIKI. Data dibaca **
 | Sheet | Tab | Digunakan untuk |
 |---|---|---|
 | CONTENT SUBMIT | Tiktok, Facebook, Instagram, Youtube (dulu "… Insight"; dibaca ikut gid, jadi tukar nama tab tak jejaskan) | Views, engagement, followers / subscribers harian |
-| CONTENT SUBMIT | Threads, Telegram (mula 01/10/2026; dibaca ikut nama tab, header disahkan) | Views, follow/unfollow, followers Threads; followers, joined/left, views, shares, reactions channel Telegram |
+| CONTENT SUBMIT | Threads, Telegram (mula 01/10/2026; gid 307219779 / 54749228, kolum dibaca ikut nama header) | Views, follow/unfollow, followers Threads; followers, joined/left, views, shares, reactions channel Telegram |
 | CONTENT SUBMIT | Supply Video V2, Customer, Before/After, Leads, Walk-in | KPI outlet |
 | REPORT CONTENT DATA | Tab bulanan (JAN'26 … OKT'26) | Data per-post: content, bucket, outlet, tier |
 | REPORT CONTENT DATA | LINKTREE | Klik WhatsApp, lokasi, Telegram, CTR (tahun 2026) |
