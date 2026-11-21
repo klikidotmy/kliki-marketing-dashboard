@@ -756,7 +756,7 @@
       <div class="card tcard"><div class="tc-h"><div><span class="cf-eyebrow">Dari data sebenar</span><h3>Key highlights</h3></div></div>
         ${hl.length ? `<ul class="ov-hl">${hl.map(i => `<li class="${i.kind}"><span class="ov-hi">${i.kind === 'good' ? '✓' : '!'}</span><div><b>${esc(i.title)}</b><p>${esc(i.text)}</p></div>${i.chip ? `<span class="ov-chip ${i.kind}">${esc(i.chip)}</span>` : ''}</li>`).join('')}</ul>` : '<div class="ct-emp">Belum cukup data untuk highlight.</div>'}</div>
     </div>`;
-    h += `<div class="chart-cap">Butiran setiap outlet di tab Outlet. Views per-post (tab bulanan) tak dicampur dengan views Insight akaun untuk elak double count.</div>`;
+    h += `<div class="chart-cap">Butiran setiap outlet di tab Outlet. Views per-post (tab bulanan) tak dicampur dengan views akaun (tab platform) untuk elak double count.</div>`;
     return h;
   }
 
