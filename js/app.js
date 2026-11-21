@@ -451,7 +451,8 @@
     const rows = all.map(r => {
       const [yy, mm] = parseKey(r.key), dim = daysIn(yy, mm);
       const ttd = r.tt_days || 0;
-      const allV = r.tt_views == null && r.fb_views == null && r.ig_views == null && r.yt_views == null ? null : (r.tt_views || 0) + (r.fb_views || 0) + (r.ig_views || 0) + (r.yt_views || 0);
+      const vk = ['tt_views', 'fb_views', 'ig_views', 'yt_views', ...(CFG.extraInTotal ? ['th_views', 'tg_views'] : [])];
+      const allV = vk.every(k => r[k] == null) ? null : vk.reduce((a, k) => a + (r[k] || 0), 0);
       return { ...r, _lab: MON[mm - 1], _full: monLabel(r.key), _hl: r.key === key, _dim: ttd > 0 && ttd < dim * 0.9, allV, lead_all: sumO(r, 'lead_'), walk_all: sumO(r, 'walk_') };
     });
     const cur = rows[rows.length - 1], prev = rows.length > 1 ? rows[rows.length - 2] : null;
@@ -475,12 +476,12 @@
 
     let h = `<div class="op-head"><div><span class="cf-eyebrow">Level Company, 12 bulan terakhir sehingga ${monLabel(key)}</span><h2 class="op-h">Trend bulanan</h2></div></div>`;
     pendingNote = `Perbandingan ${monLabel(key)} dengan ${prev ? prev._full : 'bulan lepas'}. Bulan pudar = data harian tak lengkap.`;
-    h += `<div class="tk-strip">${tile('View content', 'TikTok + IG + FB + YT', 'allV', { top: true })}${tile('TikTok views', 'Target ' + tl(T.tiktokViews), 'tt_views')}${tile('Lead', tgLead == null ? '4 outlet, target belum ditetapkan' : '4 outlet, target ' + fmt(tgLead), 'lead_all')}${tile('Walk-in', tgWalk == null ? '4 outlet, target belum ditetapkan' : '4 outlet, target ' + fmt(tgWalk), 'walk_all')}</div>`;
+    h += `<div class="tk-strip">${tile('View content', CFG.extraInTotal ? 'Semua 6 platform' : 'TikTok + IG + FB + YT', 'allV', { top: true })}${tile('TikTok views', 'Target ' + tl(T.tiktokViews), 'tt_views')}${tile('Lead', tgLead == null ? '4 outlet, target belum ditetapkan' : '4 outlet, target ' + fmt(tgLead), 'lead_all')}${tile('Walk-in', tgWalk == null ? '4 outlet, target belum ditetapkan' : '4 outlet, target ' + fmt(tgWalk), 'walk_all')}</div>`;
 
     h += flushNote();
     h += card('Semua platform', 'View content ikut platform', meta('allV'),
-      legend([['TikTok', '#046AD8'], ['Instagram', '#7B5CF5'], ['Facebook', '#1FB6C9'], ['YouTube', '#E0262B']]) +
-      tChart(rows, [{ k: 'tt_views', n: 'TikTok', ...BL }, { k: 'ig_views', n: 'IG', c1: '#9C84FF', c2: '#6A47EE' }, { k: 'fb_views', n: 'FB', c1: '#4FD3E0', c2: '#15A2B8' }, { k: 'yt_views', n: 'YT', c1: '#FF6B6B', c2: '#E0262B' }], { w: full, hl: true, aria: 'View content bulanan ikut platform' }));
+      legend([['TikTok', '#046AD8'], ['Instagram', '#7B5CF5'], ['Facebook', '#1FB6C9'], ['YouTube', '#E0262B'], ...(CFG.extraInTotal ? [['Threads', '#5B6472'], ['Telegram', '#229ED9']] : [])]) +
+      tChart(rows, [{ k: 'tt_views', n: 'TikTok', ...BL }, { k: 'ig_views', n: 'IG', c1: '#9C84FF', c2: '#6A47EE' }, { k: 'fb_views', n: 'FB', c1: '#4FD3E0', c2: '#15A2B8' }, { k: 'yt_views', n: 'YT', c1: '#FF6B6B', c2: '#E0262B' }, ...(CFG.extraInTotal ? [{ k: 'th_views', n: 'Threads', c1: '#8A93A1', c2: '#3B424D' }, { k: 'tg_views', n: 'Telegram', c1: '#6CC6F2', c2: '#1B7DB5' }] : [])], { w: full, hl: true, aria: 'View content bulanan ikut platform' }));
     h += `<div class="pair tpair">`;
     h += card('TikTok', 'Views TikTok', meta('tt_views'), tChart(rows, [{ k: 'tt_views', n: 'Views', ...BL }], { w: half, hl: true, target: T.tiktokViews, aria: 'Views TikTok bulanan' }));
     h += card('TikTok', 'Net followers', meta('tt_netGrowth'), tChart(rows, [{ k: 'tt_netGrowth', n: 'Net', ...BL }], { w: half, hl: true, aria: 'Net followers bulanan' }), `Oren = followers berkurang. Had bawah ${fmt(T.netFollowersFloor)}.`);
@@ -504,7 +505,7 @@
     rows.map((r, i) => [r, i]).reverse().forEach(([r, i]) => {
       h += `<tr class="${r._hl ? 'on' : ''}"><td class="tm">${r._full}${r._dim ? '<small>separa</small>' : ''}</td>${cell(r, 'allV', i)}${cell(r, 'tt_views', i)}${cell(r, 'tt_netGrowth', i)}${cell(r, 'fb_views', i)}${cell(r, 'ig_views', i)}${cell(r, 'yt_views', i)}${cell(r, 'th_views', i)}${cell(r, 'tg_views', i)}${cell(r, 'lead_all', i)}${cell(r, 'walk_all', i)}</tr>`;
     });
-    h += `</tbody></table></div></div><div class="chart-cap">▲▼ = beza vs bulan sebelumnya. Lead & Walk-in dari MASTER SHEET (mirror). Views TikTok/FB/IG/YouTube dari tab TikTok, Facebook, Instagram, Youtube. YouTube bermula 24 Okt 2025. Threads & Telegram (mula Okt 2026) tidak masuk View content.</div>`;
+    h += `</tbody></table></div></div><div class="chart-cap">▲▼ = beza vs bulan sebelumnya. Lead & Walk-in dari MASTER SHEET (mirror). Views TikTok/FB/IG/YouTube dari tab TikTok, Facebook, Instagram, Youtube. YouTube bermula 24 Okt 2025. Threads & Telegram (mula Okt 2026) masuk View content.</div>`;
     return h;
   }
 
@@ -665,7 +666,7 @@
       <div class="ov-hg">
         ${heroG('Lead ikut target', L)}
         ${heroG('Walk-in ikut target', Wk)}
-        <div class="ov-mt"><span class="oc-gl">View content</span><b>${fmt(co.views)}</b><small>TikTok + IG + FB + YT</small><div class="ov-mf">${momPill(cc.ch('views')) || ''}<em>TT ${fmt(P('tiktok').views)}/${fmt(T.tiktokViews)}</em></div></div>
+        <div class="ov-mt"><span class="oc-gl">View content</span><b>${fmt(co.views)}</b><small>${CFG.extraInTotal ? 'Semua 6 platform' : 'TikTok + IG + FB + YT'}</small><div class="ov-mf">${momPill(cc.ch('views')) || ''}<em>TT ${fmt(P('tiktok').views)}/${fmt(T.tiktokViews)}</em></div></div>
         <div class="ov-mt"><span class="oc-gl">Status KPI</span><b>${nH}<small class="ov-of">/${n}</small></b><small>${live ? 'on track' : 'capai target'}</small>
           <div class="ov-seg">${nH ? `<i class="good" style="flex:${nH}"></i>` : ''}${nM ? `<i class="bad" style="flex:${nM}"></i>` : ''}${nN ? `<i class="na" style="flex:${nN}"></i>` : ''}</div>
           <div class="ov-segl"><span><i class="good"></i>${nH}</span><span><i class="bad"></i>${nM}</span>${nN ? `<span><i class="na"></i>${nN}</span>` : ''}</div></div>
@@ -719,7 +720,7 @@
     { let yy = y, mm = m; for (let i = 0; i < 6; i++) { months.unshift([yy, mm]); [yy, mm] = KD.prevYM(yy, mm); } }
     const hist = months.map(([yy, mm]) => { const cp = KD.company(state.ds, yy, mm), mcx = KD.monthCore(state.ds, yy, mm); return { views: cp.views, engagement: cp.engagement, newFollowers: cp.newFollowers, wa: mcx.v.wa }; });
     const split = k => { const t = co.plats.reduce((a, p) => a + (p[k] || 0), 0); return t ? `<div class="ov-split">${co.plats.filter(p => p[k]).map(p => `<i style="flex:${p[k]};background:${PCL[p.id]}" data-tip="${esc(`${p.name}: ${fmt(p[k])} (${Math.round(100 * p[k] / t)}%)`)}"></i>`).join('')}</div>` : ''; };
-    const prow = (id, val, note = '') => `<li${P(id).extra ? ' class="ov-ex"' : ''}><span class="ov-pd" style="background:${PCL[id]}"></span><span class="ov-pn">${P(id).name}</span><span class="ov-pv">${val}</span>${note ? `<small>${note}</small>` : ''}</li>`;
+    const prow = (id, val, note = '') => `<li${P(id).extra && !CFG.extraInTotal ? ' class="ov-ex"' : ''}><span class="ov-pd" style="background:${PCL[id]}"></span><span class="ov-pn">${P(id).name}</span><span class="ov-pv">${val}</span>${note ? `<small>${note}</small>` : ''}</li>`;
     // Threads & Telegram: baris tambahan di bawah, tidak masuk jumlah (CFG.extraInTotal)
     const exRows = k => co.extra.filter(p => p.days).map(p => prow(p.id, fmt(p[k]), 'tak masuk jumlah')).join('');
     const AIC = {
@@ -849,6 +850,7 @@
     };
     h += secHead('Level Company, insight akaun', 'Prestasi platform', `Views, reach, engagement dan follower baru, dinormalkan ikut hari data untuk ▲▼`);
     h += `<div class="ct-plats">${co.plats.map(p => {
+      if (p.extra) return p.days ? exCard(p) : '';
       const [c1, c2, ab] = PC[p.id] || ['#046AD8', '#6E9BFF', '?'];
       const share = co.views && p.views != null ? Math.round(100 * p.views / co.views) : null;
       return `<div class="ct-pc-card"><div class="ct-ph" style="--c1:${c1};--c2:${c2}"><span class="ct-pa">${ab}</span><span class="ct-pn"><b>${p.name}</b><span>${p.days}/${dim} hari data</span></span>${share != null ? `<span class="ct-sh">${share}%<small>views</small></span>` : ''}</div>
@@ -860,7 +862,7 @@
       ${co.extra.filter(p => p.days).map(exCard).join('')}
       <div class="ct-pc-card ct-tot"><div class="ct-pb"><span class="ct-pl">Jumlah ${co.plats.filter(p => p.views != null).length} platform</span><div class="ct-pv"><b>${fmt(co.views)}</b>${momPill(cc.ch('views'))}</div>
         <div class="ct-ps"><div><span>Engagement</span><b>${fmt(co.engagement)}</b>${momPill(cc.ch('engagement'))}</div><div><span>Follower baru</span><b>${fmt(co.newFollowers)}</b>${momPill(cc.ch('newFollowers'))}</div></div></div></div></div>
-      <div class="chart-cap">Engagement TikTok = Likes + Comments + Shares; Facebook & Instagram = Interactions; YouTube tiada data engagement (tak masuk jumlah engagement). Follower baru YouTube = subscriber baru. Threads & Telegram (tab Threads / Telegram, mula Okt 2026) dipapar berasingan dan tidak masuk jumlah; engagement Telegram = shares + reactions, followers = jumlah hujung bulan. Reach tak dijumlahkan sebab orang sama boleh dikira di beberapa platform.</div>`;
+      <div class="chart-cap">Engagement TikTok = Likes + Comments + Shares; Facebook & Instagram = Interactions; YouTube tiada data engagement (tak masuk jumlah engagement). Follower baru YouTube = subscriber baru. Threads & Telegram (tab Threads / Telegram, mula Okt 2026) masuk jumlah semua platform; engagement Telegram = shares + reactions, Threads tiada data engagement; followers = jumlah hujung bulan. Reach tak dijumlahkan sebab orang sama boleh dikira di beberapa platform.</div>`;
 
     // ---- 3. Trend views bulanan ----
     const series = KD.monthlySeries(state.ds).filter(r => r.key <= key).slice(-12).map(r => {
@@ -868,8 +870,8 @@
       return { ...r, _lab: MON[mm - 1], _full: monLabel(r.key), _hl: r.key === key, _dim: ['tt', 'fb', 'ig', 'yt'].some(q => r[q + '_days'] && r[q + '_days'] < d * 0.9) };
     });
     h += `<div class="card tcard" style="margin-top:16px"><div class="tc-h"><div><span class="cf-eyebrow">12 bulan terakhir</span><h3>Views ikut platform</h3></div></div>
-      <div class="tlg"><span><i style="background:#046AD8"></i>TikTok</span><span><i style="background:#7B5CF5"></i>Instagram</span><span><i style="background:#1FB6C9"></i>Facebook</span><span><i style="background:#E0262B"></i>YouTube</span></div>
-      ${tChart(series, [{ k: 'tt_views', n: 'TikTok', c1: '#6E9BFF', c2: '#046AD8' }, { k: 'ig_views', n: 'IG', c1: '#9C84FF', c2: '#6A47EE' }, { k: 'fb_views', n: 'FB', c1: '#4FD3E0', c2: '#15A2B8' }, { k: 'yt_views', n: 'YT', c1: '#FF6B6B', c2: '#E0262B' }], { w: Math.min(chartW(), 1100), hl: true, aria: 'Views bulanan ikut platform' })}
+      <div class="tlg"><span><i style="background:#046AD8"></i>TikTok</span><span><i style="background:#7B5CF5"></i>Instagram</span><span><i style="background:#1FB6C9"></i>Facebook</span><span><i style="background:#E0262B"></i>YouTube</span>${CFG.extraInTotal ? '<span><i style="background:#5B6472"></i>Threads</span><span><i style="background:#229ED9"></i>Telegram</span>' : ''}</div>
+      ${tChart(series, [{ k: 'tt_views', n: 'TikTok', c1: '#6E9BFF', c2: '#046AD8' }, { k: 'ig_views', n: 'IG', c1: '#9C84FF', c2: '#6A47EE' }, { k: 'fb_views', n: 'FB', c1: '#4FD3E0', c2: '#15A2B8' }, { k: 'yt_views', n: 'YT', c1: '#FF6B6B', c2: '#E0262B' }, ...(CFG.extraInTotal ? [{ k: 'th_views', n: 'Threads', c1: '#8A93A1', c2: '#3B424D' }, { k: 'tg_views', n: 'Telegram', c1: '#6CC6F2', c2: '#1B7DB5' }] : [])], { w: Math.min(chartW(), 1100), hl: true, aria: 'Views bulanan ikut platform' })}
       <div class="chart-cap">Bar pudar = data harian bulan itu belum lengkap.</div></div>`;
 
     if (!c) return h;

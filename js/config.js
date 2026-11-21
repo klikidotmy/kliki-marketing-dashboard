@@ -30,9 +30,9 @@
       // Telegram (channel): Date, Followers, Joined, Left, Net Growth, Views, Shares, Reactions
       telegram:    { gid: 54749228,  range: 'A1:H2000' },
     },
-    // Threads & Telegram dipapar sebagai platform tambahan dan TIDAK masuk jumlah views/engagement/follower semua
-    // platform (sasaran KPI 6M = TikTok + FB + IG + YouTube). Set true untuk campurkan dalam jumlah.
-    extraInTotal: false,
+    // Threads & Telegram ialah platform rasmi KLIKI: MASUK jumlah views / engagement / follower baru semua platform
+    // (termasuk KPI "Total view semua platform" 6M), keputusan Hafiz 21 Nov 2026. Set false untuk asingkan semula.
+    extraInTotal: true,
 
     // Tab per-post bulanan dalam REPORT CONTENT DATA. Kunci = 'YYYY-MM'.
     // Bulan baru yang belum ada di sini akan dicari ikut nama tab (lihat monthTabNames).

@@ -496,7 +496,7 @@
       waOnline: lt ? lt.wa_Online ?? null : null, waBuyback: lt ? lt.wa_Buyback ?? null : null,
       leads: leadDays ? sumO('leads') : null, walkin: walkDays ? sumO('walkin') : null,
       // Gabungan platform untuk funnel "Dari content ke kedai" (FB/IG/YT: views dari Insight; YouTube tiada profile visit)
-      allViews: tt.days ? tt.views + (s.facebook.views || 0) + (s.instagram.views || 0) + (s.youtube.views || 0) : null,
+      allViews: tt.days ? tt.views + (s.facebook.views || 0) + (s.instagram.views || 0) + (s.youtube.views || 0) + (CFG.extraInTotal ? (s.threads.views || 0) + (s.telegram.views || 0) : 0) : null,
       allVisits: tt.days && tt.profileViews != null ? tt.profileViews + (s.facebook.visit || 0) + (s.instagram.visit || 0) : null,
       location: lt && CFG.outlets.some(x => lt['loc_' + x] != null) ? CFG.outlets.reduce((a, x) => a + (lt['loc_' + x] || 0), 0) : null,
     };
@@ -555,7 +555,7 @@
 
   // Funnel: Views → Profile → Linktree → WhatsApp → Leads → Walk-in
   const FUNNEL = [
-    { id: 'allViews', label: 'View content', sub: 'TikTok + IG + FB + YT' },
+    { id: 'allViews', label: 'View content', sub: CFG.extraInTotal ? 'Semua 6 platform' : 'TikTok + IG + FB + YT' },
     { id: 'allVisits', label: 'Profile visit', sub: 'TikTok + IG + FB' },
     { id: 'uniqueClicks', label: 'Buka Linktree', sub: 'Unique view' },
     { id: 'wa', label: 'Klik WhatsApp', sub: '4 outlet' },

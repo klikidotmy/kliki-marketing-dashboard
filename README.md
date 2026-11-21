@@ -51,7 +51,7 @@ Semua formula KPI ada dalam `js/data.js`. `js/app.js` hanya paparan.
 
 YouTube (tab `Youtube`, mula 24/10/2025): View, Watch Time (hrs), Impressions, CTR (%), New / Lost / Net Subscribers, diisi dari export YouTube Studio → Advanced mode, breakdown **Date**. Views YouTube masuk jumlah View content; CTR bulanan = purata berpemberat ikut impressions; YouTube tiada reach & engagement dalam export jadi tak masuk jumlah engagement; follower baru YouTube = subscriber baru.
 
-Threads & Telegram (tab `Threads`, `Telegram`, mula 01/10/2026): dipapar sebagai platform tambahan (Overview, Content, Trend) tetapi **tidak masuk** jumlah views / engagement / follower baru semua platform, supaya jumlah kekal TikTok + FB + IG + YouTube (asas sasaran 6M). Tukar `extraInTotal: true` dalam `js/config.js` untuk campurkan. Followers = jumlah hujung bulan (nilai terakhir), bukan dijumlahkan. Engagement Telegram = Shares + Reactions; Threads tiada data engagement.
+Threads & Telegram (tab `Threads`, `Telegram`, mula 01/10/2026): platform rasmi KLIKI, jadi **masuk** jumlah views / engagement / follower baru semua platform dan View content (keputusan Hafiz 21 Nov 2026; `extraInTotal: true` dalam `js/config.js`). Followers = jumlah hujung bulan (nilai terakhir), bukan dijumlahkan. Engagement Telegram = Shares + Reactions; Threads tiada data engagement.
 
 Peraturan data: sel kosong = tiada data (bukan 0). Views per-post (tab bulanan) tidak dicampur dengan views akaun (tab platform). Engagement FB/IG = lajur Interactions (tiada pecahan like/comment/share). Net follower hanya untuk TikTok (FB/IG tiada data unfollow).
 
