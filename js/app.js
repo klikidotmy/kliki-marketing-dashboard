@@ -245,7 +245,7 @@
       <p class="cf-note">Klik WhatsApp tak sama dengan mesej dihantar, dan lead outlet datang dari semua source. Ratio ni sebagai petunjuk je, bukan conversion sebenar.</p>`;
     const hqL = KD.leadCategories(state.ds, y, m).hq;
     if (hqL.total != null) {
-      h += `<div class="cf-hq"><div class="cf-hq-h"><b>Lead WA HQ</b><span>Online Postage + Buyback</span></div>
+      h += `<div class="cf-hq"><div class="cf-hq-h"><b>Lead WA HQ</b><span>Online Postage (masuk Phone) + Buyback (masuk CC), sudah dalam Total lead</span></div>
         <div class="cf-hq-t"><span>Online Postage</span><b>${fmt(hqL.online)}</b></div>
         <div class="cf-hq-t"><span>Buyback</span><b>${fmt(hqL.buyback)}</b></div>
         <div class="cf-hq-t tot"><span>Total lead HQ</span><b>${fmt(hqL.total)}</b></div></div>`;
@@ -447,7 +447,7 @@
   function viewTrend(key) {
     const all = KD.monthlySeries(state.ds).filter(r => r.key <= key).slice(-12);
     if (!all.length) return `<div class="card empty">Belum ada data trend.</div>`;
-    const sumO = (r, p) => { const v = CFG.outlets.map(x => r[p + x]).filter(z => z != null); return v.length ? v.reduce((a, b) => a + b, 0) : null; };
+    const sumO = (r, p) => { const v = [...CFG.outlets, 'HQ'].map(x => r[p + x]).filter(z => z != null); return v.length ? v.reduce((a, b) => a + b, 0) : null; };
     const rows = all.map(r => {
       const [yy, mm] = parseKey(r.key), dim = daysIn(yy, mm);
       const ttd = r.tt_days || 0;
@@ -476,7 +476,7 @@
 
     let h = `<div class="op-head"><div><span class="cf-eyebrow">Level Company, 12 bulan terakhir sehingga ${monLabel(key)}</span><h2 class="op-h">Trend bulanan</h2></div></div>`;
     pendingNote = `Perbandingan ${monLabel(key)} dengan ${prev ? prev._full : 'bulan lepas'}. Bulan pudar = data harian tak lengkap.`;
-    h += `<div class="tk-strip">${tile('View content', CFG.extraInTotal ? 'Semua 6 platform' : 'TikTok + IG + FB + YT', 'allV', { top: true })}${tile('TikTok views', 'Target ' + tl(T.tiktokViews), 'tt_views')}${tile('Lead', tgLead == null ? '4 outlet, target belum ditetapkan' : '4 outlet, target ' + fmt(tgLead), 'lead_all')}${tile('Walk-in', tgWalk == null ? '4 outlet, target belum ditetapkan' : '4 outlet, target ' + fmt(tgWalk), 'walk_all')}</div>`;
+    h += `<div class="tk-strip">${tile('View content', CFG.extraInTotal ? 'Semua 6 platform' : 'TikTok + IG + FB + YT', 'allV', { top: true })}${tile('TikTok views', 'Target ' + tl(T.tiktokViews), 'tt_views')}${tile('Lead', tgLead == null ? '4 outlet + HQ, target belum ditetapkan' : '4 outlet + HQ, target ' + fmt(tgLead), 'lead_all')}${tile('Walk-in', tgWalk == null ? '4 outlet, target belum ditetapkan' : '4 outlet, target ' + fmt(tgWalk), 'walk_all')}</div>`;
 
     h += flushNote();
     h += card('Semua platform', 'View content ikut platform', meta('allV'),
@@ -492,7 +492,7 @@
       h += card('Threads', 'Net followers Threads', meta('th_netFollowers'), tChart(rows, [{ k: 'th_netFollowers', n: 'Net', ...TH }], { w: half, hl: true, aria: 'Net followers Threads bulanan' }));
       h += card('Telegram', 'Net growth Telegram', meta('tg_netGrowth'), tChart(rows, [{ k: 'tg_netGrowth', n: 'Net', ...TG }], { w: half, hl: true, aria: 'Net growth Telegram bulanan' }));
     }
-    h += card('Kedai', 'Lead (4 outlet)', meta('lead_all'), tChart(rows, [{ k: 'lead_all', n: 'Lead', ...NV }], { w: half, hl: true, target: tgLead, aria: 'Lead bulanan' }));
+    h += card('Kedai', 'Lead (4 outlet + HQ)', meta('lead_all'), tChart(rows, [{ k: 'lead_all', n: 'Lead', ...NV }], { w: half, hl: true, target: tgLead, aria: 'Lead bulanan' }));
     h += card('Kedai', 'Walk-in (4 outlet)', meta('walk_all'), tChart(rows, [{ k: 'walk_all', n: 'Walk-in', ...NV }], { w: half, hl: true, target: tgWalk, aria: 'Walk-in bulanan' }));
     h += `</div>`;
 
@@ -619,7 +619,7 @@
       ${c === 'cc' ? '<div class="kc-note">CC = Trade-in + Buyback.</div>' : ''}
       ${c === 'others' ? `<div class="kc-note">${OTHERS_NOTE}</div>` : ''}
     </div>`).join('')}</div>`;
-    h += `<div class="chart-cap">Sumber: MASTER SHEET SALES OUTLET (diisi staf outlet), data sehingga ${LC.lastDay || 0}/${m}. Kulim & Kelang Lama dikira satu kedai. Jumlah ikut target = Phone + Repair + CC; Others (mula 23 Okt 2026) dipapar berasingan tanpa target. Bukan dari blok OVERALL dalam sheet. ${LC.noTarget ? '' : `Harian & perlu sehari = hari biasa semua outlet buka; status ikut hari operasi (AOR, SP, PDG tutup Rabu). Purata kalendar ikut brief: lead ${fmt(Math.round(LC.lead.total.calDaily))}, walk-in ${fmt(Math.round(LC.walkin.total.calDaily))} sehari.`}</div>`;
+    h += `<div class="chart-cap">Sumber: MASTER SHEET SALES OUTLET (diisi staf outlet), data sehingga ${LC.lastDay || 0}/${m}. Kulim & Kelang Lama dikira satu kedai. Jumlah ikut target = Phone + Repair + CC, termasuk lead HQ (Online Postage dalam Phone, Buyback dalam CC); Others (mula 23 Okt 2026) dipapar berasingan tanpa target. Bukan dari blok OVERALL dalam sheet. ${LC.noTarget ? '' : `Harian & perlu sehari = hari biasa semua outlet buka; status ikut hari operasi (AOR, SP, PDG tutup Rabu). Purata kalendar ikut brief: lead ${fmt(Math.round(LC.lead.total.calDaily))}, walk-in ${fmt(Math.round(LC.walkin.total.calDaily))} sehari.`}</div>`;
     return h;
   }
 
@@ -742,7 +742,7 @@
     h += aCard('fol', 'Follower baru', fmt(co.newFollowers), momPill(cc.ch('newFollowers')), split('newFollowers') + `<ul class="ov-pl">${co.plats.map(p => prow(p.id, fmt(p.newFollowers))).join('')}${exRows('newFollowers')}</ul>`,
       `TikTok net <b class="${(tt.netFollowers || 0) < T.netFollowersFloor ? 'neg' : ''}">${tt.netFollowers == null ? '—' : (tt.netFollowers > 0 ? '+' : '') + fmt(tt.netFollowers)}</b>, had ${fmt(T.netFollowersFloor)}${yt && yt.netFollowers != null ? `, YT net <b class="${yt.netFollowers < 0 ? 'neg' : ''}">${(yt.netFollowers > 0 ? '+' : '') + fmt(yt.netFollowers)}</b>` : ''}`, 'newFollowers');
     h += aCard('wa', 'Klik WhatsApp', fmt(waAll), K.wa.actual == null ? '' : momPill(K.wa.mom),
-      `<ul class="ov-wl"><li><span>4 outlet</span><b>${fmt(K.wa.actual)}</b><small>${K.wa.actual == null ? 'belum diisi' : pctN(K.wa.actual, K.wa.target) + '% target'}</small></li><li><span>Online Postage, HQ</span><b>${fmt(mc.v.waOnline)}</b></li><li><span>Buyback, HQ</span><b>${fmt(mc.v.waBuyback)}</b></li><li><span>Lead / klik outlet</span><b>${K.wa.actual ? (L.actual / K.wa.actual).toFixed(1) : '—'}</b></li></ul>`, '', 'wa');
+      `<ul class="ov-wl"><li><span>4 outlet</span><b>${fmt(K.wa.actual)}</b><small>${K.wa.actual == null ? 'belum diisi' : pctN(K.wa.actual, K.wa.target) + '% target'}</small></li><li><span>Online Postage, HQ</span><b>${fmt(mc.v.waOnline)}</b></li><li><span>Buyback, HQ</span><b>${fmt(mc.v.waBuyback)}</b></li><li><span>Lead / klik outlet</span><b>${K.wa.actual && mc.v.leadsOutlet != null ? (mc.v.leadsOutlet / K.wa.actual).toFixed(1) : '—'}</b></li></ul>`, '', 'wa');
     h += `</div>`;
 
     // ---- 5. KPI paling jauh + highlights ----

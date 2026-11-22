@@ -314,6 +314,8 @@
         const v = r[x] && r[x][kind];
         o[x] = !v || CATS_TGT.every(c => v[c] == null) ? null : CATS_TGT.reduce((a, c) => a + (v[c] || 0), 0);
       }
+      // HQ (Online Postage + Buyback): lead sahaja, masuk Total company (keputusan Hafiz 22 Nov 2026)
+      if (kind === 'lead' && r.HQ && r.HQ.lead.some(v => v != null)) o.HQ = r.HQ.lead.reduce((a, v) => a + (v || 0), 0);
       return o;
     }).filter(o => KEYS.outlet4.some(x => o[x] != null));
   }
@@ -431,7 +433,7 @@
       leads: new Set(lead.filter(r => KEYS.outlet4.some(k => r[k] != null)).map(r => r.date.d)).size,
       walkin: new Set(walk.filter(r => KEYS.outlet4.some(k => r[k] != null)).map(r => r.date.d)).size,
     };
-    return { outlets: res, linktree: lt, days };
+    return { outlets: res, linktree: lt, days, hqLeads: sum(lead, r => r.HQ) };
   }
 
   // Siri bulanan untuk tab Trend
@@ -456,7 +458,7 @@
     for (const [src, pre] of [['threads', 'th_'], ['telegram', 'tg_']]) for (const r of ds[src] || []) {
       if (r.followers == null) continue; const o = by[ym(r.date.y, r.date.m)] || (by[ym(r.date.y, r.date.m)] = {}); o[pre + 'followers'] = r.followers;
     }
-    add('leads', KEYS.outlet4, 'lead_');
+    add('leads', [...KEYS.outlet4, 'HQ'], 'lead_');
     add('walkin', KEYS.outlet4, 'walk_');
     return Object.keys(by).sort().map(k => ({ key: k, ...by[k] }));
   }
@@ -494,7 +496,8 @@
       // LINKTREE diisi sebulan sekali: jika tiada satu pun nilai WA outlet, kira 'tiada data' (bukan 0)
       wa: lt && CFG.outlets.some(x => lt['wa_' + x] != null) ? CFG.outlets.reduce((a, x) => a + (lt['wa_' + x] || 0), 0) : null,
       waOnline: lt ? lt.wa_Online ?? null : null, waBuyback: lt ? lt.wa_Buyback ?? null : null,
-      leads: leadDays ? sumO('leads') : null, walkin: walkDays ? sumO('walkin') : null,
+      // leads = 4 outlet + HQ (Online Postage + Buyback); leadsOutlet = 4 outlet sahaja (untuk funnel klik WhatsApp outlet)
+      leads: leadDays ? sumO('leads') + (o.hqLeads || 0) : null, leadsOutlet: leadDays ? sumO('leads') : null, walkin: walkDays ? sumO('walkin') : null,
       // Gabungan platform untuk funnel "Dari content ke kedai" (FB/IG/YT: views dari tab platform; YouTube tiada profile visit)
       allViews: tt.days ? tt.views + (s.facebook.views || 0) + (s.instagram.views || 0) + (s.youtube.views || 0) + (CFG.extraInTotal ? (s.threads.views || 0) + (s.telegram.views || 0) : 0) : null,
       allVisits: tt.days && tt.profileViews != null ? tt.profileViews + (s.facebook.visit || 0) + (s.instagram.visit || 0) : null,
@@ -504,7 +507,7 @@
     // faktor normalisasi (nisbah & data Linktree bulanan tak dinormalkan)
     const f = {
       views: ttF, likes: ttF, comments: ttF, shares: ttF, profileViews: ttF, newFollowers: ttF, netGrowth: ttF,
-      leads: leadDays ? dim / leadDays : null, walkin: walkDays ? dim / walkDays : null,
+      leads: leadDays ? dim / leadDays : null, leadsOutlet: leadDays ? dim / leadDays : null, walkin: walkDays ? dim / walkDays : null,
     };
     const norm = k => v[k] == null ? null : v[k] * (f[k] || 1);
     // pace lead/walk-in ikut hari operasi setiap outlet (Rabu tutup kecuali Kulim/Kelang Lama)
@@ -530,7 +533,7 @@
     { id: 'ctrAction', label: 'CTR Action Linktree', target: T => T.ctrAction, unit: '%' },
     { id: 'telegram', label: 'Klik Telegram', target: T => T.telegram },
     { id: 'wa', label: 'Klik WhatsApp (4 outlet)', target: T => CFG.outlets.reduce((a, x) => a + T.outlet[x].wa, 0) },
-    { id: 'leads', label: 'Leads (4 outlet)', target: (T, y, m) => { const p = leadPlan(y, m); return p ? p.company.lead.total : null; }, pace: 'out' },
+    { id: 'leads', label: 'Leads (4 outlet + HQ)', target: (T, y, m) => { const p = leadPlan(y, m); return p ? p.company.lead.total : null; }, pace: 'out' },
     { id: 'walkin', label: 'Walk-in (4 outlet)', target: (T, y, m) => { const p = leadPlan(y, m); return p ? p.company.walkin.total : null; }, pace: 'outW' },
     { id: 'conversion', label: 'Conversion', target: T => T.conversion, unit: '%' },
   ];
@@ -559,7 +562,7 @@
     { id: 'allVisits', label: 'Profile visit', sub: 'TikTok + IG + FB' },
     { id: 'uniqueClicks', label: 'Buka Linktree', sub: 'Unique view' },
     { id: 'wa', label: 'Klik WhatsApp', sub: '4 outlet' },
-    { id: 'leads', label: 'Lead direkod', sub: 'Staff outlet', outlet: true },
+    { id: 'leads', src: 'leadsOutlet', label: 'Lead direkod', sub: 'Staff outlet (tanpa HQ)', outlet: true },
     { id: 'walkin', label: 'Walk-in direkod', sub: 'Klik lokasi', outlet: true },
   ];
   const STEP_NOTE = {
@@ -574,7 +577,7 @@
       const c = monthCore(ds, yy, mm).v;
       return FUNNEL.map((st, i) => {
         if (!i) return null;
-        const a = c[st.id], b = c[FUNNEL[i - 1].id];
+        const a = c[st.src || st.id], b = c[FUNNEL[i - 1].src || FUNNEL[i - 1].id];
         return a != null && b ? 100 * a / b : null;
       });
     };
@@ -584,7 +587,7 @@
     const stages = FUNNEL.map((st, i) => {
       const h = hist.map(x => x[i]).filter(v => v != null);
       const avg = h.length ? h.reduce((a, b) => a + b, 0) / h.length : null;
-      return { ...st, value: cur[st.id], rate: r[i], prevRate: rp[i], avg3: avg, vsAvg: i && r[i] != null && avg ? 100 * (r[i] - avg) / avg : null, note: STEP_NOTE[st.id] };
+      return { ...st, value: cur[st.src || st.id], rate: r[i], prevRate: rp[i], avg3: avg, vsAvg: i && r[i] != null && avg ? 100 * (r[i] - avg) / avg : null, note: STEP_NOTE[st.id] };
     });
     // titik paling lemah = kadar yang paling jatuh berbanding purata 3 bulan sebelum
     const cands = stages.filter(s => s.vsAvg != null);
@@ -800,6 +803,9 @@
       const hqSum = i => (rows.some(r => r.HQ && r.HQ.lead[i] != null) ? rows.reduce((a, r) => a + ((r.HQ && r.HQ.lead[i]) || 0), 0) : null);
       res.hq = { online: hqSum(0), buyback: hqSum(1), total: null };
       res.hq.total = res.hq.online == null && res.hq.buyback == null ? null : (res.hq.online || 0) + (res.hq.buyback || 0);
+      // Total company termasuk HQ: Online Postage masuk Phone, Buyback masuk CC (keputusan Hafiz 22 Nov 2026). Outlet tak berubah.
+      if (res.hq.online != null) res.lead.phone = (res.lead.phone || 0) + res.hq.online;
+      if (res.hq.buyback != null) res.lead.cc = (res.lead.cc || 0) + res.hq.buyback;
       for (const x of KEYS.outlet4) {
         res.outlets[x] = { lead: {}, walkin: {} };
         for (const kind of ['lead', 'walkin']) for (const c of CATS) res.outlets[x][kind][c] = rows.some(r => r[x] && r[x][kind][c] != null) ? sum(rows, r => r[x] && r[x][kind][c]) : null;
@@ -845,9 +851,8 @@
           daily: noT ? null : leadDaily(y, m, kind, c), calDaily: target != null ? target / dim : null, need };
       }
     }
-    // Total lead untuk paparan: semua kategori 4 outlet (termasuk Others) + HQ. Tiada target, rujukan volume sahaja.
-    const hqT = cur.hq.total, allA = out.lead.all.actual;
-    out.leadWithHq = { actual: allA == null && hqT == null ? null : (allA || 0) + (hqT || 0) };
+    // Total lead untuk paparan: semua kategori (termasuk Others) + HQ. HQ dah masuk Phone/CC, jadi tak ditambah lagi.
+    out.leadWithHq = { actual: out.lead.all.actual };
     return out;
   }
 
