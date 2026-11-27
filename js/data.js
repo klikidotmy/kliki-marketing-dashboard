@@ -856,7 +856,30 @@
     return out;
   }
 
-  const API = { leadCategories, leadPlan, leadProgress, leadDaily, opDays, parseLeadDetail, company, companyCompare, scorecard, kpis, funnel, insights, monthCore, prevYM, change, parseCSV, num, parseDate, parseDaily, parsePosts, parseLinktree, parseNamed, KEYS, loadAll, loadMonthPosts, monthsAvailable, social, contentStats, outletStats, monthlySeries, status, tierOf, ym, daysIn };
+  // Lead & walk-in setiap outlet ikut kategori, berbanding jangkaan setakat hari data terakhir (day to date).
+  // sepatutnya = target outlet × (hari operasi outlet dah lepas ÷ hari operasi sebulan), dibundar.
+  // diff = actual − sepatutnya: + surplus, − deficit. Bulan lengkap: sepatutnya = target penuh.
+  // Outlet sahaja (tanpa HQ). Tiada data bulan itu / tiada target = sepatutnya null.
+  function leadOutletPace(ds, y, m) {
+    const LC = leadCategories(ds, y, m), plan = LC.plan, prog = LC.progress;
+    const outlets = KEYS.outlet4.map(x => {
+      const p = prog.outlets[x], v = LC.outlets[x] || { lead: {}, walkin: {} };
+      const res = { x, pace: p.pace, done: p.done, total: p.total, lead: {}, walkin: {} };
+      for (const kind of ['lead', 'walkin']) for (const c of CATS_T) {
+        const actual = c === 'total' ? (CATS_TGT.every(k => v[kind][k] == null) ? null : CATS_TGT.reduce((a, k) => a + (v[kind][k] || 0), 0)) : v[kind][c];
+        const target = plan ? plan.outlets[x][kind][c] : null;
+        const na = !target; // Pendang repair (target 0) / tiada target
+        const expected = na || !prog.day ? null : Math.round(target * p.pace);
+        const diff = expected == null ? null : (actual || 0) - expected;
+        const st = na ? { level: 'na' } : status(actual == null ? 0 : actual, target, p.pace);
+        res[kind][c] = { actual, target, expected, diff, na, status: diff == null ? { level: 'na' } : diff >= 0 ? { level: 'good' } : st };
+      }
+      return res;
+    });
+    return { available: LC.available, noTarget: !plan, lastDay: prog.day, dim: prog.dim, live: outlets.some(o => o.pace < 1), outlets };
+  }
+
+  const API = { leadOutletPace, leadCategories, leadPlan, leadProgress, leadDaily, opDays, parseLeadDetail, company, companyCompare, scorecard, kpis, funnel, insights, monthCore, prevYM, change, parseCSV, num, parseDate, parseDaily, parsePosts, parseLinktree, parseNamed, KEYS, loadAll, loadMonthPosts, monthsAvailable, social, contentStats, outletStats, monthlySeries, status, tierOf, ym, daysIn };
   root.KD = API;
   if (typeof module !== 'undefined') module.exports = API;
 })(typeof window !== 'undefined' ? window : globalThis);

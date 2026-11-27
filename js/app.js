@@ -624,6 +624,34 @@
   }
 
   // =========================================================
+  // LEAD & WALK-IN OUTLET (Overview): actual vs sepatutnya setakat hari data terakhir
+  // =========================================================
+  function outletPaceSection(key) {
+    const [y, m] = parseKey(key);
+    const OP = KD.leadOutletPace(state.ds, y, m);
+    if (!OP.available) return '';
+    const upto = OP.live ? `setakat ${OP.lastDay}/${m}` : 'bulan penuh';
+    let h = secHead('Level Outlet, day to date', 'Lead & walk-in ikut outlet',
+      OP.noTarget ? `Target ${monLabel(key)} belum ditetapkan.` : `Sepatutnya = target outlet × hari operasi dah lepas ÷ hari operasi sebulan (${upto}). + surplus, − deficit. Jumlah = Phone + Repair + CC, tanpa lead HQ.`);
+    if (OP.noTarget || !OP.lastDay) return h + `<div class="card empty">${OP.noTarget ? 'Target belum ditetapkan, status surplus / deficit tak dapat dikira.' : 'Belum ada data lead / walk-in bulan ini.'}</div>`;
+    const sd = r => r.na ? '<span class="opc-sd na">N/A</span>' : r.diff == null ? '<span class="opc-sd na">—</span>'
+      : `<span class="opc-sd ${r.status.level}">${r.diff >= 0 ? '+' : '−'}${fmt(Math.abs(r.diff))}</span>`;
+    const cell = r => r.na ? '<td class="mute">N/A</td>' : `<td><b>${fmt(r.actual ?? 0)}</b><small>/ ${fmt(r.expected)}</small></td>`;
+    const word = r => r.diff == null ? '—' : r.diff >= 0 ? 'Surplus' : 'Deficit';
+    const pill = (lab, r) => `<span class="opc-pl ${r.status.level}"><em>${lab}</em> ${word(r)} <b>${r.diff == null ? '' : (r.diff >= 0 ? '+' : '−') + fmt(Math.abs(r.diff))}</b></span>`;
+    h += `<div class="opc-grid">${OP.outlets.map(o => {
+      const rows = ['phone', 'repair', 'cc', 'total'].map(c => `<tr class="${c === 'total' ? 'tot' : ''}"><th>${c === 'total' ? 'Jumlah' : CAT_NAME[c]}</th>${cell(o.lead[c])}<td class="sd">${sd(o.lead[c])}</td>${cell(o.walkin[c])}<td class="sd">${sd(o.walkin[c])}</td></tr>`).join('');
+      return `<div class="card opc-card">
+        <div class="opc-ch"><b>${esc(CFG.outletNames[o.x] || o.x)}</b><small>${o.pace < 1 ? `Hari operasi ${o.done}/${o.total}` : `${o.total} hari operasi`}</small></div>
+        <div class="opc-pls">${pill('Lead', o.lead.total)}${pill('Walk-in', o.walkin.total)}</div>
+        <div class="opc-tw"><table class="opc-t"><thead><tr><th></th><th>Lead<small>actual / sepatutnya</small></th><th>±</th><th>Walk-in<small>actual / sepatutnya</small></th><th>±</th></tr></thead><tbody>${rows}</tbody></table></div>
+        <div class="opc-f">Target sebulan: lead ${fmt(o.lead.total.target)}, walk-in ${fmt(o.walkin.total.target)}</div>
+      </div>`;
+    }).join('')}</div>`;
+    return h;
+  }
+
+  // =========================================================
   // OVERVIEW — eksekutif, peringkat syarikat (semua outlet & platform digabung)
   // =========================================================
   async function viewOverview(key) {
@@ -696,6 +724,9 @@
         <ul class="oc-foot">${foot('Lead', LC.lead[k2])}${foot('Walk-in', LC.walkin[k2])}</ul>
         ${k2 === 'repair' && pdgRep ? `<div class="oc-n">Termasuk ${fmt(pdgRep)} lead repair Pendang (tiada servis).</div>` : k2 === 'cc' ? '<div class="oc-n">CC = Trade-in + Buyback.</div>' : k2 === 'others' ? `<div class="oc-n">${OTHERS_NOTE}</div>` : ''}</div>`).join('')}</div>`;
     }
+
+    // ---- 2b. Lead & walk-in ikut outlet: actual vs sepatutnya setakat hari ini (surplus / deficit) ----
+    h += outletPaceSection(key);
 
     // ---- 3. Content output ----
     h += secHead('Level Company, dari REPORT CONTENT DATA', 'Content output');
